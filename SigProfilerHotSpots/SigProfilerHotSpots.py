@@ -17,7 +17,8 @@ import scipy
 import time
 import sys
 
-def distance_multiple_files_sims (output_path, output_path_chrom, simulation_path, interdistance, file_context2, inter, genome):
+
+def distance_multiple_files_sims (output_path, output_path_chrom, simulation_path, interdistance, file_context2, inter, genome, sim):
 	sample_path = simulation_path
 	output_path_interdistance = output_path 
 	output_path_chromosome_mutations = output_path_chrom
@@ -52,90 +53,103 @@ def distance_multiple_files_sims (output_path, output_path_chrom, simulation_pat
 	else:
 		os.makedirs(output_path_interdistance)
 
-	for folder in folders:
-		if folder == ".DS_Store":
+	for file in folders:
+		if file == '.DS_Store':
 			continue
-		sample = folder
-		files = os.listdir(sample_path + sample + "/")
-		for file in files:
-			if file == '.DS_Store':
-				continue
-			name = file.split("_")
-			sample = name[0]
-			end = name[2].split('.')
-			sim = end[0]
-			out_folder_dist = output_path_interdistance + sample + "/"
-			out_folder_chrom = output_path_chromosome_mutations + sample + "/"
-			if not os.path.exists(out_folder_dist):
-				os.mkdir(out_folder_dist)
 
-			if not os.path.exists(out_folder_chrom):
-				os.mkdir(out_folder_chrom)
+		sim = file.split(".")[0]
+		with open(sample_path + file) as f:
+			lines = [line.strip().split() for line in f]
 
-			out_file_intra = output_path_interdistance + sample + "/" + sample + "_" + file_context2  + "_" + sim + "_intradistance.txt"
-			out_file_chrom = output_path_chromosome_mutations + sample + "/" + sample + "_" + file_context2  + "_" + sim + "_chrom.txt"
+		output = open(sample_path + file, 'w')
 
-			with open(sample_path + sample + "/" + file) as f:
-				lines = [line.strip().split() for line in f]
+		for line in sorted(lines, key = lambda x: (x[15], ['X','Y','1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22'].index(x[4]), int(x[5]))):
+			print('\t'.join(line), file=output)
 
-			output = open(sample_path + sample + "/" + file, 'w')
-
-			for line in sorted(lines, key = lambda x: (['X','Y','1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22'].index(x[0]), int(x[1]))):
-				print('\t'.join(line), file=output)
-
-			output.close()
+		output.close()
 
 
-			start_chrom = None
-			start_pos = 0
-			i = 0
-			count = 0
-			initial_mut_type = None
-			with open(sample_path + sample + "/" + file) as f, open(out_file_intra, 'w') as out_int, open (out_file_chrom, 'w') as out_chr:
+		with open(sample_path + file) as f:
 
-				initial_line = True
-				initial_mutation = True
-				first_sample_occurence = True
-				previous_line = None
+			initial_line = True
+			initial_mutation = True
+			first_sample_occurence = True
+			previous_line = None
+			prev_dist = 0
 
-				prev_dist = 0
+			for lines in f:
+				line = lines.strip().split()
+				sample = line[15].split("_")
+				# sim = sample[-1]
+				sample = "_".join([x for x in sample[:-1]])
+				chrom = line[4]
+				start = int(line[5])
+				ref = line[10]
+				mut = line[12]
+				mutType = line[9]
 
-				for lines in f:
-					line = lines.strip().split()
-					sample2 = sample
-					chrom = line[0]
-					start = int(line[1])
-					ref = line[2]
-					mut = line[3]
-					mutType = line[5]
+				if mutType == 'INDEL':
+					if len(ref) > 1 and len(mut) > 1:
+						continue
+				else:
+					if initial_line:
+						init_samp = sample
+						init_chrom = chrom
+						init_start = start
+						init_ref = ref
+						init_mut = mut
+						initial_line = False
+						previous_line = line
+						record_prev = True
+						centro_start = centromeres[genome][init_chrom][0]
+						centro_end = centromeres[genome][init_chrom][1]
 
-					if mutType == 'INDEL':
-						if len(ref) > 1 and len(mut) > 1:
-							continue
-					if sample2 != sample:
+						out_folder_dist = output_path_interdistance + init_samp + "/"
+						out_folder_chrom = output_path_chromosome_mutations + init_samp + "/"
+						if not os.path.exists(out_folder_dist):
+							os.makedirs(out_folder_dist)
+						if not os.path.exists(out_folder_chrom):
+							os.makedirs(out_folder_chrom)
 						if first_sample_occurence:
-							continue
-						else:
-							break
+							out_file_intra = output_path_interdistance + init_samp + "/" + init_samp + "_" + file_context2  + "_" + sim + "_intradistance.txt"
+							out_file_chrom = output_path_chromosome_mutations + init_samp + "/" + init_samp + "_" + file_context2  + "_" + sim + "_chrom.txt"
+							out_int = open(out_file_intra, 'w')
+							out_chr = open (out_file_chrom, 'w')
+							first_sample_occurence = False
+						continue
+					
 					else:
-						first_sample_occurence = False
-						if initial_line:
+						if sample != init_samp:
+							# print(str(prev_dist), file=out_int)
+							print("\t".join([str(prev_dist), "-1"]), file=out_int)
+
+							out_int.close()
+							out_chr.close()
+							init_samp = sample
 							init_chrom = chrom
 							init_start = start
 							init_ref = ref
 							init_mut = mut
-							initial_line = False
 							previous_line = line
 							record_prev = True
 							centro_start = centromeres[genome][init_chrom][0]
 							centro_end = centromeres[genome][init_chrom][1]
+							out_folder_dist = output_path_interdistance + init_samp + "/"
+							out_folder_chrom = output_path_chromosome_mutations + init_samp + "/"
+							if not os.path.exists(out_folder_dist):
+								os.makedirs(out_folder_dist)
+
+							if not os.path.exists(out_folder_chrom):
+								os.makedirs(out_folder_chrom)
+							out_file_intra = output_path_interdistance + init_samp + "/" + init_samp + "_" + file_context2  + "_" + sim + "_intradistance.txt"
+							out_file_chrom = output_path_chromosome_mutations + init_samp + "/" + init_samp + "_" + file_context2  + "_" + sim + "_chrom.txt"
+							out_int = open(out_file_intra, 'w')
+							out_chr = open (out_file_chrom, 'w')
 							continue
-						
 						else:
-
 							if chrom != init_chrom:
-								print(str(prev_dist), file=out_int)
-
+								# print(str(prev_dist), file=out_int)
+								print("\t".join([str(prev_dist), "-1"]), file=out_int)
 								init_chrom = chrom
 								init_start = start
 								init_ref = ref
@@ -148,7 +162,8 @@ def distance_multiple_files_sims (output_path, output_path_chrom, simulation_pat
 
 							else:
 								if init_start < centro_start and start > centro_start:
-									print(str(prev_dist), file=out_int)
+									# print(str(prev_dist), file=out_int)
+									print("\t".join([str(prev_dist), "-1"]), file=out_int)
 									initial_line = True
 									initial_mutation = True
 									continue
@@ -164,17 +179,19 @@ def distance_multiple_files_sims (output_path, output_path_chrom, simulation_pat
 									continue
 								dist = start - init_start
 								if initial_mutation:
-									print(str(dist), file=out_int)
+									# print(str(dist), file=out_int)
+									print("\t".join([str(dist), "+1"]), file=out_int)
 									initial_mutation = False
 								else:
 									dist_min = min(dist, prev_dist)
-									print(str(dist_min), file=out_int)
+									# print(str(dist_min), file=out_int)
+									print("\t".join([str(x) for x in sorted([dist, prev_dist])]), file=out_int)
 
 								previous_line = line
 								prev_dist = dist
-					init_start = start
-
-
+				init_start = start
+		out_int.close()
+		out_chr.close()
 
 
 
@@ -184,7 +201,6 @@ def distance_one_file (original_samples, output_path_original, output_path_chrom
 	output_path_interdistance = output_path_original
 	output_path_chromosome_mutations = output_path_chrom_original
 
-	#genome = 'mm10'
 	centromeres = {'GRCh38':{'1': [122026460,125184587],'10': [39686683,41593521],'11':[51078349,54425074],'12':[34769408,37185252],'13': [16000001,18051248],
 				'14': [16000001,18173523],'15': [17000001,19725254],'16': [36311159,38280682],'17': [22813680,26885980],'18': [15460900,20861206],
 				'19': [24498981,27190874],'2': [92188146,94090557],'20': [26436233,30038348],'21': [10864561,12915808],'22': [12954789,15054318],
@@ -271,7 +287,8 @@ def distance_one_file (original_samples, output_path_original, output_path_chrom
 				
 				else:
 					if sample2 != sample:
-						print(str(prev_dist), file=out_int)
+						# print(str(prev_dist), file=out_int)
+						print("\t".join([str(prev_dist), "-1"]), file=out_int)
 						count += 1
 						out_int.close()
 						#out_chr.close()
@@ -296,7 +313,9 @@ def distance_one_file (original_samples, output_path_original, output_path_chrom
 
 					else:
 						if chrom != init_chrom:
-							print(str(prev_dist), file=out_int)
+							# print(str(prev_dist), file=out_int)
+							print("\t".join([str(prev_dist), "-1"]), file=out_int)
+
 							count += 1
 							init_chrom = chrom
 							init_start = start
@@ -312,8 +331,11 @@ def distance_one_file (original_samples, output_path_original, output_path_chrom
 
 						else:
 							if init_start < centro_start and start > centro_start:
-								print(str(prev_dist), file=out_int)
+								# print(str(prev_dist), file=out_int)
+								print("\t".join([str(prev_dist), "-1"]), file=out_int)
+
 								count += 1
+								initial_line = True
 								initial_mutation = True
 								continue
 							if init_start < centro_end and start > centro_end:
@@ -329,12 +351,16 @@ def distance_one_file (original_samples, output_path_original, output_path_chrom
 								continue
 							dist = start - init_start
 							if initial_mutation:
-								print(str(dist), file=out_int)
+								# print(str(dist), file=out_int)
+								print("\t".join([str(dist), "+1"]), file=out_int)
+
 								count += 1
 								initial_mutation = False
 							else:
 								dist_min = min(dist, prev_dist)
-								print(str(dist_min), file=out_int)
+								# print(str(dist_min), file=out_int)
+								print("\t".join([str(x) for x in sorted([dist, prev_dist])]), file=out_int)
+
 								count += 1
 
 							previous_line = line
@@ -343,21 +369,14 @@ def distance_one_file (original_samples, output_path_original, output_path_chrom
 				init_start = start
 
 			if print_file:
-				print(str(prev_dist), file=out_int)
+				# print(str(prev_dist), file=out_int)
+				print("\t".join([str(prev_dist), "-1"]), file=out_int)
+
 				count += 1
 		out_int.close()
 
 
-def analysis (project, genome, contexts, interdistance, input_path, output_type='all', analysis='all'):
-	# parser = argparse.ArgumentParser(description="Provide the necessary arguments to begin simulations.")
-	# parser.add_argument("--project", "-p",help="Provide a unique name for your samples. (ex: BRCA)")
-	# parser.add_argument("--genome", "-g",help="Provide a reference genome. (ex: GRCh37, GRCh38, mm10)")
-	# parser.add_argument("--context", "-c", nargs='*', help="Provide the nucleotide context (ex: 96, 192, 1536, 3072, INDEL, DINUC).")
-	# parser.add_argument("--interdistance", "-id", help="Provide the destired interdistance calc. (ex: SI)")
-	# parser.add_argument("--input_path", "-ip", help="Provide a reference genome. (ex: GRCh37, GRCh38, mm10)")
-	# parser.add_argument("--output_type", "-ot", help="Provide output type (ex: original or simulations or all")
-	# parser.add_argument("--analysis", "-a", help="Provide desired analysis (ex: distance or hotspot or all")
-
+def analysis (project, genome, contexts, simContext, input_path, output_type='all', analysis='all', interdistance='96', clustering_vaf=False):
 	ncbi_chrom = {'NC_000067.6':'1', 'NC_000068.7':'2', 'NC_000069.6':'3', 'NC_000070.6':'4', 
 				  'NC_000071.6':'5', 'NC_000072.6':'6', 'NC_000073.6':'7', 'NC_000074.6':'8',
 				  'NC_000075.6':'9', 'NC_000076.6':'10', 'NC_000077.6':'11', 'NC_000078.6':'12',
@@ -366,19 +385,10 @@ def analysis (project, genome, contexts, interdistance, input_path, output_type=
 				  'NC_000087.7':'Y'}
 
 
-
-	# args=parser.parse_args()
-	# project = args.project
-	# genome = args.genome
-	# contexts = args.context
-	# inter_label = args.interdistance
-	# output_type = args.output_type
 	inter = ''
 	inter_label = interdistance
 	interdistance = False
-	# ref_dir = args.input_path
 	ref_dir = input_path
-	# analysis = args.analysis
 
 	if analysis == 'hotspot':
 		output_type = None
@@ -393,16 +403,14 @@ def analysis (project, genome, contexts, interdistance, input_path, output_type=
 			inter = 'SNP'
 			inter2 = 'SNV'
 
-	contexts = sorted(contexts, reverse=True)
-	file_context = "_".join(contexts)
+	simContext = sorted(simContext, reverse=True)
+	file_context = "_".join(simContext)
 
-	# current_dir = os.getcwd()
 	if ref_dir[-1] != "/":
 		ref_dir += "/"
-	print(ref_dir)
-
+		
 	output_path = ref_dir + "output/vcf_files/single/"
-	if os.path.exists(output_path) and output_type != None:
+	if os.path.exists(output_path) or output_type != None:
 		os.system("rm -r " + output_path)
 		os.makedirs(output_path)
 	output_log_path = ref_dir + "logs/"
@@ -432,20 +440,20 @@ def analysis (project, genome, contexts, interdistance, input_path, output_type=
 	log_out.write("numpy version: "+np.__version__+"\n")
 
 	log_out.write("\n-------Vital Parameters Used for the execution -------\n")
-	log_out.write("Project: {}\nGenome: {}\nContext: {}\ninterdistance: {}\ninput_path: {}\noutput_type: {}\n".format(project, genome, contexts, interdistance, ref_dir, output_type))
+	log_out.write("Project: {}\nGenome: {}\nContext: {}\ninterdistance: {}\ninput_path: {}\noutput_type: {}\n".format(project, genome, simContext, interdistance, ref_dir, output_type))
 	log_out.write("\n-------Date and Time Data------- \n")
 	tic = datetime.datetime.now()
 	log_out.write("Date and Clock time when the execution started: "+str(tic)+"\n\n\n")
 	log_out.write("-------Runtime Checkpoints------- \n")
 	log_out.close()
 
-	print("\n\n==========================", flush=True)
-	print("Beginning HotSpot Analysis", flush=True)
-	print("==========================\n\n", flush=True)
+	print("\n\n=====================================", flush=True)
+	print("Beginning SigProfilerHotSpot Analysis", flush=True)
+	print("=====================================\n\n", flush=True)
 	start = time.time()
 	context_ref = None
-	if len(contexts) == 1:
-		if contexts[0] == 'INDEL':
+	if len(simContext) == 1:
+		if simContext[0] == 'INDEL':
 			context_ref = 'INDEL'
 			original_vcf_path = ref_dir + "references/vcf_files/" + project + "/INDEL/"
 
@@ -519,14 +527,26 @@ def analysis (project, genome, contexts, interdistance, input_path, output_type=
 	output_path = ref_dir + "output/simulations/" + project + "_intradistance_" + genome + "_" + file_context2 + "/"
 	output_path_chrom = ref_dir + "output/simulations/" + project + "_chromosome_mutation_count_" + genome + "_" + file_context2 + "/"
 	simulation_path = ref_dir + "output/simulations/" + project + "_simulations_" + genome + "_" + file_context + "/"	
-
-
-
 	original_samples = ref_dir + "output/vcf_files/single/SNV/"
 	output_path_original = ref_dir + "output/simulations/" + project + "_intradistance_original_" + genome + "_" + file_context2 + "/"
 	output_path_chrom_original = ref_dir + "output/simulations/" + project + "_chromosome_mutation_count_original_" + genome + "_" + file_context2 + "/"
 	
+	# Checks for simulated data. If there are not simulations, then inform the user to generate simulations first before
+	# performing the hotspot analysis:
+	if not os.path.exists(simulation_path):
+		print("There are no simulated data present for this project. Please generate simulations before running SigProfilerHotSpots.\n"\
+				"\tThe package can be installed via pip:\n\t\t\t$ pip install SigProfilerSimulator\n"\
+				"\n\tand used within a python3 sessions as follows:\n\t\t\t$ python3\n\t\t\t>> from SigProfilerSimulator import SigProfilerSimulator as sigSim\n"\
+				"\t\t\t>> sigSim.SigProfilerSimulator(project, project_path, genome, contexts=['6144'], simulations=100)\n\n"\
+				"\tFor a complete list of parameters, visit the github repo (https://github.com/AlexandrovLab/SigProfilerSimulator) or the documentation page (https://osf.io/usxjz/wiki/home/)")
+		sys.quit()
 
+	if len(os.listdir(simulation_path)) < 100:
+		print("Please simulate a minimum of 100 simulations per sample to successfully run SigProfilerHotSpots.")
+		sys.quit()
+
+
+	# Sorts and organizes the original input files:
 	for files in os.listdir(original_samples):
 		with open(original_samples + files) as f:
 			lines = [line.strip().split() for line in f]
@@ -542,9 +562,9 @@ def analysis (project, genome, contexts, interdistance, input_path, output_type=
 		distance_one_file (original_samples, output_path_original, output_path_chrom_original, file_context2, interdistance, inter, project, genome)
 	elif output_type == 'all':
 		distance_one_file (original_samples, output_path_original, output_path_chrom_original, file_context2, interdistance, inter, project, genome)
-		distance_multiple_files_sims (output_path, output_path_chrom, simulation_path, interdistance, file_context2, inter, genome)
+		distance_multiple_files_sims (output_path, output_path_chrom, simulation_path, interdistance, file_context2, inter, genome, file_context)
 	elif output_type == 'simulations':
-		distance_multiple_files_sims (output_path, output_path_chrom, simulation_path, interdistance, file_context2, inter, genome)
+		distance_multiple_files_sims (output_path, output_path_chrom, simulation_path, interdistance, file_context2, inter, genome, file_context)
 	else:
 		pass
 	if output_type != None:
@@ -552,231 +572,14 @@ def analysis (project, genome, contexts, interdistance, input_path, output_type=
 
 
 	if analysis == 'hotspot' or analysis == 'all':
-		# contexts = [context]
 		original= True
 		firstRun=True
 		signature = False
 		percentage = False
 
-		hotspot.hotSpotAnalysis(project, genome, contexts, contexts[0], ref_dir, original, signature, percentage, firstRun)
+		hotspot.hotSpotAnalysis(project, genome, contexts, simContext, ref_dir, original, signature, percentage, firstRun, clustering_vaf)
 
 	
 	end = time.time() - start
 	print("SigProfilerHotSpots successfully finished! Elapsed time: " + str(round(end, 2)) + " seconds.")
-
-# def main():
-# 	parser = argparse.ArgumentParser(description="Provide the necessary arguments to begin simulations.")
-# 	parser.add_argument("--project", "-p",help="Provide a unique name for your samples. (ex: BRCA)")
-# 	parser.add_argument("--genome", "-g",help="Provide a reference genome. (ex: GRCh37, GRCh38, mm10)")
-# 	parser.add_argument("--context", "-c", nargs='*', help="Provide the nucleotide context (ex: 96, 192, 1536, 3072, INDEL, DINUC).")
-# 	parser.add_argument("--interdistance", "-id", help="Provide the destired interdistance calc. (ex: SI)")
-# 	parser.add_argument("--input_path", "-ip", help="Provide a reference genome. (ex: GRCh37, GRCh38, mm10)")
-# 	parser.add_argument("--output_type", "-ot", help="Provide output type (ex: original or simulations or all")
-# 	parser.add_argument("--analysis", "-a", help="Provide desired analysis (ex: distance or hotspot or all")
-
-# 	ncbi_chrom = {'NC_000067.6':'1', 'NC_000068.7':'2', 'NC_000069.6':'3', 'NC_000070.6':'4', 
-# 				  'NC_000071.6':'5', 'NC_000072.6':'6', 'NC_000073.6':'7', 'NC_000074.6':'8',
-# 				  'NC_000075.6':'9', 'NC_000076.6':'10', 'NC_000077.6':'11', 'NC_000078.6':'12',
-# 				  'NC_000079.6':'13', 'NC_000080.6':'14', 'NC_000081.6':'15', 'NC_000082.6':'16', 
-# 				  'NC_000083.6':'17', 'NC_000084.6':'18', 'NC_000085.6':'19', 'NC_000086.7':'X', 
-# 				  'NC_000087.7':'Y'}
-
-
-
-# 	args=parser.parse_args()
-# 	project = args.project
-# 	genome = args.genome
-# 	contexts = args.context
-# 	inter_label = args.interdistance
-# 	output_type = args.output_type
-# 	inter = ''
-# 	interdistance = False
-# 	ref_dir = args.input_path
-# 	analysis = args.analysis
-
-# 	if analysis == 'hotspot':
-# 		output_type = None
-
-# 	if inter_label == 'SI':
-# 		interdistance = True
-
-# 	else:
-# 		if inter_label == 'INDEL':
-# 			inter = 'INDEL'
-# 		else:
-# 			inter = 'SNP'
-# 			inter2 = 'SNV'
-
-# 	contexts = sorted(contexts, reverse=True)
-# 	file_context = "_".join(contexts)
-
-# 	current_dir = os.getcwd()
-# 	if ref_dir[-1] != "/":
-# 		ref_dir += "/"
-
-# 	output_path = ref_dir + "output/vcf_files/single/"
-# 	if os.path.exists(output_path) and output_type != None:
-# 		os.system("rm -r " + output_path)
-# 		os.makedirs(output_path)
-# 	output_log_path = ref_dir + "logs/"
-# 	if not os.path.exists(output_log_path):
-# 		os.makedirs(output_log_path)
-
-# 	time_stamp = datetime.date.today()
-
-
-# 	log_file = output_log_path + 'SigProfilerHotSpots_' + project + "_" + genome + "_" + str(time_stamp) + ".out"
-# 	error_file = output_log_path + 'SigProfilerHotSpots_' + project + "_" + genome + "_" + str(time_stamp) + ".err"
-# 	if os.path.exists(error_file):
-# 		os.remove(error_file)
-# 	if os.path.exists(log_file):
-# 		 os.remove(log_file)
-# 	sys.stderr = open(error_file, 'w')
-# 	log_out = open(log_file, 'w')
-# 	log_out.write("THIS FILE CONTAINS THE METADATA ABOUT SYSTEM AND RUNTIME\n\n\n")
-# 	log_out.write("-------System Info-------\n")
-# 	log_out.write("Operating System Name: "+ platform.uname()[0]+"\n"+"Nodename: "+ platform.uname()[1]+"\n"+"Release: "+ platform.uname()[2]+"\n"+"Version: "+ platform.uname()[3]+"\n")
-# 	log_out.write("\n-------Python and Package Versions------- \n")
-# 	log_out.write("Python Version: "+str(platform.sys.version_info.major)+"."+str(platform.sys.version_info.minor)+"."+str(platform.sys.version_info.micro)+"\n")
-# 	log_out.write("SigProfilerMatrixGenerator Version: "+sig.__version__+"\n")
-# 	log_out.write("SigProfilerPlotting version: "+sigPlt.__version__+"\n")
-# 	log_out.write("matplotlib version: "+plt.__version__+"\n")
-# 	log_out.write("scipy version: "+scipy.__version__+"\n")
-# 	log_out.write("numpy version: "+np.__version__+"\n")
-
-# 	log_out.write("\n-------Vital Parameters Used for the execution -------\n")
-# 	log_out.write("Project: {}\nGenome: {}\nContext: {}\ninterdistance: {}\ninput_path: {}\noutput_type: {}\n".format(project, genome, contexts, interdistance, ref_dir, output_type))
-# 	log_out.write("\n-------Date and Time Data------- \n")
-# 	tic = datetime.datetime.now()
-# 	log_out.write("Date and Clock time when the execution started: "+str(tic)+"\n\n\n")
-# 	log_out.write("-------Runtime Checkpoints------- \n")
-# 	log_out.close()
-
-# 	print("\n\n==========================", flush=True)
-# 	print("Beginning HotSpot Analysis", flush=True)
-# 	print("==========================\n\n", flush=True)
-# 	start = time.time()
-# 	context_ref = None
-# 	if len(contexts) == 1:
-# 		if contexts[0] == 'INDEL':
-# 			context_ref = 'INDEL'
-# 			original_vcf_path = ref_dir + "references/vcf_files/" + project + "/INDEL/"
-
-# 		else:
-# 			context_ref = 'SNV' 
-# 			original_vcf_path = ref_dir + "input/"
-
-# 		vcf_files = os.listdir(original_vcf_path)
-# 		vcf_path = original_vcf_path
-# 		if '.DS_Store' in vcf_files:
-# 			vcf_files.remove('.DS_Store')
-# 		file_name = vcf_files[0].split('.')
-# 		file_extension = file_name[-1]
-
-# 		if file_extension == 'genome':
-# 				convertIn.convertTxt(project, vcf_path, genome, output_path)
-# 		else:
-# 			if file_extension == 'txt':
-# 				snv, indel, skipped, samples = convertIn.convertTxt(project, vcf_path,  genome,  output_path, ncbi_chrom, log_file)
-# 			elif file_extension == 'vcf':
-# 				snv, indel, skipped, samples = convertIn.convertVCF(project, vcf_path,  genome, output_path, ncbi_chrom, log_file)
-# 			elif file_extension == 'maf':
-# 				snv, indel, skipped, samples = convertIn.convertMAF(project, vcf_path,  genome, output_path, ncbi_chrom, log_file)
-# 			elif file_extension == 'tsv':
-# 				snv, indel, skipped, samples = convertIn.convertICGC(project, vcf_path,  genome, output_path, ncbi_chrom, log_file)
-# 			else:
-# 				print("File format not supported")
-
-
-# 		vcf_files_path = os.listdir(ref_dir + "output/vcf_files/single/")
-
-# 	else:
-# 		original_vcf_path_INDEL = ref_dir + "/references/vcf_files/" + project + "/INDEL/"
-# 		original_vcf_path_SNV = ref_dir + "/input/"
-# 		INDEL_files = os.listdir(original_vcf_path_INDEL)
-# 		SNV_files = os.listdir(original_vcf_path_SNV)
-
-# 		if '.DS_Store' in INDEL_files:
-# 			INDEL_files.remove('.DS_Store')
-# 		if '.DS_Store' in SNV_files:
-# 			SNV_files.remove('.DS_Store')
-# 		file_name_INDEL = INDEL_files[0].split('.')
-# 		file_extension_INDEL = file_name_INDEL[-1] 
-# 		if file_extension_INDEL == 'genome':
-# 			os.system("bash convert_txt_files_to_simple_files.sh " + project + " " + original_vcf_path_INDEL + " INDEL" )
-# 		else:
-# 			os.system("bash convert_" + file_extension_INDEL + "_files_to_simple_files.sh " + project + " " + original_vcf_path_INDEL + " INDEL")
-		
-# 		os.system("mv " + ref_dir + '/references/vcf_files/single/' + project + "_indels.genome " + ref_dir + '/references/vcf_files/single/' + project + "_indels2.genome")
-
-# 		file_name_SNV = SNV_files[0].split('.')
-# 		file_extension_SNV = file_name_SNV[-1]
-# 		if file_extension_SNV == 'genome':
-# 			os.system("bash convert_txt_files_to_simple_files.sh " + project + " " + original_vcf_path_SNV + " SNP")
-# 		else:
-# 			os.system("bash convert_" + file_extension_SNV + "_files_to_simple_files.sh " + project + " " + original_vcf_path_SNV + " SNP")
-# 		os.system("mv " + ref_dir + '/references/vcf_files/single/' + project + "_indels.genome " + ref_dir + '/references/vcf_files/single/' + project + "_indels3.genome")
-
-
-# 		os.system("cat " + ref_dir + '/references/vcf_files/single/'+project+"_indels3.genome " + ref_dir + '/references/vcf_files/single/'+project+"_indels2.genome >> " + ref_dir + '/references/vcf_files/single/' +project + "_indels.genome")
-# 		os.system("rm "+ ref_dir + '/references/vcf_files/single/'+project+"_indels3.genome")
-# 		os.system("rm " + ref_dir + '/references/vcf_files/single/'+project+"_indels2.genome")
-
-# 	vcf_files_path = os.listdir(ref_dir + "output/vcf_files/single/SNV")
-# 	if interdistance:
-# 		file_context2 = inter_label
-# 	else:
-
-# 		file_context2 = inter_label
-
-# 	output_path = ref_dir + "output/simulations/" + project + "_intradistance_" + genome + "_" + file_context2 + "/"
-# 	output_path_chrom = ref_dir + "output/simulations/" + project + "_chromosome_mutation_count_" + genome + "_" + file_context2 + "/"
-# 	simulation_path = ref_dir + "output/simulations/" + project + "_simulations_" + genome + "_" + file_context + "/"	
-
-
-
-# 	original_samples = ref_dir + "output/vcf_files/single/SNV/"
-# 	output_path_original = ref_dir + "output/simulations/" + project + "_intradistance_original_" + genome + "_" + file_context2 + "/"
-# 	output_path_chrom_original = ref_dir + "output/simulations/" + project + "_chromosome_mutation_count_original_" + genome + "_" + file_context2 + "/"
-	
-
-# 	for files in os.listdir(original_samples):
-# 		with open(original_samples + files) as f:
-# 			lines = [line.strip().split() for line in f]
-# 		lines = sorted(lines, key = lambda x: (x[0], int(x[2])))
-
-# 		with open(original_samples + files, "w") as f:
-# 			for line in lines:
-# 				print("\t".join([x for x in line]), file=f)
-
-# 	if output_type != None:
-# 		print("Calculating mutational distances...", end='', flush=True)
-# 	if output_type == 'original':
-# 		distance_one_file (original_samples, output_path_original, output_path_chrom_original, file_context2, interdistance, inter, project, genome)
-# 	elif output_type == 'all':
-# 		distance_one_file (original_samples, output_path_original, output_path_chrom_original, file_context2, interdistance, inter, project, genome)
-# 		distance_multiple_files_sims (output_path, output_path_chrom, simulation_path, interdistance, file_context2, inter, genome)
-# 	elif output_type == 'simulations':
-# 		distance_multiple_files_sims (output_path, output_path_chrom, simulation_path, interdistance, file_context2, inter, genome)
-# 	else:
-# 		pass
-# 	if output_type != None:
-# 		print("Completed!", flush=True)
-
-
-# 	if analysis == 'hotspot' or analysis == 'all':
-# 		# contexts = [context]
-# 		original= True
-# 		firstRun=True
-# 		signature = False
-# 		percentage = False
-
-# 		hotspot.hotSpotAnalysis(project, genome, contexts, contexts[0], ref_dir, original, signature, percentage, firstRun)
-
-	
-# 	end = time.time() - start
-# 	print("SigProfilerHotSpots successfully finished! Elapsed time: " + str(round(end, 2)) + " seconds.")
-# if __name__ == '__main__':
-# 	main()
-
 

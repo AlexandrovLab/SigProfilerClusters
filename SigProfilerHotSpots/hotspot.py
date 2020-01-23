@@ -28,6 +28,12 @@ def z_test (x, mu, sigma):
 	p = 2*(1-norm.cdf(z))
 	return(z, p)
 
+def plot_hist2d(orig_bins, sim_bins, bincenters2, sample, panel4, lower_CI, upper_CI):
+	print(bincenters2[:len(orig_bins)])
+	print(orig_bins)
+	# plt.hist2d(bincenters2[:len(orig_bins)], orig_bins)
+	# plt.show()
+
 def plot_clustered (orig_bins, sim_bins, bincenters2, sample, panel4, lower_CI, upper_CI):
 	sim, = panel4.plot(bincenters2[:len(sim_bins)], sim_bins, '-', marker='o', markersize = 2, color = 'red')
 	panel4.fill_between(bincenters2[:len(sim_bins)], upper_CI[:len(sim_bins)], lower_CI[:len(sim_bins)], alpha=0.5, color='red', zorder=1000)
@@ -45,7 +51,7 @@ def plot_non_clustered (orig_bins, sim_bins, bincenters2, sample, panel6, lower_
 	panel6.set_xscale('log')
 	panel6.set_xlabel("Inter-Mutational Distance (IMD)", fontweight ='bold', fontsize=12)
 
-def plot_hist (distances, distances_orig, original_vcf, vcf_path_clust, vcf_path_nonClust, sample, pp, original, sim_count, matrix_path_clustered, matrix_path_nonClustered, panel2, panel3, panel4, panel5, panel6, cutoff):
+def plot_hist (distances, distances_orig, distances_orig_adj, original_vcf, vcf_path_clust, vcf_path_nonClust, sample, pp, original, sim_count, matrix_path_clustered, matrix_path_nonClustered, panel2, panel3, panel4, panel5, panel6, cutoff):
 	maximum_sim = 0
 	try:
 		maximum_orig = max(distances_orig)
@@ -95,6 +101,9 @@ def plot_hist (distances, distances_orig, original_vcf, vcf_path_clust, vcf_path
 	y, binEdges = np.histogram(avg_bin_counts, bins = bin1)
 	y2, binEdges2 = np.histogram(distances_orig, bins = bin1)
 
+	print(distances_orig)
+	print(distances_orig_adj)
+
 	bincenters2 = binEdges2[1:-1]
 	y2 = y2[1:]
 	avg_bin_counts = avg_bin_counts[1:]
@@ -129,8 +138,6 @@ def plot_hist (distances, distances_orig, original_vcf, vcf_path_clust, vcf_path
 		p_vals.append(p)
 	q_vals = sm.fdrcorrection(p_vals)[1]
 
-	# print(p_vals)
-	# print(q_vals)
 
 	for i in range (0, len(avg_bin_counts), 1):
 		sim_mutations += avg_bin_counts[i]
@@ -141,9 +148,6 @@ def plot_hist (distances, distances_orig, original_vcf, vcf_path_clust, vcf_path
 		current_mean = mean_counts[i]
 		current_stdev = std_dev[i]
 		current_q = q_vals[i]
-		#z, p = z_test (current_orig_mutations, current_mean, current_stdev)
-		#p_vals.append(p)
-		#print(i, p, current_orig_mutations, current_mean, avg_bin_counts[i], current_stdev, orig_mutations/total_mutations)
 		if orig_mutations/total_mutations < percent_clustered or current_q > 0.01:
 			if abs((orig_mutations/total_mutations) - percent_clustered) < abs(previous_interval - percent_clustered):
 				if current_q > 0.01:
@@ -160,27 +164,15 @@ def plot_hist (distances, distances_orig, original_vcf, vcf_path_clust, vcf_path
 			break
 		previous_interval = orig_mutations/total_mutations
 
-	# for l in range (i, len(avg_bin_counts), 1):
-	# 	current_orig_mutations = y2[i]
-	# 	current_mean = mean_counts[i]
-	# 	current_stdev = std_dev[i]
-	# 	z, p = z_test (current_orig_mutations, current_mean, current_stdev)
-	# 	#print(i, p, current_orig_mutations, current_mean, avg_bin_counts[i], current_stdev, orig_mutations/total_mutations)
-	# 	p_vals.append(p)
 
-	#print(len(p_vals), len(avg_bin_counts))
-	#q_vals = sm.fdrcorrection(p_vals)[1]
-	#print(interval_line)
-	#orig_mutations -= y2[i]
 	axes = plt.gca()
-	#interval_line -= 1
+	interval_line = 10
+	distance_cutoff = bincenters2[interval_line]
 	if original:
-		#panel2.axvline(x=bincenters2[interval_line], linestyle='--', linewidth=0.5, color='darkred')
-		panel2.axvline(x=bincenters2[interval_line], linestyle='--', linewidth=0.5, color='darkred')
+		panel2.axvline(x=distance_cutoff, linestyle='--', linewidth=0.5, color='darkred')
 		extra = Rectangle((0, 0), 1, 1, fc="w", fill=False, edgecolor='none', linewidth=0)
-		
 		panel3.text(0.08, 0.87, "Total=" + str(sum(y2)),transform=plt.gcf().transFigure)
-		panel3.text(0.08, 0.575, "Clustered=" + str(orig_mutations) + "(IMD<" + str(bincenters2[interval_line]) + ")",transform=plt.gcf().transFigure)
+		panel3.text(0.08, 0.575, "Clustered=" + str(orig_mutations) + "(IMD<" + str(distance_cutoff) + ")",transform=plt.gcf().transFigure)
 		panel3.text(0.08, 0.56, "Expected=" + str(statistics.mean([sum(lower_CI[:interval_line]), sum(upper_CI[:interval_line])])) + "(" +str(sum(lower_CI[:interval_line])) + "-" + str(sum(upper_CI[:interval_line])) + ")",transform=plt.gcf().transFigure)
 		panel5.text(0.08, .28, "Non-Clustered=" + str(sum(y2)-orig_mutations), transform=plt.gcf().transFigure)
 	panel2.set_yscale('log')
@@ -195,24 +187,20 @@ def plot_hist (distances, distances_orig, original_vcf, vcf_path_clust, vcf_path
 	upper_CI = upper_CI[l:]
 	lower_CI = lower_CI[l:]
 
-	#print(avg_bin_counts, y2)
 	sim, = panel2.plot(bincenters2, avg_bin_counts, '-', marker='o', markersize = 2, color = 'red')
 	panel2.fill_between(bincenters2, upper_CI, lower_CI, alpha=0.5, color='red', zorder=1000)
 	if original:
 		orig, = panel2.plot(bincenters2, y2, '-', marker='o', markersize = 2, color = 'green')
 
-	# print(q_vals[i-1])
-
 	if original:
 		panel2.legend([sim, orig, extra], ['simulated', 'real samples', "q_value = " + "{:.2E}".format(Decimal(q_vals[i-1]))])
-		#panel2.legend([sim, orig, extra], ['simulated', 'real samples', "q_value = " + "%s" % float('%.2g' % q_vals[i-1])])
 	else:
 		panel2.legend([sim], ['simulated'])
 
 	if True:
-	#if orig_mutations > cutoff and p < 0.01:
 		plot_clustered (y2[:interval_line-l+1], avg_bin_counts[:interval_line-l+1], bincenters2, sample, panel4, lower_CI, upper_CI)
 		plot_non_clustered (y2[interval_line-l+1:], avg_bin_counts[interval_line-l+1:], bincenters2, sample, panel6, lower_CI, upper_CI)
+		plot_hist2d(y2[:interval_line-l+1], avg_bin_counts[:interval_line-l+1], bincenters2, sample, panel4, lower_CI, upper_CI)
 		return(True)
 	else:
 		return (False)
@@ -279,7 +267,6 @@ def plot_hist_final (distances, distances_orig, original_vcf, vcf_path_clust, vc
 
 	bincenters2 = binEdges2[1:-1]
 	y2 = y2[1:]
-	#y2 = [x/597 for x in y2]
 	avg_bin_counts = avg_bin_counts[1:]
 
 	upper_conf=upper_conf[1:]
@@ -307,7 +294,6 @@ def plot_hist_final (distances, distances_orig, original_vcf, vcf_path_clust, vc
 		current_stdev = std_dev[i]
 		z, p = z_test (current_orig_mutations, current_mean, current_stdev)
 		if orig_mutations/total_mutations < percent_clustered or p > 0.01:
-			# print(sample, p, orig_mutations/total_mutations)
 
 			if abs((orig_mutations/total_mutations) - percent_clustered) < abs(previous_interval - percent_clustered):
 				interval_line = i
@@ -319,34 +305,14 @@ def plot_hist_final (distances, distances_orig, original_vcf, vcf_path_clust, vc
 			break
 		previous_interval = orig_mutations/total_mutations
 
-	# for i in range (0, len(avg_bin_counts), 1):
-	# 	sim_mutations += avg_bin_counts[i]
-	# 	orig_mutations += y2[i]
-	# 	total_mutations = total_mutations + avg_bin_counts[i] + y2[i]
-
-	# 	if orig_mutations/total_mutations < percent_clustered:
-	# 		if abs((orig_mutations/total_mutations) - percent_clustered) < abs(previous_interval - percent_clustered):
-	# 			interval_line = i
-	# 			interval_percent = orig_mutations/total_mutations*100
-	# 		else:
-	# 			interval_line = i-1
-	# 			orig_mutations -= y2[i]
-	# 			interval_percent = previous_interval*100
-	# 		break
-
-	# 	previous_interval = orig_mutations/total_mutations
-
 	axes = plt.gca()
 	
 
 	if original:
 		p = None
-		#t, p = ttest_ind(avg_bin_counts[:interval_line], y2[:interval_line])
-		#t, p = chisquare(avg_bin_counts[:interval_line+1], y2[:interval_line+1])
 		t, p = mannwhitneyu(avg_bin_counts[:interval_line+1], y2[:interval_line+1])
 		panel2.axvline(x=bincenters2[interval_line], linestyle='--', linewidth=0.5, color='darkred')
-		extra = Rectangle((0, 0), 1, 1, fc="w", fill=False, edgecolor='none', linewidth=0)
-		
+		extra = Rectangle((0, 0), 1, 1, fc="w", fill=False, edgecolor='none', linewidth=0)	
 		panel3.text(0.08, 0.87, "Total=" + str(sum(y2)),transform=plt.gcf().transFigure)
 		panel3.text(0.08, 0.575, "Clustered=" + str(orig_mutations) + "(IMD<" + str(bincenters2[interval_line]) + ")",transform=plt.gcf().transFigure)
 		panel3.text(0.08, 0.56, "Expected=" + str(statistics.mean([sum(lower_CI[:interval_line+1]), sum(upper_CI[:interval_line+1])])) + "(" +str(sum(lower_CI[:interval_line+1])) + "-" + str(sum(upper_CI[:interval_line+1])) + ")",transform=plt.gcf().transFigure)
@@ -374,12 +340,10 @@ def plot_hist_final (distances, distances_orig, original_vcf, vcf_path_clust, vc
 	else:
 		panel2.legend([sim], ['simulated'])
 
-	#if orig_mutations > cutoff and p < 0.01:
 	plot_clustered (y2[:interval_line+1-i], avg_bin_counts[:interval_line+1-i], bincenters2, sample, panel4, lower_CI, upper_CI)
 	plot_non_clustered (y2[interval_line+1-i:], avg_bin_counts[interval_line+1-i:], bincenters2, sample, panel6, lower_CI, upper_CI)
 	return(True)
-	#else:
-	#	return (False)
+
 
 
 def plot96_same (matrix_path, matrix_path_clustered, matrix_path_nonClustered, sample, percentage, signature, panel1, panel3, panel5, fig):
@@ -1339,23 +1303,6 @@ def plotINDEL_same_final (matrix_path, matrix_path_clustered, matrix_path_nonClu
 			else:
 				continue
 
-		# for lines in f2:
-		# 	line = lines.strip().split()
-		# 	categories = line[0].split(":")
-		# 	mut_type = categories[0] + categories[1] + categories[2]
-		# 	repeat_size = int(categories[3])
-		# 	if categories[2] == 'M':
-		# 		repeat_size -= 1
-
-		# 	if mut_type in mutations[sample].keys():
-		# 		if percentage:
-		# 			mutCount = float(sum([int(x) for x in line[1:]]))
-		# 		else:
-		# 			mutCount = sum([int(x) for x in line[1:]])
-		# 		mutations[sample][mut_type][repeat_size] += mutCount
-		# 	else:
-		# 		continue
-
 	total_count = sum(sum(nuc) for nuc in mutations[sample].values())
 	xlabels = []
 	
@@ -2206,8 +2153,7 @@ def plot96_same_final (matrix_path, matrix_path_clustered, matrix_path_nonCluste
 	plt.text(.008, .55, 'Mutation Counts', rotation='vertical', fontsize=20, fontweight='bold', fontname="Times New Roman", transform=plt.gcf().transFigure)
 
 
-def first_run (distances, distances_orig, original_vcf, vcf_path_clust, vcf_path_nonClust, sample, original, sim_count, matrix_path_clustered, matrix_path_nonClustered, cutoff, vcf_path_all_clust, vcf_path_all_nonClust, project, distance_path, genome):
-	#genome = 'mm10'
+def first_run (distances, distances_orig, original_vcf, vcf_path_clust, vcf_path_nonClust, sample, original, sim_count, matrix_path_clustered, matrix_path_nonClustered, cutoff, vcf_path_all_clust, vcf_path_all_nonClust, project, distance_path, genome, clustering_vaf):
 
 	centromeres = {'GRCh38':{'1': [122026460,125184587],'10': [39686683,41593521],'11':[51078349,54425074],'12':[34769408,37185252],'13': [16000001,18051248],
 				'14': [16000001,18173523],'15': [17000001,19725254],'16': [36311159,38280682],'17': [22813680,26885980],'18': [15460900,20861206],
@@ -2292,9 +2238,6 @@ def first_run (distances, distances_orig, original_vcf, vcf_path_clust, vcf_path
 	upper_CI=upper_CI[1:]
 	lower_CI=lower_CI[1:]
 
-	# print(avg_bin_counts)
-	# print(mean_counts)
-	# print(std_dev)
 
 	total_mutations = 0
 	sim_mutations = 0
@@ -2318,7 +2261,6 @@ def first_run (distances, distances_orig, original_vcf, vcf_path_clust, vcf_path
 		p_vals.append(p)
 	q_vals = sm.fdrcorrection(p_vals)[1]
 
-	# print(q_vals)
 
 	for i in range (0, len(avg_bin_counts), 1):
 		sim_mutations += avg_bin_counts[i]
@@ -2329,12 +2271,7 @@ def first_run (distances, distances_orig, original_vcf, vcf_path_clust, vcf_path
 		current_mean = mean_counts[i]
 		current_stdev = std_dev[i]
 		current_q = q_vals[i]
-		#z, p = z_test (current_orig_mutations, current_mean, current_stdev)
-		#p_vals.append(p)
-		#print(i, p, current_orig_mutations, current_mean, avg_bin_counts[i], current_stdev, orig_mutations/total_mutations)
 		if orig_mutations/total_mutations < percent_clustered or current_q > 0.01:
-			# print(sample, current_q, orig_mutations/total_mutations, orig_mutations, total_mutations, i, bincenters2[i], y2[i])
-
 			if abs((orig_mutations/total_mutations) - percent_clustered) < abs(previous_interval - percent_clustered):
 				if current_q > 0.01:
 					interval_line = i-1
@@ -2350,14 +2287,10 @@ def first_run (distances, distances_orig, original_vcf, vcf_path_clust, vcf_path
 			break
 		previous_interval = orig_mutations/total_mutations		
 
-	#print(interval_line, binEdges2[interval_line])
 	cluster = 0
 	if True:
-		#distance_cut = binEdges2[interval_line]
-		distance_cut = bincenters2[interval_line+1]
-		# print(distance_cut)
-		#distance_cut = 1000
-
+		interval_line = 10
+		distance_cut = bincenters2[interval_line]
 		with open (original_vcf) as f, open(vcf_path_clust + project + "_clustered.txt", 'a') as clust, open(vcf_path_nonClust + project + "_nonClustered.txt", 'a') as non, open(distance_path + "distances_" + sample + ".txt", 'a') as dist_out:
 			initial_line = True
 			initial_mutation = True
@@ -2373,6 +2306,9 @@ def first_run (distances, distances_orig, original_vcf, vcf_path_clust, vcf_path
 				start = int(line[2])
 				ref = line[3]
 				mut = line[4]
+				if clustering_vaf:
+					vaf = line[5]
+
 				try:
 					mutType = line[4]
 				except:
@@ -2411,12 +2347,8 @@ def first_run (distances, distances_orig, original_vcf, vcf_path_clust, vcf_path
 							if prev_dist <= distance_cut:
 								cluster += 1
 								print('\t'.join([x for x in previous_line]), file=clust)
-								# print('\t'.join([init_chrom, str(init_start), sample2,init_ref, init_mut]), file=clust)
-
 							else:
 								print('\t'.join([x for x in previous_line]), file=non)
-								# print('\t'.join([init_chrom, str(init_start), sample2,init_ref, init_mut]), file=non)
-
 							print(str(prev_dist), file=dist_out)
 
 							init_chrom = chrom
@@ -2435,42 +2367,18 @@ def first_run (distances, distances_orig, original_vcf, vcf_path_clust, vcf_path
 								if prev_dist <= distance_cut:
 									cluster += 1
 									print('\t'.join([x for x in previous_line]), file=clust)
-									# print('\t'.join([init_chrom, str(init_start), sample2,init_ref, init_mut]), file=clust)
-
 								else:
 									print('\t'.join([x for x in previous_line]), file=non)
-									# print('\t'.join([init_chrom, str(init_start), sample2,init_ref, init_mut]), file=non)
-
 								print(str(prev_dist), file=dist_out)
 								initial_line = True
-								# initial_mutation = True
-								#print("LEFT", init_start, start, init_chrom)
-
-								# init_start = start
-								# previous_line = line
-								# prev_dist = 100000000000
 								continue
 							if init_start < centro_end and start > centro_end:
 								initial_line = True
 								initial_mutation = True
-
-								#print("RIGHT", init_start, start, init_chrom)
-
-								# init_start = start
-								# previous_line = line
-								# prev_dist = 100000000000
-								# print('\t'.join([x for x in previous_line]), file=non)
-								# init_start = start
 								continue
 							if init_start > centro_start and start < centro_end:
 								initial_line = True
 								initial_mutation = True
-								#print("MIDDLE", init_start, start, init_chrom)
-								# init_start = start
-								# previous_line = line
-								# prev_dist = 100000000000
-								# print('\t'.join([x for x in previous_line]), file=non)
-								# init_start = start
 								continue
 
 							if ref == init_ref and mut == init_mut and init_start == start:
@@ -2480,11 +2388,8 @@ def first_run (distances, distances_orig, original_vcf, vcf_path_clust, vcf_path
 								if dist <= distance_cut:
 									cluster += 1
 									print('\t'.join([x for x in previous_line]), file=clust)
-									# print('\t'.join([init_chrom, str(init_start), sample2,init_ref, init_mut]), file=clust)
-
 								else:
 									print('\t'.join([x for x in previous_line]), file=non)
-									# print('\t'.join([init_chrom, str(init_start), sample2,init_ref, init_mut]), file=non)
 
 								print(str(dist), file=dist_out)
 								initial_mutation = False
@@ -2493,11 +2398,9 @@ def first_run (distances, distances_orig, original_vcf, vcf_path_clust, vcf_path
 								if dist_min <= distance_cut:
 									cluster += 1
 									print('\t'.join([x for x in previous_line]), file=clust)
-									# print('\t'.join([init_chrom, str(init_start), sample2,init_ref, init_mut]), file=clust)
 
 								else:
 									print('\t'.join([x for x in previous_line]), file=non)
-									# print('\t'.join([init_chrom, str(init_start), sample2,init_ref, init_mut]), file=non)
 
 								print(str(dist_min), file=dist_out)
 
@@ -2507,116 +2410,48 @@ def first_run (distances, distances_orig, original_vcf, vcf_path_clust, vcf_path
 			if prev_dist <= distance_cut:
 				cluster += 1
 				print('\t'.join([x for x in previous_line]), file=clust)
-				# print('\t'.join([init_chrom, str(init_start), sample2,init_ref, init_mut]), file=clust)
 
 			else:
 				print('\t'.join([x for x in previous_line]), file=non)
-				# print('\t'.join([init_chrom, str(init_start), sample2,init_ref, init_mut]), file=non)
 
 			print(str(prev_dist), file=dist_out)
 
-		# with open(vcf_path_clust + project + "_clustered.txt") as clust:	
-		# 	clust_lines = clust.readlines()
-
-		# print(clust_lines[0:10])
-		# with open(vcf_path_nonClust + project + "_nonClustered.txt") as nonclust:
-		# 	nonclust_lines = nonclust.readlines()
-
-		# f = open(vcf_path_clust + project + "_clustered.txt", "w")
-		# for lines in clust_lines:
-		# 	line = lines.strip().split("\t")
-		# 	sample = line[0]
-		# 	chrom = line[1]
-		# 	pos = line[2]
-		# 	ref  = line[3]
-		# 	mut = line[4]
-		# 	print("\t".join([project,sample,".",genome,"SNP",chrom,pos,pos,ref,mut,"SOMATIC"]),file=f)
-
-		# f.close()
-
-		# f = open(vcf_path_nonClust + project + "_nonClustered.txt", "w")
-		# for lines in nonclust_lines:
-		# 	line = lines.strip().split("\t")
-		# 	sample = line[0]
-		# 	chrom = line[1]
-		# 	pos = line[2]
-		# 	ref  = line[3]
-		# 	mut = line[4]
-		# 	print("\t".join([project,sample,".",genome,"SNP",chrom,pos,pos,ref,mut,"SOMATIC"]),file=f)
-		# f.close()
 
 
-def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, original=False, signature=False, percentage=False, firstRun=False):
-	# signature = False
-	# original = False
-	# firstRun = False
-	# parser = argparse.ArgumentParser(description="Provide the necessary arguments to begin simulations.")
-	# parser.add_argument("--project", "-p",help="Provide a unique name for your samples. (ex: BRCA)")
-	# parser.add_argument("--genome", "-g",help="Provide a reference genome. (ex: GRCh37, GRCh38, mm10)")
-	# parser.add_argument("--context", "-c", nargs='*', help="Provide the nucleotide context (ex: 96, 192, 1536, 3072, INDEL, DINUC).")
-	# parser.add_argument("-o", "--original",  help="Optional parameter instructs script to allow mutations to overlap during the simulations.", action='store_true')
-	# parser.add_argument("-s", "--signature",  help="Optional parameter: Create plots on a signature bases.", action='store_true')
-	# parser.add_argument("-sp", "--signaturePercentages",  help="Optional Parameter: Create the plots on a signature bases using NMF results.", action='store_true')
-	# parser.add_argument("-f", "--firstRun",  help="Optional Parameter: Create matrices for clustered/nonclustered if first time running with this project.", action='store_true')
-	# parser.add_argument("--vcf", "-v",  help="Provide the path/file name for the original vcf file")
-	# parser.add_argument("--simContext", "-sc",  help="Provide the simulation context")
-	# parser.add_argument("--input_path", "-ip", help="Provide a reference genome. (ex: GRCh37, GRCh38, mm10)")
-
-
-
-	# args=parser.parse_args()
-
+def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, original=False, signature=False, percentage=False, firstRun=False, clustering_vaf=False):
 	height = 8
 	width = 13
 	scaled_width = (width/1.75 *.95)/width
 	scaled_height = (height/4.5)/height
 
-	# current_dir = os.getcwd()
-	# ref_dir = re.sub('\/scripts$', '', current_dir)
-	# ref_dir = args.input_path
 	if ref_dir[-1] != "/":
 		ref_dir += "/"
 
-	# contexts = args.context
-	contexts = sorted(contexts, reverse=True)
-	file_context = "_".join(contexts)
-	# simContext = args.simContext
+	simContext = sorted(simContext, reverse=True)
+	simContext = "_".join(simContext)
+	file_context = contexts
 	if file_context == 'INDEL':
 		cutoff = 25
 	else:
 		cutoff = 50
 
-	# genome = args.genome
-	# if args.signature:
-	# 	signature = True
-	# percentage = args.signaturePercentages
-	# project = args.project
-	# if args.original:
-	# 	original = True
-	# if args.firstRun:
-	# 	firstRun = True
-
-	if file_context == '96':
+	if contexts == '96':
 		matrix_file_suffix = '.SBS96.'
-	elif file_context ==  'INDEL':
+	elif contexts ==  'INDEL':
 		matrix_file_suffix = '.DBS94.'
 
-	# original_vcfs = os.listdir(ref_dir + "output/vcf_files/single/SNV/")
-	# with open(ref_dir + "output/vcf_files/single/" + project + "_all.txt", "w") as out:
-	# 	for f in original_vcfs:
-	# 		print(f)
-	# 		if f == '.DS_Store':
-	# 			continue
-	# 		with open(args.vcf + f) as fd:
-	# 			shutil.copyfileobj(fd, out)
+
 	original_vcf = ref_dir + "output/vcf_files/single/" + project + "_all.txt"
-	directory = ref_dir + 'output/simulations/' + project + "_intradistance_" + genome + "_" + simContext + "/"
-	directory_out = ref_dir + "output/simulations/" + project + "_simulations_" + genome + "_" + simContext + "_intradistance_plots/"
-	directory_orig = ref_dir + "output/simulations/" + project + "_intradistance_original_" + genome + "_" + simContext + "/"
+	directory = ref_dir + 'output/simulations/' + project + "_intradistance_" + genome + "_" + contexts + "/"
+	directory_out = ref_dir + "output/simulations/" + project + "_simulations_" + genome + "_" + contexts + "_intradistance_plots/"
+	directory_orig = ref_dir + "output/simulations/" + project + "_intradistance_original_" + genome + "_" + contexts + "/"
 	distance_path = ref_dir + "output/vcf_files/" + project + "_distances/"
 
-	if os.path.exists(distance_path) == False:
-		os.mkdir(distance_path)
+	if os.path.exists(distance_path):
+		shutil.rmtree(distance_path)
+	os.mkdir(distance_path)
+
+
 	if file_context == '96':
 		vcf_path_clust = ref_dir + "output/vcf_files/" + project + "_clustered/SNV/"
 		vcf_path_nonClust = ref_dir + "output/vcf_files/" + project + "_nonClustered/SNV/"
@@ -2635,7 +2470,7 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, original=Fa
 	matrix_path_nonClustered = ref_dir + "output/vcf_files/" + project + "_nonClustered/SNV/output/SBS/" + project + "_nonClustered" + matrix_file_suffix + "all" 
 	matrix_path_all_clustered = ref_dir + "output/vcf_files/" + project + "_all_clustered/SNV/output/SBS" + project + "_all_clustered" + matrix_file_suffix + "all"
 	matrix_path_all_nonClustered = ref_dir + "/references/matrix/" + project + "_all_nonClustered/" + project + "_all_nonClustered" + matrix_file_suffix + "all"
-	output_path = directory_out + project + '_intradistance_plots_' + simContext + '.pdf'
+	output_path = directory_out + project + '_intradistance_plots_' + contexts + '.pdf'
 
 
 	if os.path.exists(directory_out) == False:
@@ -2643,35 +2478,26 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, original=Fa
 
 	if firstRun:
 		if os.path.exists(vcf_path_clust):
-			os.system("rm -r " + vcf_path_clust)
+			shutil.rmtree(vcf_path_clust)
 
 	if not os.path.exists(vcf_path_clust):
-		os.system("mkdir -p " + vcf_path_clust)
+		os.makedirs(vcf_path_clust)
 
 	if not os.path.exists(vcf_path_nonClust):
-		os.system("mkdir -p " + vcf_path_nonClust)
-
-	if not os.path.exists(vcf_path_all_clust):
-		os.system("mkdir -p " + vcf_path_all_clust)
-
-	if not os.path.exists(vcf_path_all_nonClust):
-		os.system("mkdir -p " + vcf_path_all_nonClust)
+		os.makedirs(vcf_path_nonClust)
 
 
 	folders = os.listdir(directory)
 	first_sort = True
 	if firstRun:
-
 		if os.path.exists(vcf_path_clust + project + "_clustered.txt"):
-			os.system("rm " + vcf_path_clust + project + "_clustered.txt")
+			os.remove(vcf_path_clust + project + "_clustered.txt")
 		if os.path.exists(vcf_path_nonClust + project + "_nonClustered.txt"):
-			os.system("rm " + vcf_path_nonClust + project + "_nonClustered.txt")
+			os.remove(vcf_path_nonClust + project + "_nonClustered.txt")
 		if os.path.exists(vcf_path_all_clust + project + "_all_clustered.txt"):
-			os.system("rm " + vcf_path_all_clust + project + "_all_clustered.txt")
+			os.remove(vcf_path_all_clust + project + "_all_clustered.txt")
 		if os.path.exists(vcf_path_all_nonClust + project + "_all_nonClustered.txt"):
-			os.system("rm " + vcf_path_all_nonClust + project + "_all_nonClustered.txt")
-		if len(os.listdir(distance_path)) > 1:
-			os.system("rm " + distance_path + "*")
+			os.remove(vcf_path_all_nonClust + project + "_all_nonClustered.txt")
 
 		print("Determining sample-dependent intermutational distance (IMD) cutoff...", end='', flush=True)
 		for folder in folders:
@@ -2682,57 +2508,49 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, original=Fa
 			overall_distances = []
 			distances_orig = []
 			distances_avg = []
+			distances_orig_adj = []
 
 			if original:
 				if first_sort:
 					original_vcfs = os.listdir(ref_dir + "output/vcf_files/single/SNV/")
 					with open(ref_dir + "output/vcf_files/single/" + project + "_all.txt", "w") as out:
 						for f in original_vcfs:
-							# print(f)
 							if f == '.DS_Store':
 								continue
-							#with open(args.vcf + f) as fd:
 							with open(ref_dir + "output/vcf_files/single/SNV/" + f) as fd:
 								shutil.copyfileobj(fd, out)
 
 					with open(original_vcf) as f:
 					    lines = [line.strip().split() for line in f]
-
 					output = open(original_vcf, 'w')
-
 					for line in sorted(lines, key = lambda x: (x[0], ['X','Y','1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22'].index(x[1]), int(x[2]))):
 					    print('\t'.join(line), file=output)
-
 					output.close()
 					first_sort = False
-				with open (directory_orig + sample + "_" + simContext + "_intradistance.txt") as f2:
+
+				with open (directory_orig + sample + "_" + contexts + "_intradistance.txt") as f2:
 					for lines in f2:
-						line = lines.strip()
-						if int(line) >= 1:
-							distances_orig.append(int(line))
+						line = lines.strip().split()
+						if int(line[0]) >= 1:
+							distances_orig.append(int(line[0]))
+							distances_orig_adj.append(int(line[1]))
+
 			sim_count = len(files)
 			for file in files:
 				if file == '.DS_Store':
 					continue
-
 				distances = []
-				
 				with open(directory + sample + "/" + file) as f:
-					name = file.split("_")
-					sample = name[0]
-					context = name[1]
 					for lines in f:
-						line = lines.strip()
-						if int(line) >= 1:
-							distances.append(int(line))
-
+						line = lines.strip().split()
+						if int(line[0]) >= 1:
+							distances.append(int(line[0]))
 				overall_distances.append(distances)
-			first_run(overall_distances, distances_orig, original_vcf, vcf_path_clust, vcf_path_nonClust, sample, original, sim_count, matrix_path_clustered, matrix_path_nonClustered, cutoff, vcf_path_all_clust, vcf_path_all_nonClust, project, distance_path, genome)
+			first_run(overall_distances, distances_orig, original_vcf, vcf_path_clust, vcf_path_nonClust, sample, original, sim_count, matrix_path_clustered, matrix_path_nonClustered, cutoff, vcf_path_all_clust, vcf_path_all_nonClust, project, distance_path, genome, clustering_vaf)
 		
 		with open(vcf_path_clust + project + "_clustered.txt") as clust:	
 			clust_lines = clust.readlines()
 
-		# print(clust_lines[0:10])
 		with open(vcf_path_nonClust + project + "_nonClustered.txt") as nonclust:
 			nonclust_lines = nonclust.readlines()
 
@@ -2744,7 +2562,11 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, original=Fa
 			pos = line[2]
 			ref  = line[3]
 			mut = line[4]
-			print("\t".join([project,sample,".",genome,"SNP",chrom,pos,pos,ref,mut,"SOMATIC"]),file=f)
+			if clustering_vaf:
+				vaf = line[5]
+				print("\t".join([project,sample,".",genome,"SNP",chrom,pos,pos,ref,mut,"SOMATIC",vaf]),file=f)
+			else:
+				print("\t".join([project,sample,".",genome,"SNP",chrom,pos,pos,ref,mut,"SOMATIC"]),file=f)
 
 		f.close()
 
@@ -2764,7 +2586,6 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, original=Fa
 		if file_context == 'INDEL':
 			os.system("python3 sigProfilerMatrixGenerator_bi_2_dinuc_context.py -p " + project + "_clustered -g " + genome + " -i")
 			os.system("python3 sigProfilerMatrixGenerator_bi_2_dinuc_context.py -p " + project + "_nonClustered -g " + genome + " -i")
-
 		else:
 			print("\nAnalyzing clustered mutations...", flush=True)
 			matGen.SigProfilerMatrixGeneratorFunc(project + "_clustered", genome, vcf_path_clust,plot=False)
@@ -2796,14 +2617,13 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, original=Fa
 		overall_distances = []
 		distances_orig = []
 		distances_avg = []
+		# distances_orig_adj = []
 
 		fig = plt.figure(figsize = (width, height))
 		panel1=plt.axes([0.075, 0.225 + scaled_height*2, scaled_width, scaled_height])
 		panel2=plt.axes([0.125 + scaled_width, 0.225 + scaled_height*2, 0.3, scaled_height])
-
 		panel3=plt.axes([0.075, 0.15 + scaled_height, scaled_width, scaled_height])
 		panel4=plt.axes([0.125 + scaled_width, 0.15 + scaled_height, 0.3, scaled_height])
-
 		panel5=plt.axes([0.075, 0.075, scaled_width, scaled_height])
 		panel6=plt.axes([0.125 + scaled_width, 0.075, 0.3, scaled_height])
 
@@ -2812,44 +2632,36 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, original=Fa
 			if first_sort:
 				with open(original_vcf) as f:
 				    lines = [line.strip().split() for line in f]
-
 				output = open(original_vcf, 'w')
-
 				for line in sorted(lines, key = lambda x: (x[1], ['X','Y','1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22'].index(x[5]), int(x[6]))):
 				    print('\t'.join(line), file=output)
-
 				output.close()
 				first_sort = False
 			with open (distance_path + "distances_" + sample + ".txt") as f2:
 				for lines in f2:
-					line = lines.strip()
-					if int(line) >= 1:
-						distances_orig.append(int(line))
-						all_distances_orig.append(int(line))
+					line = lines.strip().split()
+					if int(line[0]) >= 1:
+						distances_orig.append(int(line[0]))
+						# distances_orig_adj.append(int(line[1]))
+						all_distances_orig.append(int(line[0]))
+
 
 		sim_count = len(files)
 		for file in files:
 			if file == '.DS_Store':
 				continue
 			distances = []
-			
-			
 			with open(directory + sample + "/" + file) as f:
-				name = file.split("_")
-				sample = name[0]
-				context = name[1]
 				for lines in f:
-					line = lines.strip()
-					if int(line) >= 1:
-						distances.append(int(line))
-
+					line = lines.strip().split()
+					if int(line[0]) >= 1:
+						distances.append(int(line[0]))
 			overall_distances.append(distances)
 			all_distances_sim.append(distances)
 
-		if l == 1:
-			break
+
 		if histo:
-			clustered = plot_hist(overall_distances, distances_orig, original_vcf, vcf_path_clust, vcf_path_nonClust, sample, pp, original, sim_count, matrix_path_clustered, matrix_path_nonClustered, panel2, panel3, panel4, panel5, panel6, cutoff)
+			clustered = plot_hist(overall_distances, distances_orig, distances_orig_adj, original_vcf, vcf_path_clust, vcf_path_nonClust, sample, pp, original, sim_count, matrix_path_clustered, matrix_path_nonClustered, panel2, panel3, panel4, panel5, panel6, cutoff)
 			if clustered:
 				if file_context == '96':
 					plot96_same (matrix_path, matrix_path_clustered, matrix_path_nonClustered, sample, percentage, signature, panel1, panel3, panel5, fig)
