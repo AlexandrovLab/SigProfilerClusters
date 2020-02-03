@@ -1,8 +1,12 @@
 README.md
 setup.py
 SigProfilerHotSpots/SigProfilerHotSpots.py
+SigProfilerHotSpots/SigProfilerHotSpots_slow.py
 SigProfilerHotSpots/__init__.py
 SigProfilerHotSpots/hotspot.py
+SigProfilerHotSpots/hotspot_fast.py
+SigProfilerHotSpots/hotspot_slow.py
+SigProfilerHotSpots/plottingFunctions.py
 SigProfilerHotSpots/version.py
 SigProfilerHotSpots.egg-info/PKG-INFO
 SigProfilerHotSpots.egg-info/SOURCES.txt
