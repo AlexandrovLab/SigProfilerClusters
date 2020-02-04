@@ -126,6 +126,7 @@ def first_run (distances, distances_orig_all, distances_orig, original_vcf, vcf_
 
 	y2, binEdges2 = np.histogram(distances_orig, bins = bin1)
 
+
 	bincenters2 = binEdges2[1:-1]
 	y2 = y2[1:]
 	avg_bin_counts = avg_bin_counts[1:]
@@ -184,7 +185,8 @@ def first_run (distances, distances_orig_all, distances_orig, original_vcf, vcf_
 		previous_interval = orig_mutations/total_mutations		
 
 
-	distance_cut = bincenters2[interval_line]
+	distance_cut = bincenters2[interval_line+1]
+
 	clustered_muts = [x[1:] for x in distances_orig_all if int(x[0]) <= distance_cut]
 	nonClustered_muts = [x[1:] for x in distances_orig_all if int(x[0]) > distance_cut]
 
@@ -279,6 +281,9 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, original=Fa
 	if firstRun:
 		if os.path.exists(vcf_path_clust):
 			shutil.rmtree(vcf_path_clust)
+
+		if os.path.exists(vcf_path_nonClust):
+			shutil.rmtree(vcf_path_nonClust)
 
 	if not os.path.exists(vcf_path_clust):
 		os.makedirs(vcf_path_clust)
