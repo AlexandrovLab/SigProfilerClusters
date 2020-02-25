@@ -41,8 +41,9 @@ def distance_multiple_files_sims (output_path, output_path_chrom, simulation_pat
 
 		if len(original_lines)>1:
 			distances = [[int(y[5])-int(x[5]), x[15]] if x[15] == y[15] and x[4] == y[4] and not (centromeres[genome][x[4]][0]<int(y[5])<centromeres[genome][x[4]][1]) else ['a',x[15]] for x,y in zip(original_lines, original_lines[1:])]
-			distances = [distances[0]] + distances[:] + [distances[-1]]
-			final_distances = ['bb' if x[1] != y[1] else [min(x[0],y[0]), x[1]] if x[0] != 'a' and y[0] != 'a' else [x[0],x[1]] if y[0] == 'a' and x[0] != 'a' else [y[0],y[1]] if x[0] == 'a' and y[0] != 'a' else 'bb' for x,y in zip(distances, distances[1:])]
+			distances = distances[:] + [[distances[-1][0]] + original_lines[-1]]
+			final_distances = ['bb' if x[1] != y[1] else [min(x[0],y[0]), y[1]] if x[0] != 'a' and y[0] != 'a' else [x[0],x[1]] if y[0] == 'a' and x[0] != 'a' else [y[0],y[1]] if x[0] == 'a' and y[0] != 'a' else 'bb' for x,y in zip(distances, distances[1:])]
+			final_distances = [distances[0]] + final_distances
 			final_distances_filtered = [x for x in final_distances if x[0] != 'b']
 
 			sample = final_distances_filtered[0][1]
@@ -67,6 +68,8 @@ def distance_multiple_files_sims (output_path, output_path_chrom, simulation_pat
 						out_file = open(output_path_interdistance  + file_sample + "/"+ sample + "_" + file_context2 + "_intradistance.txt", 'a')
 						print(str(x[0]), file=out_file)
 					else:
+						if not os.path.exists(output_path_interdistance + file_sample + "/"):
+							os.makedirs(output_path_interdistance + file_sample + "/")
 						out_file = open(output_path_interdistance + file_sample + "/" + sample + "_" + file_context2 + "_intradistance.txt", 'a')
 						print(str(x[0]), file=out_file)
 
@@ -97,9 +100,10 @@ def distance_one_file (original_samples, output_path_original, output_path_chrom
 			centro_end = centromeres[genome][original_lines[0][1]][1]
 			distances = [[int(y[2])-int(x[2])] + x if x[0] == y[0] and not (centro_start<int(y[2])<centro_end) else 'aa' for x,y in zip(original_lines, original_lines[1:])]
 
-			distances_new = [distances[0]] + distances[:] + [distances[-1]]
+			distances_new = distances[:] + [[distances[-1][0]] + original_lines[-1]]
 
-			final_distances = ['bb' if x[1] != y[1] else [min(x[0],y[0])]+x[1:] if x[0] != 'a' and y[0] != 'a' else x if y[0] == 'a' and x[0] != 'a' else y if x[0] == 'a' and y[0] != 'a' else 'bb' for x,y in zip(distances_new, distances_new[1:])]
+			final_distances = ['bb' if x[1] != y[1] else [min(x[0],y[0])]+y[1:] if x[0] != 'a' and y[0] != 'a' else x if y[0] == 'a' and x[0] != 'a' else y if x[0] == 'a' and y[0] != 'a' else 'bb' for x,y in zip(distances_new[:], distances_new[1:])]
+			final_distances = [distances_new[0]] + final_distances
 			final_distances_filtered = [x for x in final_distances if x[0] != 'b']
 
 			sample = final_distances_filtered[0][1]
