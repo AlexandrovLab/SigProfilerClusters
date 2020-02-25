@@ -158,6 +158,9 @@ def first_run (distances, distances_orig_all, distances_orig, original_vcf, vcf_
 		p_vals.append(p)
 	q_vals = sm.fdrcorrection(p_vals)[1]
 
+	# interval_line = 8 -> imd<256
+	# interval_line=10
+	# orig_mutations = sum(y2[:interval_line+1])
 
 	for i in range (0, len(avg_bin_counts), 1):
 		sim_mutations += avg_bin_counts[i]
@@ -183,7 +186,6 @@ def first_run (distances, distances_orig_all, distances_orig, original_vcf, vcf_
 				interval_percent = previous_interval*100
 			break
 		previous_interval = orig_mutations/total_mutations		
-
 
 	distance_cut = bincenters2[interval_line+1]
 

@@ -16,6 +16,7 @@ import statistics
 import scipy
 import time
 import sys
+from SigProfilerExtractor import sigpro as sigs
 
 
 def distance_multiple_files_sims (output_path, output_path_chrom, simulation_path, interdistance, file_context2, inter, genome, sim, centromeres):
@@ -120,7 +121,7 @@ def distance_one_file (original_samples, output_path_original, output_path_chrom
 
 
 
-def analysis (project, genome, contexts, simContext, input_path, output_type='all', analysis='all', interdistance='96', clustering_vaf=False):
+def analysis (project, genome, contexts, simContext, input_path, output_type='all', analysis='all', interdistance='96', clustering_vaf=False, extraction=False, startProcess=1, endProcess=25, totalIterations=1000):
 	ncbi_chrom = {'NC_000067.6':'1', 'NC_000068.7':'2', 'NC_000069.6':'3', 'NC_000070.6':'4', 
 				  'NC_000071.6':'5', 'NC_000072.6':'6', 'NC_000073.6':'7', 'NC_000074.6':'8',
 				  'NC_000075.6':'9', 'NC_000076.6':'10', 'NC_000077.6':'11', 'NC_000078.6':'12',
@@ -331,7 +332,16 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 
 		hotspot.hotSpotAnalysis(project, genome, contexts, simContext, ref_dir, original, signature, percentage, firstRun, clustering_vaf, centromeres)
 
-	
+	if extraction:
+		print("Beginning signature extraction...")
+		print(ref_dir+"output/extraction_clustered/")
+		print(ref_dir+"output/vcf_files/"+project+"_clustered/SNV/output/SBS/"+project+"_clustered.SBS6.all")
+		print(genome)
+		print(startProcess)
+		print(endProcess)
+		print(totalIterations)
+		sigs.sigProfilerExtractor("table", ref_dir+"output/extraction_clustered/", ref_dir+"output/vcf_files/"+project+"_clustered/SNV/output/SBS/"+project+"_clustered.SBS96.all", genome, startProcess=startProcess, endProcess=endProcess, totalIterations=totalIterations)#, totalIterations=totalIterations)
+	sys.stderr.close()
 	end = time.time() - start
 	print("SigProfilerHotSpots successfully finished! Elapsed time: " + str(round(end, 2)) + " seconds.")
 
