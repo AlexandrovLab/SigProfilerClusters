@@ -193,6 +193,7 @@ def first_run (distances, distances_orig_all, distances_orig, original_vcf, vcf_
 	nonClustered_muts = [x[1:] for x in distances_orig_all if int(x[0]) > distance_cut]
 
 	with open(vcf_path_clust + project + "_clustered.txt", 'a') as clust:
+		# print("HEADER", file=clust)
 		for muts in clustered_muts:
 			sample = muts[0]
 			chrom = muts[1]
@@ -206,6 +207,7 @@ def first_run (distances, distances_orig_all, distances_orig, original_vcf, vcf_
 				print("\t".join([project,sample,".",genome,"SNP",chrom,pos,pos,ref,alt,"SOMATIC"]),file=clust)
 
 	with open(vcf_path_nonClust + project + "_nonClustered.txt", 'a') as nonclust:
+		# print("HEADER", file=nonclust)
 		for muts in nonClustered_muts:
 			sample = muts[0]
 			chrom = muts[1]
@@ -275,7 +277,11 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, original=Fa
 		matrix_path_all_nonClustered = ref_dir + "/references/matrix/" + project + "_all_nonClustered/" + project + "_all_nonClustered" + matrix_file_suffix + "all"
 		output_path = directory_out + project + '_intradistance_plots_' + contexts + '.pdf'
 
+	with open(vcf_path_clust + project + "_clustered.txt", 'a') as clust:
+		print("HEADER", file=clust)
 
+	with open(vcf_path_nonClust + project + "_nonClustered.txt", 'a') as nonclust:
+		print("HEADER", file=nonclust)
 
 	if os.path.exists(directory_out) == False:
 		os.mkdir(directory_out)
@@ -328,12 +334,16 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, original=Fa
 
 
 			if original:
-				with open (directory_orig + sample + "_" + contexts + "_intradistance.txt") as f2:
-					for lines in f2:
-						line = lines.strip().split()
-						if int(line[0]) >= 1:
-							distances_orig_all_samps.append(line)
-							distances_orig_all.append(int(line[0]))
+				try:
+					with open (directory_orig + sample + "_" + contexts + "_intradistance.txt") as f2:
+						for lines in f2:
+							line = lines.strip().split()
+							if int(line[0]) >= 1:
+								distances_orig_all_samps.append(line)
+								distances_orig_all.append(int(line[0]))
+				except:
+					print(sample + " does not have nearby IDs to one another. Skipping this sample.")
+					continue
 
 			sim_count = len(files)
 			for file in files:
@@ -347,15 +357,8 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, original=Fa
 							distances.append(int(line[0]))
 				overall_distances_all.append(distances)
 			y2s[sample], bincenters2s[sample], q_values[sample], interval_lines[sample], orig_mutations_samps[sample], lower_CIs[sample], upper_CIs[sample], avg_bin_counts_samp[sample] = first_run(overall_distances_all, distances_orig_all_samps, distances_orig_all, original_vcf, vcf_path_clust, vcf_path_nonClust, sample, original, sim_count, matrix_path_clustered, matrix_path_nonClustered, cutoff, vcf_path_all_clust, vcf_path_all_nonClust, project, distance_path, genome, clustering_vaf, centromeres)
-
-
 		print("Completed!", flush=True)
 
-		# if file_context == 'INDEL':
-
-		# 	os.system("python3 sigProfilerMatrixGenerator_bi_2_dinuc_context.py -p " + project + "_clustered -g " + genome + " -i")
-		# 	os.system("python3 sigProfilerMatrixGenerator_bi_2_dinuc_context.py -p " + project + "_nonClustered -g " + genome + " -i")
-		# else:
 		print("\nAnalyzing clustered mutations...", flush=True)
 		matGen.SigProfilerMatrixGeneratorFunc(project + "_clustered", genome, vcf_path_clust,plot=False)
 		print("\nAnalyzing non-clustered mutations...", flush=True)

@@ -34,20 +34,21 @@ def distance_multiple_files_sims (output_path, output_path_chrom, simulation_pat
 		os.makedirs(output_path_interdistance)
 
 	for file in os.listdir(sample_path):
-
 		with open(sample_path + file) as f:
 			lines = [line.strip().split() for line in f]
 		original_lines = sorted(lines, key = lambda x: (x[15], ['X','Y','1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22'].index(x[4]), int(x[5])))
 
 
 		if len(original_lines)>1:
-			distances = [[int(y[5])-int(x[5]), x[15]] if x[15] == y[15] and x[4] == y[4] and not (centromeres[genome][x[4]][0]<int(y[5])<centromeres[genome][x[4]][1]) else ['a',x[15]] for x,y in zip(original_lines, original_lines[1:])]
-			distances = distances[:] + [[distances[-1][0]] + original_lines[-1]]
-			final_distances = ['bb' if x[1] != y[1] else [min(x[0],y[0]), y[1]] if x[0] != 'a' and y[0] != 'a' else [x[0],x[1]] if y[0] == 'a' and x[0] != 'a' else [y[0],y[1]] if x[0] == 'a' and y[0] != 'a' else 'bb' for x,y in zip(distances, distances[1:])]
-			final_distances = [distances[0]] + final_distances
-			final_distances_filtered = [x for x in final_distances if x[0] != 'b']
+			distances = [[int(y[5])-int(x[5]), x[15]] + ['c'] if x[15] == y[15] and x[4] == y[4] and int(y[5]) < centromeres[genome][x[4]][0] else [int(y[5])-int(x[5]), x[15]] + ['c'] if x[15] == y[15] and x[4] == y[4] and centromeres[genome][x[4]][1] < int(x[5]) else ['a',x[15]] if x[15] != y[15] or x[4] != y[4] else [int(x[5]) - int(original_lines[original_lines.index(x)-1][5]), x[15]] + ['d'] for x,y in zip(original_lines, original_lines[1:])]			
+			distances_new = distances[:] + [[distances[-1][0]] + [original_lines[-1][15]] + [distances[-1][-1]]]
+			final_distances = ['bb' if x[1] != y[1] else [min(x[0],y[0])] + y[1:-1] if x[0] != 'a' and y[0] != 'a' and x[-1] != 'd' else [y[0]] + y[1:-1] if x[-1] == 'd' and x[0] != 'a' and y[0] != 'a' else [x[0],x[1]] if y[0] == 'a' and x[0] != 'a' else [y[0],y[1]] if x[0] == 'a' and y[0] != 'a' else 'bb' for x,y in zip(distances_new, distances_new[1:])]
+			final_distances = [distances_new[0]] + final_distances
+			final_distances_filtered = [x for x in final_distances if x[0] != 'b' and x[0] != 'a']
+
 
 			sample = final_distances_filtered[0][1]
+			
 			file_sample = sample.split("_")[:-1]
 			file_sample = ("_").join([x for x in file_sample])
 			if not os.path.exists(output_path_interdistance + file_sample + "/"):
@@ -99,13 +100,13 @@ def distance_one_file (original_samples, output_path_original, output_path_chrom
 		if len(original_lines)>1:
 			centro_start = centromeres[genome][original_lines[0][1]][0]
 			centro_end = centromeres[genome][original_lines[0][1]][1]
-			distances = [[int(y[2])-int(x[2])] + x if x[0] == y[0] and not (centro_start<int(y[2])<centro_end) else 'aa' for x,y in zip(original_lines, original_lines[1:])]
-
-			distances_new = distances[:] + [[distances[-1][0]] + original_lines[-1]]
-
-			final_distances = ['bb' if x[1] != y[1] else [min(x[0],y[0])]+y[1:] if x[0] != 'a' and y[0] != 'a' else x if y[0] == 'a' and x[0] != 'a' else y if x[0] == 'a' and y[0] != 'a' else 'bb' for x,y in zip(distances_new[:], distances_new[1:])]
+			distances = [[int(y[2])-int(x[2])] + x + ['c'] if x[0] == y[0] and int(y[2])<centro_start else [int(y[2])-int(x[2])] + x +['c']if x[0] == y[0] and centro_end<int(x[2]) else 'aa' if x[0] != y[0] else [int(x[2]) - int(original_lines[original_lines.index(x)-1][2])] + x +['d'] for x,y in zip(original_lines, original_lines[1:])]
+			distances_new = distances[:] + [[distances[-1][0]] + original_lines[-1] + [distances[-1][-1]]]
+			final_distances = ['bb' if x[1] != y[1] else [min(x[0],y[0])]+y[1:-1] if x[0] != 'a' and y[0] != 'a' and x[-1] != 'd' else [y[0]] + y[1:-1] if x[-1] == 'd' and x[0] != 'a' and y[0] != 'a' else x if y[0] == 'a' and x[0] != 'a' else y if x[0] == 'a' and y[0] != 'a' else 'bb' for x,y in zip(distances_new[:], distances_new[1:])]		
 			final_distances = [distances_new[0]] + final_distances
-			final_distances_filtered = [x for x in final_distances if x[0] != 'b']
+			final_distances_filtered = [x for x in final_distances if x[0] != 'b' and x[0] != 'a']
+
+
 
 			sample = final_distances_filtered[0][1]
 			out_file = open(output_path_interdistance + sample + "_" + file_context2 + "_intradistance.txt", 'a')
@@ -167,7 +168,6 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 			inter = 'ID'
 		else:
 			inter = 'SNP'
-			inter2 = 'SNV'
 
 	simContext = sorted(simContext, reverse=True)
 	file_context = "_".join(simContext)
@@ -221,7 +221,6 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 	if len(simContext) == 1:
 		if simContext[0] == 'INDEL' or simContext[0] == 'ID':
 			context_ref = 'INDEL'
-			# original_vcf_path = ref_dir + "input/"
 
 		else:
 			context_ref = 'SNV' 
@@ -250,42 +249,39 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 				print("File format not supported")
 
 	else:
-		original_vcf_path_INDEL = ref_dir + "/references/vcf_files/" + project + "/INDEL/"
-		original_vcf_path_SNV = ref_dir + "/input/"
-		INDEL_files = os.listdir(original_vcf_path_INDEL)
-		SNV_files = os.listdir(original_vcf_path_SNV)
+		pass
+		# original_vcf_path_INDEL = ref_dir + "/references/vcf_files/" + project + "/INDEL/"
+		# original_vcf_path_SNV = ref_dir + "/input/"
+		# INDEL_files = os.listdir(original_vcf_path_INDEL)
+		# SNV_files = os.listdir(original_vcf_path_SNV)
 
-		if '.DS_Store' in INDEL_files:
-			INDEL_files.remove('.DS_Store')
-		if '.DS_Store' in SNV_files:
-			SNV_files.remove('.DS_Store')
-		file_name_INDEL = INDEL_files[0].split('.')
-		file_extension_INDEL = file_name_INDEL[-1] 
-		if file_extension_INDEL == 'genome':
-			os.system("bash convert_txt_files_to_simple_files.sh " + project + " " + original_vcf_path_INDEL + " INDEL" )
-		else:
-			os.system("bash convert_" + file_extension_INDEL + "_files_to_simple_files.sh " + project + " " + original_vcf_path_INDEL + " INDEL")
+		# if '.DS_Store' in INDEL_files:
+		# 	INDEL_files.remove('.DS_Store')
+		# if '.DS_Store' in SNV_files:
+		# 	SNV_files.remove('.DS_Store')
+		# file_name_INDEL = INDEL_files[0].split('.')
+		# file_extension_INDEL = file_name_INDEL[-1] 
+		# if file_extension_INDEL == 'genome':
+		# 	os.system("bash convert_txt_files_to_simple_files.sh " + project + " " + original_vcf_path_INDEL + " INDEL" )
+		# else:
+		# 	os.system("bash convert_" + file_extension_INDEL + "_files_to_simple_files.sh " + project + " " + original_vcf_path_INDEL + " INDEL")
 		
-		os.system("mv " + ref_dir + '/references/vcf_files/single/' + project + "_indels.genome " + ref_dir + '/references/vcf_files/single/' + project + "_indels2.genome")
+		# os.system("mv " + ref_dir + '/references/vcf_files/single/' + project + "_indels.genome " + ref_dir + '/references/vcf_files/single/' + project + "_indels2.genome")
 
-		file_name_SNV = SNV_files[0].split('.')
-		file_extension_SNV = file_name_SNV[-1]
-		if file_extension_SNV == 'genome':
-			os.system("bash convert_txt_files_to_simple_files.sh " + project + " " + original_vcf_path_SNV + " SNP")
-		else:
-			os.system("bash convert_" + file_extension_SNV + "_files_to_simple_files.sh " + project + " " + original_vcf_path_SNV + " SNP")
-		os.system("mv " + ref_dir + '/references/vcf_files/single/' + project + "_indels.genome " + ref_dir + '/references/vcf_files/single/' + project + "_indels3.genome")
+		# file_name_SNV = SNV_files[0].split('.')
+		# file_extension_SNV = file_name_SNV[-1]
+		# if file_extension_SNV == 'genome':
+		# 	os.system("bash convert_txt_files_to_simple_files.sh " + project + " " + original_vcf_path_SNV + " SNP")
+		# else:
+		# 	os.system("bash convert_" + file_extension_SNV + "_files_to_simple_files.sh " + project + " " + original_vcf_path_SNV + " SNP")
+		# os.system("mv " + ref_dir + '/references/vcf_files/single/' + project + "_indels.genome " + ref_dir + '/references/vcf_files/single/' + project + "_indels3.genome")
 
 
-		os.system("cat " + ref_dir + '/references/vcf_files/single/'+project+"_indels3.genome " + ref_dir + '/references/vcf_files/single/'+project+"_indels2.genome >> " + ref_dir + '/references/vcf_files/single/' +project + "_indels.genome")
-		os.system("rm "+ ref_dir + '/references/vcf_files/single/'+project+"_indels3.genome")
-		os.system("rm " + ref_dir + '/references/vcf_files/single/'+project+"_indels2.genome")
+		# os.system("cat " + ref_dir + '/references/vcf_files/single/'+project+"_indels3.genome " + ref_dir + '/references/vcf_files/single/'+project+"_indels2.genome >> " + ref_dir + '/references/vcf_files/single/' +project + "_indels.genome")
+		# os.system("rm "+ ref_dir + '/references/vcf_files/single/'+project+"_indels3.genome")
+		# os.system("rm " + ref_dir + '/references/vcf_files/single/'+project+"_indels2.genome")
 
-	if interdistance:
-		file_context2 = inter_label
-	else:
-
-		file_context2 = inter_label
+	file_context2 = inter_label
 
 	output_path = ref_dir + "output/simulations/" + project + "_intradistance_" + genome + "_" + file_context2 + "/"
 	output_path_chrom = ref_dir + "output/simulations/" + project + "_chromosome_mutation_count_" + genome + "_" + file_context2 + "/"
@@ -341,7 +337,7 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 		print(endProcess)
 		print(totalIterations)
 		sigs.sigProfilerExtractor("table", ref_dir+"output/extraction_clustered/", ref_dir+"output/vcf_files/"+project+"_clustered/SNV/output/SBS/"+project+"_clustered.SBS96.all", genome, startProcess=startProcess, endProcess=endProcess, totalIterations=totalIterations)#, totalIterations=totalIterations)
-	sys.stderr.close()
+	# sys.stderr.close()
 	end = time.time() - start
 	print("SigProfilerHotSpots successfully finished! Elapsed time: " + str(round(end, 2)) + " seconds.")
 
