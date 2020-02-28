@@ -19,7 +19,7 @@ import sys
 from SigProfilerExtractor import sigpro as sigs
 
 
-def distance_multiple_files_sims (output_path, output_path_chrom, simulation_path, interdistance, file_context2, inter, genome, sim, centromeres):
+def distance_multiple_files_sims (output_path, output_path_chrom, simulation_path, simulation_path_sorted, interdistance, file_context2, inter, genome, sim, centromeres, sortSims):
 	sample_path = simulation_path
 	output_path_interdistance = output_path 
 	output_path_chromosome_mutations = output_path_chrom
@@ -36,8 +36,13 @@ def distance_multiple_files_sims (output_path, output_path_chrom, simulation_pat
 	for file in os.listdir(sample_path):
 		with open(sample_path + file) as f:
 			lines = [line.strip().split() for line in f]
-		original_lines = sorted(lines, key = lambda x: (x[15], ['X','Y','1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22'].index(x[4]), int(x[5])))
-
+		if sortSims:
+			original_lines = sorted(lines, key = lambda x: (x[15], ['X','Y','1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22'].index(x[4]), int(x[5])))
+			with open(simulation_path_sorted + file, "w") as f2:
+				for line in original_lines:
+					print("\t".join([x for x in line]), file=f2)
+		else:
+			original_lines = lines
 
 		if len(original_lines)>1:
 			distances = [[int(y[5])-int(x[5]), x[15]] + ['c'] if x[15] == y[15] and x[4] == y[4] and int(y[5]) < centromeres[genome][x[4]][0] else [int(y[5])-int(x[5]), x[15]] + ['c'] if x[15] == y[15] and x[4] == y[4] and centromeres[genome][x[4]][1] < int(x[5]) else ['a',x[15]] if x[15] != y[15] or x[4] != y[4] else [int(x[5]) - int(original_lines[original_lines.index(x)-1][5]), x[15]] + ['d'] for x,y in zip(original_lines, original_lines[1:])]			
@@ -80,7 +85,7 @@ def distance_multiple_files_sims (output_path, output_path_chrom, simulation_pat
 
 
 
-def distance_one_file (original_samples, output_path_original, output_path_chrom_original, file_context2, interdistance, inter, project, genome, centromeres):
+def distance_one_file (original_samples, output_path_original, output_path_chrom_original, file_context2, interdistance, inter, project, genome, centromeres, sortSims):
 	sample_path = original_samples
 	output_path_interdistance = output_path_original
 	output_path_chromosome_mutations = output_path_chrom_original
@@ -94,7 +99,13 @@ def distance_one_file (original_samples, output_path_original, output_path_chrom
 	for file in os.listdir(sample_path):
 		with open(sample_path + file) as f:
 			lines = [line.strip().split() for line in f]
+
 		original_lines = sorted(lines, key = lambda x: (x[0], int(x[2])))
+		# 	with open(original_samples_sorted + file, "w") as f2:
+		# 		for line in original_lines:
+		# 			print("\t".join([x for x in line]), file=f2)
+		# else:
+		# 	original_lines = lines
 
 
 		if len(original_lines)>1:
@@ -122,7 +133,7 @@ def distance_one_file (original_samples, output_path_original, output_path_chrom
 
 
 
-def analysis (project, genome, contexts, simContext, input_path, output_type='all', analysis='all', interdistance='96', clustering_vaf=False, extraction=False, startProcess=1, endProcess=25, totalIterations=1000):
+def analysis (project, genome, contexts, simContext, input_path, output_type='all', analysis='all', interdistance='96', clustering_vaf=False, sortSims=True, extraction=False, startProcess=1, endProcess=25, totalIterations=1000):
 	ncbi_chrom = {'NC_000067.6':'1', 'NC_000068.7':'2', 'NC_000069.6':'3', 'NC_000070.6':'4', 
 				  'NC_000071.6':'5', 'NC_000072.6':'6', 'NC_000073.6':'7', 'NC_000074.6':'8',
 				  'NC_000075.6':'9', 'NC_000076.6':'10', 'NC_000077.6':'11', 'NC_000078.6':'12',
@@ -177,6 +188,7 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 		
 	output_path = ref_dir + "output/vcf_files/single/"
 	if os.path.exists(output_path) or output_type != None:
+		#if sortSims:
 		os.system("rm -r " + output_path)
 		os.makedirs(output_path)
 	output_log_path = ref_dir + "logs/"
@@ -285,8 +297,21 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 
 	output_path = ref_dir + "output/simulations/" + project + "_intradistance_" + genome + "_" + file_context2 + "/"
 	output_path_chrom = ref_dir + "output/simulations/" + project + "_chromosome_mutation_count_" + genome + "_" + file_context2 + "/"
-	simulation_path = ref_dir + "output/simulations/" + project + "_simulations_" + genome + "_" + file_context + "/"	
+	simulation_path_sorted = None
+	# original_samples_sorted = None
 	original_samples = ref_dir + "output/vcf_files/single/" + context_ref + "/"
+	if sortSims:
+		simulation_path = ref_dir + "output/simulations/" + project + "_simulations_" + genome + "_" + file_context + "/"
+		simulation_path_sorted = ref_dir + "output/simulations/" + project + "_simulations_" + genome + "_" + file_context + "_sorted/"
+		if not os.path.exists(simulation_path_sorted):
+			os.makedirs(simulation_path_sorted)
+		
+		# original_samples_sorted = ref_dir + "output/vcf_files/single/" + context_ref + "_sorted/"
+		# if not os.path.exists(original_samples_sorted):
+		# 	os.makedirs(original_samples_sorted)
+	else:
+		simulation_path = ref_dir + "output/simulations/" + project + "_simulations_" + genome + "_" + file_context + "_sorted/"
+		# original_samples = ref_dir + "output/vcf_files/single/" + context_ref + "_sorted/"
 	output_path_original = ref_dir + "output/simulations/" + project + "_intradistance_original_" + genome + "_" + file_context2 + "/"
 	output_path_chrom_original = ref_dir + "output/simulations/" + project + "_chromosome_mutation_count_original_" + genome + "_" + file_context2 + "/"
 	
@@ -308,12 +333,12 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 	if output_type != None:
 		print("Calculating mutational distances...", end='', flush=True)
 	if output_type == 'original':
-		distance_one_file (original_samples, output_path_original, output_path_chrom_original, file_context2, interdistance, inter, project, genome, centromeres)
+		distance_one_file (original_samples, output_path_original, output_path_chrom_original, file_context2, interdistance, inter, project, genome, centromeres, sortSims)
 	elif output_type == 'all':
-		distance_one_file (original_samples, output_path_original, output_path_chrom_original, file_context2, interdistance, inter, project, genome, centromeres)
-		distance_multiple_files_sims (output_path, output_path_chrom, simulation_path, interdistance, file_context2, inter, genome, file_context, centromeres)
+		distance_one_file (original_samples, output_path_original, output_path_chrom_original, file_context2, interdistance, inter, project, genome, centromeres, sortSims)
+		distance_multiple_files_sims (output_path, output_path_chrom, simulation_path, simulation_path_sorted, interdistance, file_context2, inter, genome, file_context, centromeres, sortSims)
 	elif output_type == 'simulations':
-		distance_multiple_files_sims (output_path, output_path_chrom, simulation_path, interdistance, file_context2, inter, genome, file_context, centromeres)
+		distance_multiple_files_sims (output_path, output_path_chrom, simulation_path, simulation_path_sorted, interdistance, file_context2, inter, genome, file_context, centromeres, sortSims)
 	else:
 		pass
 	if output_type != None:
