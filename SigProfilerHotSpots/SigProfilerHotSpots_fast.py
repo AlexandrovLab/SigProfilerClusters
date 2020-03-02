@@ -17,21 +17,23 @@ import scipy
 import time
 import sys
 from SigProfilerExtractor import sigpro as sigs
-import multiprocessing as mp
 
 
-def distance_multiple_files_sims (output_path, output_path_chrom, simulations, simulation_path, simulation_path_sorted, interdistance, file_context2, inter, genome, sim, centromeres, sortSims):
+def distance_multiple_files_sims (output_path, output_path_chrom, simulation_path, simulation_path_sorted, interdistance, file_context2, inter, genome, sim, centromeres, sortSims):
 	sample_path = simulation_path
 	output_path_interdistance = output_path 
 	output_path_chromosome_mutations = output_path_chrom
 
 	folders = os.listdir(sample_path)
 
-	sims = os.listdir(sample_path)
-	if ".DS_Store" in sims:
-		sims.remove(".DS_Store")
 
-	for file in simulations:
+	if os.path.exists(output_path_interdistance):
+		shutil.rmtree(output_path_interdistance)
+		os.makedirs(output_path_interdistance)
+	else:
+		os.makedirs(output_path_interdistance)
+
+	for file in os.listdir(sample_path):
 		with open(sample_path + file) as f:
 			lines = [line.strip().split() for line in f]
 		if sortSims:
@@ -43,39 +45,34 @@ def distance_multiple_files_sims (output_path, output_path_chrom, simulations, s
 			original_lines = lines
 
 		if len(original_lines)>1:
-			distances = [None]*(len(original_lines)-1)
-			i = 0
-			for x,y in zip(original_lines, original_lines[1:]):
-				prevSamp = x[15]
-				prevChrom = x[4]
-				prevPos = int(x[5])
-				currentSamp = y[15]
-				currentChrom = y[4]
-				currentPos = int(y[5])
-				centroStart = centromeres[genome][prevChrom][0]
-				centroEnd = centromeres[genome][prevChrom][1]
+			end = time.time()
+			print("start ", len(original_lines))
 
-				if prevSamp == currentSamp:
-					if prevChrom == currentChrom:
-						if currentPos < centroStart:
-							distances[i] = [currentPos - prevPos, prevSamp, 'c']
-						elif prevPos > centroEnd:
-							distances[i] = [currentPos - prevPos, prevSamp, 'c']
-						else:
-							distances[i] = [prevPos - int(original_lines[i-1][5]), prevSamp, 'd']
-					else:
-						distances[i] = ['a', prevSamp]
-				else:
-					distances[i] = ['a', prevSamp]
-				i += 1
-
-
+			# distances = [[int(y[5])-int(x[5]), x[15], 'c'] if x[15] == y[15] and x[4] == y[4] else [int(y[5])-int(x[5]), x[15], 'c'] if x[15] == y[15] and x[4] == y[4]  else ['a',x[15]] if x[15] != y[15] or x[4] != y[4] else [int(x[5]) - 1,'d'] for x,y in zip(original_lines, original_lines[1:])]			
+			distances = [[int(y[5])-int(x[5]), x[15]] + ['c'] if x[15] == y[15] and x[4] == y[4] and int(y[5]) < centromeres[genome][x[4]][0] else [int(y[5])-int(x[5]), x[15]] + ['c'] if x[15] == y[15] and x[4] == y[4] and centromeres[genome][x[4]][1] < int(x[5]) else ['a',x[15]] if x[15] != y[15] or x[4] != y[4] else [int(x[5]) - int(original_lines[original_lines.index(x)-1][5]), x[15]] + ['d'] for x,y in zip(original_lines, original_lines[1:])]			
+			
+			end1 = time.time() - end
+			print("1 ", str(round(end1, 2)))
+			# distances = [[int(y[5])-int(x[5]), x[15]] + ['c'] if x[15] == y[15] and x[4] == y[4] and int(y[5]) < centromeres[genome][x[4]][0] else [int(y[5])-int(x[5]), x[15]] + ['c'] if x[15] == y[15] and x[4] == y[4] and centromeres[genome][x[4]][1] < int(x[5]) else ['a',x[15]] if x[15] != y[15] or x[4] != y[4] else [int(x[5]) - int(original_lines[original_lines.index(x)-1][5]), x[15]] + ['d'] for x,y in zip(original_lines, original_lines[1:])]			
+			end = time.time()
 			distances_new = distances + [[distances[-1][0]] + [original_lines[-1][15]] + [distances[-1][-1]]]
+			end2 = time.time() - end
+			print("2 ", str(round(end2, 2)))
+			end = time.time()
 			final_distances = ['bb' if x[1] != y[1] else [min(x[0],y[0])] + y[1:-1] if x[0] != 'a' and y[0] != 'a' and x[-1] != 'd' else [y[0]] + y[1:-1] if x[-1] == 'd' and x[0] != 'a' and y[0] != 'a' else [x[0],x[1]] if y[0] == 'a' and x[0] != 'a' else [y[0],y[1]] if x[0] == 'a' and y[0] != 'a' else 'bb' for x,y in zip(distances_new, distances_new[1:])]
+			end3 = time.time() - end
+			print("3 ", str(round(end3, 2)))
+			end = time.time()
 			final_distances = [distances_new[0]] + final_distances
+			end4 = time.time() - end
+			print("4 ", str(round(end4, 2)))			
+			end = time.time()
 			final_distances_filtered = [x for x in final_distances if x[0] != 'b' and x[0] != 'a']
+			end5 = time.time() - end
+			print("5 ", str(round(end5, 2)))
 
 			sample = final_distances_filtered[0][1]
+			
 			file_sample = sample.split("_")[:-1]
 			file_sample = ("_").join([x for x in file_sample])
 			if not os.path.exists(output_path_interdistance + file_sample + "/"):
@@ -92,24 +89,17 @@ def distance_multiple_files_sims (output_path, output_path_chrom, simulations, s
 					if sample.split("_")[0] != file_sample:
 						file_sample = sample.split("_")[:-1]
 						file_sample = ("_").join([x for x in file_sample])
-						try:
-							if not os.path.exists(output_path_interdistance + file_sample + "/"):
-								os.makedirs(output_path_interdistance + file_sample + "/")
-						except:
-							pass
+						if not os.path.exists(output_path_interdistance + file_sample + "/"):
+							os.makedirs(output_path_interdistance + file_sample + "/")
 						out_file = open(output_path_interdistance  + file_sample + "/"+ sample + "_" + file_context2 + "_intradistance.txt", 'a')
 						print(str(x[0]), file=out_file)
 					else:
-						try:
-							if not os.path.exists(output_path_interdistance + file_sample + "/"):
-								os.makedirs(output_path_interdistance + file_sample + "/")
-						except:
-							pass
+						if not os.path.exists(output_path_interdistance + file_sample + "/"):
+							os.makedirs(output_path_interdistance + file_sample + "/")
 						out_file = open(output_path_interdistance + file_sample + "/" + sample + "_" + file_context2 + "_intradistance.txt", 'a')
 						print(str(x[0]), file=out_file)
 
 			out_file.close()
-
 
 
 
@@ -130,6 +120,11 @@ def distance_one_file (original_samples, output_path_original, output_path_chrom
 			lines = [line.strip().split() for line in f]
 
 		original_lines = sorted(lines, key = lambda x: (x[0], int(x[2])))
+		# 	with open(original_samples_sorted + file, "w") as f2:
+		# 		for line in original_lines:
+		# 			print("\t".join([x for x in line]), file=f2)
+		# else:
+		# 	original_lines = lines
 
 
 		if len(original_lines)>1:
@@ -322,22 +317,23 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 	output_path = ref_dir + "output/simulations/" + project + "_intradistance_" + genome + "_" + file_context2 + "/"
 	output_path_chrom = ref_dir + "output/simulations/" + project + "_chromosome_mutation_count_" + genome + "_" + file_context2 + "/"
 	simulation_path_sorted = None
+	# original_samples_sorted = None
 	original_samples = ref_dir + "output/vcf_files/single/" + context_ref + "/"
 	if sortSims:
 		simulation_path = ref_dir + "output/simulations/" + project + "_simulations_" + genome + "_" + file_context + "/"
 		simulation_path_sorted = ref_dir + "output/simulations/" + project + "_simulations_" + genome + "_" + file_context + "_sorted/"
-		if os.path.exists(simulation_path_sorted):
-			shutil.rmtree(simulation_path_sorted)
-		os.makedirs(simulation_path_sorted)
+		if not os.path.exists(simulation_path_sorted):
+			os.makedirs(simulation_path_sorted)
 		
+		# original_samples_sorted = ref_dir + "output/vcf_files/single/" + context_ref + "_sorted/"
+		# if not os.path.exists(original_samples_sorted):
+		# 	os.makedirs(original_samples_sorted)
 	else:
 		simulation_path = ref_dir + "output/simulations/" + project + "_simulations_" + genome + "_" + file_context + "_sorted/"
 		# original_samples = ref_dir + "output/vcf_files/single/" + context_ref + "_sorted/"
 	output_path_original = ref_dir + "output/simulations/" + project + "_intradistance_original_" + genome + "_" + file_context2 + "/"
 	output_path_chrom_original = ref_dir + "output/simulations/" + project + "_chromosome_mutation_count_original_" + genome + "_" + file_context2 + "/"
 	
-
-
 	# Checks for simulated data. If there are not simulations, then inform the user to generate simulations first before
 	# performing the hotspot analysis:
 	if not os.path.exists(simulation_path):
@@ -352,51 +348,37 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 		print("Please simulate a minimum of 100 simulations per sample to successfully run SigProfilerHotSpots.")
 		sys.quit()
 
-	simulations = os.listdir(simulation_path)
-	if ".DS_Store" in simulations:
-		simulations.remove(".DS_Store")
-	processors = mp.cpu_count()
-	max_seed = processors
-	if processors > len(simulations):
-		max_seed = len(simulations)
-	pool = mp.Pool(max_seed)
 
-	sim_break = len(simulations)/max_seed
-	simulations_parallel = [[] for i in range(max_seed)]
+	# for file in os.listdir(simulation_path):
+	# 	print(file, "...", end='', flush=True)
+	# 	output_path = ref_dir + "output/simulations/" + project + "_simulations_" + genome + "_" + file_context + "_chromosomes/"
+	# 	if os.path.exists(output_path):
+	# 		shutil.rmtree(output_path)
+	# 	os.makedirs(output_path)
+	# 	if file_extension == 'genome':
+	# 			convertIn.convertTxt(project, vcf_path, genome, output_path)
+	# 	else:
+	# 		if file_extension == 'txt':
+	# 			snv, indel, skipped, samples = convertIn.convertTxt(project, simulation_path,  genome,  output_path, ncbi_chrom, log_file)
+	# 		elif file_extension == 'vcf':
+	# 			snv, indel, skipped, samples = convertIn.convertVCF(project, simulation_path,  genome, output_path, ncbi_chrom, log_file)
+	# 		elif file_extension == 'maf':
+	# 			snv, indel, skipped, samples = convertIn.convertMAF(project, simulation_path,  genome, output_path, ncbi_chrom, log_file)
+	# 		elif file_extension == 'tsv':
+	# 			snv, indel, skipped, samples = convertIn.convertICGC(project, simulation_path,  genome, output_path, ncbi_chrom, log_file)
+	# 		else:
+	# 			print("File format not supported")
+	# 	print("done", flush=True)
 
-	sim_bin = 0
-	for sim in simulations:
-		if sim_bin == max_seed:
-			sim_bin = 0
-		simulations_parallel[sim_bin].append(sim)
-		sim_bin += 1
 
 	if output_type != None:
 		print("Calculating mutational distances...", end='', flush=True)
 	if output_type == 'original':
 		distance_one_file (original_samples, output_path_original, output_path_chrom_original, file_context2, interdistance, inter, project, genome, centromeres, sortSims)
 	elif output_type == 'all':
-		if os.path.exists(output_path):
-			shutil.rmtree(output_path)
-		os.makedirs(output_path)
 		distance_one_file (original_samples, output_path_original, output_path_chrom_original, file_context2, interdistance, inter, project, genome, centromeres, sortSims)
-		results = []
-		for i in range (0, len(simulations_parallel), 1):
-			r = pool.apply_async(distance_multiple_files_sims, args=(output_path, output_path_chrom, simulations_parallel[i], simulation_path, simulation_path_sorted, interdistance, file_context2, inter, genome, file_context, centromeres, sortSims))
-			results.append(r)
-		pool.close()
-		pool.join()
-		for r in results:
-			r.wait()
-			if not r.successful():
-				# Raises an error when not successful
-				r.get()
-
-
+		distance_multiple_files_sims (output_path, output_path_chrom, simulation_path, simulation_path_sorted, interdistance, file_context2, inter, genome, file_context, centromeres, sortSims)
 	elif output_type == 'simulations':
-		if os.path.exists(output_path):
-			shutil.rmtree(output_path)
-		os.makedirs(output_path)
 		distance_multiple_files_sims (output_path, output_path_chrom, simulation_path, simulation_path_sorted, interdistance, file_context2, inter, genome, file_context, centromeres, sortSims)
 	else:
 		pass

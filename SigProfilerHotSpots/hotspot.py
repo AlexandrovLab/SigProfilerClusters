@@ -277,11 +277,7 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, original=Fa
 		matrix_path_all_nonClustered = ref_dir + "/references/matrix/" + project + "_all_nonClustered/" + project + "_all_nonClustered" + matrix_file_suffix + "all"
 		output_path = directory_out + project + '_intradistance_plots_' + contexts + '.pdf'
 
-	with open(vcf_path_clust + project + "_clustered.txt", 'a') as clust:
-		print("HEADER", file=clust)
 
-	with open(vcf_path_nonClust + project + "_nonClustered.txt", 'a') as nonclust:
-		print("HEADER", file=nonclust)
 
 	if os.path.exists(directory_out) == False:
 		os.mkdir(directory_out)
@@ -320,7 +316,11 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, original=Fa
 			os.remove(vcf_path_all_clust + project + "_all_clustered.txt")
 		if os.path.exists(vcf_path_all_nonClust + project + "_all_nonClustered.txt"):
 			os.remove(vcf_path_all_nonClust + project + "_all_nonClustered.txt")
-	
+		with open(vcf_path_clust + project + "_clustered.txt", 'a') as clust:
+			print("HEADER", file=clust)
+
+		with open(vcf_path_nonClust + project + "_nonClustered.txt", 'a') as nonclust:
+			print("HEADER", file=nonclust)
 		print("Determining sample-dependent intermutational distance (IMD) cutoff...", end='', flush=True)
 		for folder in folders:
 			if folder == '.DS_Store_intradistance.txt' or folder == '.DS_Store':

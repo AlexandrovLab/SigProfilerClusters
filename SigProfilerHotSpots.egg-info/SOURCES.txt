@@ -1,6 +1,8 @@
 README.md
 setup.py
 SigProfilerHotSpots/SigProfilerHotSpots.py
+SigProfilerHotSpots/SigProfilerHotSpots_fast.py
+SigProfilerHotSpots/SigProfilerHotSpots_no_mp.py
 SigProfilerHotSpots/SigProfilerHotSpots_slow.py
 SigProfilerHotSpots/__init__.py
 SigProfilerHotSpots/hotspot.py
