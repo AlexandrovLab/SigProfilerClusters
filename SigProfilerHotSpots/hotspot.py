@@ -20,6 +20,7 @@ from statistics import median
 from SigProfilerMatrixGenerator.scripts import SigProfilerMatrixGeneratorFunc as matGen
 import time
 from . import plottingFunctions
+import pickle
 
 warnings.filterwarnings("ignore", message="invalid value encountered in long_scalars")
 warnings.filterwarnings("ignore", message="Data has no positive values, and therefore cannot be log-scaled.")
@@ -76,9 +77,13 @@ def plot_hist (y2, bincenters2, q_vals, interval_line, orig_mutations, lower_CI,
 	else:
 		panel2.legend([sim], ['simulated'])
 
-	plot_clustered (y2[:interval_line-l+1], avg_bin_counts[:interval_line-l+1], bincenters2, sample, panel4, lower_CI, upper_CI)
-	plot_non_clustered (y2[interval_line-l+1:], avg_bin_counts[interval_line-l+1:], bincenters2, sample, panel6, lower_CI, upper_CI)
+	# plot_clustered (y2[:interval_line-l+1], avg_bin_counts[:interval_line-l+1], bincenters2, sample, panel4, lower_CI, upper_CI)
+	# plot_non_clustered (y2[interval_line-l+1:], avg_bin_counts[interval_line-l+1:], bincenters2, sample, panel6, lower_CI, upper_CI)
+	plot_clustered (y2[:interval_line-l], avg_bin_counts[:interval_line-l], bincenters2, sample, panel4, lower_CI, upper_CI)
+	plot_non_clustered (y2[interval_line-l:], avg_bin_counts[interval_line-l:], bincenters2, sample, panel6, lower_CI, upper_CI)
+
 	return(True)
+
 
 
 
@@ -158,6 +163,7 @@ def first_run (distances, distances_orig_all, distances_orig, original_vcf, vcf_
 		p_vals.append(p)
 	q_vals = sm.fdrcorrection(p_vals)[1]
 
+	print(q_vals, bincenters2, y2, avg_bin_counts)
 	# interval_line = 8 -> imd<256
 	# interval_line=10
 	# orig_mutations = sum(y2[:interval_line+1])
@@ -172,6 +178,7 @@ def first_run (distances, distances_orig_all, distances_orig, original_vcf, vcf_
 		current_stdev = std_dev[i]
 		current_q = q_vals[i]
 		if orig_mutations/total_mutations < percent_clustered or current_q > 0.01:
+			print(i, orig_mutations/total_mutations, current_q)
 			if abs((orig_mutations/total_mutations) - percent_clustered) < abs(previous_interval - percent_clustered):
 				if current_q > 0.01:
 					interval_line = i-1
@@ -187,7 +194,9 @@ def first_run (distances, distances_orig_all, distances_orig, original_vcf, vcf_
 			break
 		previous_interval = orig_mutations/total_mutations		
 
-	distance_cut = bincenters2[interval_line+1]
+	# distance_cut = bincenters2[interval_line+1]
+	distance_cut = bincenters2[interval_line]
+	print(interval_line, distance_cut, sim_mutations, orig_mutations)
 
 	clustered_muts = [x[1:] for x in distances_orig_all if int(x[0]) <= distance_cut]
 	nonClustered_muts = [x[1:] for x in distances_orig_all if int(x[0]) > distance_cut]
@@ -216,10 +225,10 @@ def first_run (distances, distances_orig_all, distances_orig, original_vcf, vcf_
 			alt = muts[4]
 			print("\t".join([project,sample,".",genome,"SNP",chrom,pos,pos,ref,alt,"SOMATIC"]),file=nonclust)
 
+	return(y2, bincenters2, q_vals[i-1], interval_line, len(clustered_muts), lower_CI, upper_CI, avg_bin_counts)
+	# return(y2, bincenters2, q_vals[i-1], interval_line, orig_mutations, lower_CI, upper_CI, avg_bin_counts)
 
-	return(y2, bincenters2, q_vals[i-1], interval_line, orig_mutations, lower_CI, upper_CI, avg_bin_counts)
-
-def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, original=False, signature=False, percentage=False, firstRun=False, clustering_vaf=False, centromeres=None):
+def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, original=False, signature=False, percentage=False, firstRun=False, clustering_vaf=False, centromeres=None, calculateIMD=True):
 	height = 8
 	width = 13
 	scaled_width = (width/1.75 *.95)/width
@@ -282,7 +291,7 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, original=Fa
 	if os.path.exists(directory_out) == False:
 		os.mkdir(directory_out)
 
-	if firstRun:
+	if firstRun and calculateIMD:
 		if os.path.exists(vcf_path_clust):
 			shutil.rmtree(vcf_path_clust)
 
@@ -295,6 +304,7 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, original=Fa
 	if not os.path.exists(vcf_path_nonClust):
 		os.makedirs(vcf_path_nonClust)
 
+	imds = {}
 	y2s = {}
 	bincenters2s= {} 
 	q_values = {}
@@ -307,7 +317,7 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, original=Fa
 
 	folders = os.listdir(directory)
 	first_sort = True
-	if firstRun:
+	if firstRun and calculateIMD:
 		if os.path.exists(vcf_path_clust + project + "_clustered.txt"):
 			os.remove(vcf_path_clust + project + "_clustered.txt")
 		if os.path.exists(vcf_path_nonClust + project + "_nonClustered.txt"):
@@ -357,6 +367,7 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, original=Fa
 							distances.append(int(line[0]))
 				overall_distances_all.append(distances)
 			y2s[sample], bincenters2s[sample], q_values[sample], interval_lines[sample], orig_mutations_samps[sample], lower_CIs[sample], upper_CIs[sample], avg_bin_counts_samp[sample] = first_run(overall_distances_all, distances_orig_all_samps, distances_orig_all, original_vcf, vcf_path_clust, vcf_path_nonClust, sample, original, sim_count, matrix_path_clustered, matrix_path_nonClustered, cutoff, vcf_path_all_clust, vcf_path_all_nonClust, project, distance_path, genome, clustering_vaf, centromeres)
+			imds[sample] = bincenters2s[sample][interval_lines[sample]]
 		print("Completed!", flush=True)
 
 		print("\nAnalyzing clustered mutations...", flush=True)
@@ -364,6 +375,51 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, original=Fa
 		print("\nAnalyzing non-clustered mutations...", flush=True)
 		matGen.SigProfilerMatrixGeneratorFunc(project + "_nonClustered", genome, vcf_path_nonClust,plot=False)
 		print(flush=True)
+
+		if not os.path.exists(ref_dir + 'output/simulations/data/'):
+			os.makedirs(ref_dir + 'output/simulations/data/')
+
+		with open(ref_dir + 'output/simulations/data/imds.pickle', 'wb') as handle:
+			pickle.dump(imds, handle, protocol=pickle.HIGHEST_PROTOCOL)
+		with open(ref_dir + 'output/simulations/data/IMDBinHeights.pickle', 'wb') as handle:
+			pickle.dump(y2s, handle, protocol=pickle.HIGHEST_PROTOCOL)
+		with open(ref_dir + 'output/simulations/data/IMDBins.pickle', 'wb') as handle:
+			pickle.dump(bincenters2s, handle, protocol=pickle.HIGHEST_PROTOCOL)
+		with open(ref_dir + 'output/simulations/data/qvalues.pickle', 'wb') as handle:
+			pickle.dump(q_values, handle, protocol=pickle.HIGHEST_PROTOCOL)
+		with open(ref_dir + 'output/simulations/data/interval_lines.pickle', 'wb') as handle:
+			pickle.dump(interval_lines, handle, protocol=pickle.HIGHEST_PROTOCOL)
+		with open(ref_dir + 'output/simulations/data/orig_mutations_samps.pickle', 'wb') as handle:
+			pickle.dump(orig_mutations_samps, handle, protocol=pickle.HIGHEST_PROTOCOL)
+		with open(ref_dir + 'output/simulations/data/lower_CIs.pickle', 'wb') as handle:
+			pickle.dump(lower_CIs, handle, protocol=pickle.HIGHEST_PROTOCOL)
+		with open(ref_dir + 'output/simulations/data/upper_CIs.pickle', 'wb') as handle:
+			pickle.dump(upper_CIs, handle, protocol=pickle.HIGHEST_PROTOCOL)
+		with open(ref_dir + 'output/simulations/data/avg_bin_counts_samp.pickle', 'wb') as handle:
+			pickle.dump(avg_bin_counts_samp, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+
+	if not calculateIMD:
+		with open(ref_dir + 'output/simulations/data/imds.pickle', 'rb') as handle:
+			imds = pickle.load(handle)
+		with open(ref_dir + 'output/simulations/data/IMDBinHeights.pickle', 'rb') as handle:
+			y2s = pickle.load(handle)
+		with open(ref_dir + 'output/simulations/data/IMDBins.pickle', 'rb') as handle:
+			bincenters2s = pickle.load(handle)
+		with open(ref_dir + 'output/simulations/data/qvalues.pickle', 'rb') as handle:
+			q_values = pickle.load(handle)
+		with open(ref_dir + 'output/simulations/data/interval_lines.pickle', 'rb') as handle:
+			interval_lines = pickle.load(handle)
+		with open(ref_dir + 'output/simulations/data/orig_mutations_samps.pickle', 'rb') as handle:
+			orig_mutations_samps = pickle.load(handle)
+		with open(ref_dir + 'output/simulations/data/lower_CIs.pickle', 'rb') as handle:
+			lower_CIs = pickle.load(handle)
+		with open(ref_dir + 'output/simulations/data/upper_CIs.pickle', 'rb') as handle:
+			upper_CIs = pickle.load(handle)
+		with open(ref_dir + 'output/simulations/data/avg_bin_counts_samp.pickle', 'rb') as handle:
+			avg_bin_counts_samp = pickle.load(handle)	
+
 
 	if contexts == '96':
 		with open(ref_dir + "output/vcf_files/" + project + "_clustered/SNV/output/SBS/" + project + "_clustered.SBS6.all" ) as f:
