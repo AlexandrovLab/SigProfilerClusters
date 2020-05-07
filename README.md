@@ -5,7 +5,7 @@ Tool for analyzing the inter-mutational distances between SNV-SNV and INDEL-INDE
 **INTRODUCTION**
 
 The purpose of this document is to provide a guide for using the SigProfilerHotSpots framework.
-To be completed...
+
 
 **PREREQUISITES**
 
@@ -14,31 +14,59 @@ The framework is written in PYTHON, and uses additional SigProfiler packages:
 SigProfilerMatrixGenerator
 SigProfilerSimulator
 
+Please visit their respective GitHub pages for detailed installation and usage instructions.
+
 **QUICK START GUIDE**
 
 This section will guide you through the minimum steps required to perform a hot-spot analysis:
 
-Install the python package using pip:
+1. Install the python package using pip:
                           pip install SigProfilerHotSpots
                           
 Install your desired reference genome from the command line/terminal as follows (available reference genomes are: GRCh37, GRCh38, mm9, and mm10):
+```
 $ python
 >> from SigProfilerMatrixGenerator import install as genInstall
 >> genInstall.install('GRCh37', rsync=False, bash=True)
+```
 This will install the human 37 assembly as a reference genome. You may install as many genomes as you wish. If you have a firewall on your server, you may need to install rsync and use the rsync=True parameter. Similarly, if you do not have bash, 
 use bash=False.
-Place your vcf files in your desired output folder. It is recommended that you name this folder based on your project's name
+2. Place your vcf files in your desired output folder. It is recommended that you name this folder based on your project's name. Before you can analyze clustered mutations, you need to generate a background model for each of your samples. To do this, generate a minimum of 100 simulations for your project (see SigProfilerSimulator for a detailed list of parameters):
 
-To be completed...
+>>from SigProfilerSimulator import SigProfilerSimulator as sigSim
+>>sigSim.SigProfilerSimulator(project, project_path, genome, contexts=["96"], simulations=100, chrom_based=True)
 
-Output File Structure
+3. Now the original mutations can be partitioned into clustered and non-clustered sets using the required parameters below:
 
-To be completed...
+>> from SigProfilerHotSpots import SigProfilerHotSpots as hp
+>> hp.analysis(project, genome, contexts, simContext, input_path)
+
+See below for a detailed list of available parameters
+
+4. The partitioned vcf files are placed under [project_path]/ouput/vcf_files/[project]_clustered/ and  [project_path]/ouput/vcf_files/[project]_nonClustered/. You can visualize the results by looking at the IMD plots available under [project_path]/ouput/simulations/[project]_simulations_[genome]_[context]_intradistance_plots/.
+
+**AVAILABLE PARAMETERS**
+
+                        project:			[string] Unique name for the given project
+                        genome:			[string] Reference genome to use. Must be installed using SigProfilerMatrixGenerator
+                        contexts:			[string] Mutation context for measuring IMD (e.g. "6", "96", "1536", etc,)
+                        simContext: 		[list of strings] Mutations context that was used for generating the background model (e.g ["6144"] or ["96"])
+                        input_path:			[string] Path to the given project
+                        analysis:	 		[string] Desired analysis pipeline. By default output_type='all'. Other options include "subClassify" and "hotspot". 
+                        sortSims:			[boolean] Option to sort the simulated files if they have already been sorted. By default sortSims=True to ensure accurate results. The files must be sorted for accurate results. 
+                        chrom_based:		[boolean] Option to generate chromosome-dependent IMDs per sample. By default chrom_based=False. 
+                        max_cpu:			[integer] Change the number of allocated CPUs. By default all CPUs are used
+                        subClassify:		[boolean] Subclassify the clustered mutations. Requires that VAF scores are available in TCGA or Sanger format. By default subClassify=False 
+                        
+                        The following parameters are used if the subClassify argument is True:
+                        sanger:			[boolean] The input files are from Sanger. By default sanger=True
+                        TCGA:			[boolean] The input files are from TCGA. By default TCGA=False
+                        windowSize:		[integer] Window size for calculating mutation density in the rainfall plots. By default windowSize=10000000
 
 
 **LOG FILES**
 
-All errors and progress checkpoints are saved into sigProfilerMatrixGenerator_[project]_[genome].err and sigProfilerMatrixGenerator_[project]_[genome].out, respectively. For all errors, please email the error and progress log files to the primary contact under CONTACT INFORMATION.
+All errors and progress checkpoints are saved into SigProfilerHotSpots_[project]_[genome].err and SigProfilerHotSpots_[project]_[genome].out, respectively. For all errors, please email the error and progress log files to the primary contact under CONTACT INFORMATION.
 
 CITATION
 
@@ -46,7 +74,7 @@ E.N. Bergstrom, M.N. Huang, U. Mahto, M. Barnes, M.R. Stratton, S.G. Rozen, and 
 
 COPYRIGHT
 
-Copyright (c) 2019, Erik Bergstrom [Alexandrov Lab] All rights reserved.
+Copyright (c) 2020, Erik Bergstrom [Alexandrov Lab] All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 

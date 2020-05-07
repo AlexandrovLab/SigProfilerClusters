@@ -5,7 +5,6 @@ import argparse
 from SigProfilerMatrixGenerator.scripts import convert_input_to_simple_files as convertIn
 from SigProfilerMatrixGenerator.scripts import SigProfilerMatrixGeneratorFunc as matGen
 from . import hotspot
-from . import classifyFunctions
 import SigProfilerMatrixGenerator as sig
 import matplotlib as plt
 import sigProfilerPlotting as sigPlt
@@ -19,8 +18,6 @@ import time
 import sys
 from SigProfilerExtractor import sigpro as sigs
 import multiprocessing as mp
-from . import plottingFunctions
-from SigProfilerMatrixGenerator.scripts import SigProfilerMatrixGenerator as matRef
 
 
 def distance_multiple_files_sims (output_path, output_path_chrom, simulations, simulation_path, simulation_path_sorted, interdistance, file_context2, inter, genome, sim, centromeres, sortSims):
@@ -35,7 +32,6 @@ def distance_multiple_files_sims (output_path, output_path_chrom, simulations, s
 		sims.remove(".DS_Store")
 
 	for file in simulations:
-		# print(file)
 		with open(sample_path + file) as f:
 			lines = [line.strip().split() for line in f]
 		if sortSims:
@@ -53,8 +49,6 @@ def distance_multiple_files_sims (output_path, output_path_chrom, simulations, s
 				prevSamp = x[15]
 				prevChrom = x[4]
 				prevPos = int(x[5])
-				prevRef = x[10]
-				prevMut = x[12]
 				currentSamp = y[15]
 				currentChrom = y[4]
 				currentPos = int(y[5])
@@ -64,20 +58,20 @@ def distance_multiple_files_sims (output_path, output_path_chrom, simulations, s
 				if prevSamp == currentSamp:
 					if prevChrom == currentChrom:
 						if currentPos < centroStart:
-							distances[i] = [currentPos - prevPos, prevSamp, prevChrom, prevPos, prevRef, prevMut, 'c']
+							distances[i] = [currentPos - prevPos, prevSamp, 'c']
 						elif prevPos > centroEnd:
-							distances[i] = [currentPos - prevPos, prevSamp, prevChrom, prevPos, prevRef, prevMut, 'c']
+							distances[i] = [currentPos - prevPos, prevSamp, 'c']
 						else:
-							distances[i] = [prevPos - int(original_lines[i-1][5]), prevSamp, prevChrom, prevPos, prevRef, prevMut, 'd']
+							distances[i] = [prevPos - int(original_lines[i-1][5]), prevSamp, 'd']
 					else:
-						distances[i] = ['a', prevSamp, prevChrom, prevPos, prevRef, prevMut]
+						distances[i] = ['a', prevSamp]
 				else:
-					distances[i] = ['a', prevSamp, prevChrom, prevPos, prevRef, prevMut]
+					distances[i] = ['a', prevSamp]
 				i += 1
-			# distances_new = distances + [[distances[-1][0]] + [original_lines[-1][15]] + [distances[-1][-1]]]
-			distances_new = distances + [distances[-1]]
+
+
+			distances_new = distances + [[distances[-1][0]] + [original_lines[-1][15]] + [distances[-1][-1]]]
 			final_distances = ['bb' if x[1] != y[1] else [min(x[0],y[0])] + y[1:-1] if x[0] != 'a' and y[0] != 'a' and x[-1] != 'd' else [y[0]] + y[1:-1] if x[-1] == 'd' and x[0] != 'a' and y[0] != 'a' else [x[0],x[1]] if y[0] == 'a' and x[0] != 'a' else [y[0],y[1]] if x[0] == 'a' and y[0] != 'a' else 'bb' for x,y in zip(distances_new, distances_new[1:])]
-			final_distances = ['bb' if x[1] != y[1] else [min(x[0],y[0])] + y[1:-1] if x[0] != 'a' and y[0] != 'a' and x[-1] != 'd' else [y[0]] + y[1:-1] if x[-1] == 'd' and x[0] != 'a' and y[0] != 'a' else x if y[0] == 'a' and x[0] != 'a' else y if x[0] == 'a' and y[0] != 'a' else 'bb' for x,y in zip(distances_new, distances_new[1:])]
 			final_distances = [distances_new[0]] + final_distances
 			final_distances_filtered = [x for x in final_distances if x[0] != 'b' and x[0] != 'a']
 
@@ -89,8 +83,7 @@ def distance_multiple_files_sims (output_path, output_path_chrom, simulations, s
 			out_file = open(output_path_interdistance  + file_sample + "/"+ sample + "_" + file_context2 + "_intradistance.txt", 'a')
 			for x in final_distances_filtered:
 				if x[1] == sample:
-					#print(str(x[0]), file=out_file)
-					print("\t".join([str(y) for y in x]), file=out_file)
+					print(str(x[0]), file=out_file)
 				else:
 					out_file.close()
 					sample = x[1]
@@ -105,8 +98,7 @@ def distance_multiple_files_sims (output_path, output_path_chrom, simulations, s
 						except:
 							pass
 						out_file = open(output_path_interdistance  + file_sample + "/"+ sample + "_" + file_context2 + "_intradistance.txt", 'a')
-						# print(str(x[0]), file=out_file)
-						print("\t".join([str(y) for y in x]), file=out_file)
+						print(str(x[0]), file=out_file)
 					else:
 						try:
 							if not os.path.exists(output_path_interdistance + file_sample + "/"):
@@ -114,8 +106,7 @@ def distance_multiple_files_sims (output_path, output_path_chrom, simulations, s
 						except:
 							pass
 						out_file = open(output_path_interdistance + file_sample + "/" + sample + "_" + file_context2 + "_intradistance.txt", 'a')
-						# print(str(x[0]), file=out_file)
-						print("\t".join([str(y) for y in x]), file=out_file)
+						print(str(x[0]), file=out_file)
 
 			out_file.close()
 
@@ -139,6 +130,7 @@ def distance_one_file (original_samples, output_path_original, output_path_chrom
 			lines = [line.strip().split() for line in f]
 
 		original_lines = sorted(lines, key = lambda x: (x[0], int(x[2])))
+
 
 		if len(original_lines)>1:
 			centro_start = centromeres[genome][original_lines[0][1]][0]
@@ -165,7 +157,7 @@ def distance_one_file (original_samples, output_path_original, output_path_chrom
 
 
 
-def analysis (project, genome, contexts, simContext, input_path, output_type='all', analysis='all', interdistance='96', clustering_vaf=False, sortSims=True, extraction=False, startProcess=1, endProcess=25, totalIterations=1000, calculateIMD=True, chrom_based=False, max_cpu=None, subClassify=False, sanger=True, TCGA=False, windowSize=10000000):
+def analysis (project, genome, contexts, simContext, input_path, output_type='all', analysis='all', interdistance='96', clustering_vaf=False, sortSims=True, extraction=False, startProcess=1, endProcess=25, totalIterations=1000, calculateIMD=True):
 	ncbi_chrom = {'NC_000067.6':'1', 'NC_000068.7':'2', 'NC_000069.6':'3', 'NC_000070.6':'4', 
 				  'NC_000071.6':'5', 'NC_000072.6':'6', 'NC_000073.6':'7', 'NC_000074.6':'8',
 				  'NC_000075.6':'9', 'NC_000076.6':'10', 'NC_000077.6':'11', 'NC_000078.6':'12',
@@ -193,20 +185,14 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 				'mm9':{'1': [0,3000000],'10': [0,3000000],'11':[0,3000000],'12':[0,3000000],'13': [0,3000000],
 				'14': [0,3000000],'15': [0,3000000],'16': [0,3000000],'17': [0,3000000],'18': [0,3000000],
 				'19': [0,3000000],'2': [0,3000000],'3': [0,3000000],'4': [0,3000000],'5': [0,3000000],
-				'6': [0,3000000],'7': [0,3000000],'8': [0,3000000],'9': [0,3000000],'X': [0,3000000],'Y': [0,3000000]},
-
-				'rn6':{'1': [1000000000,1000000000],'10': [1000000000,1000000000],'11':[1000000000,1000000000],'12':[1000000000,1000000000],'13': [1000000000,1000000000],
-				'14': [1000000000,1000000000],'15': [1000000000,1000000000],'16': [1000000000,1000000000],'17': [1000000000,1000000000],'18': [1000000000,1000000000],
-				'19': [1000000000,1000000000],'2': [1000000000,1000000000],'20': [1000000000,1000000000],'21': [1000000000,1000000000],'22': [1000000000,1000000000],
-				'3': [1000000000,1000000000],'4': [1000000000,1000000000],'5': [1000000000,1000000000],'6': [1000000000,1000000000],'7': [1000000000,1000000000],
-				'8': [1000000000,1000000000],'9': [1000000000,1000000000],'X': [1000000000,1000000000],'Y': [1000000000,1000000000]}}
+				'6': [0,3000000],'7': [0,3000000],'8': [0,3000000],'9': [0,3000000],'X': [0,3000000],'Y': [0,3000000]}}
 
 	inter = ''
 	inter_label = interdistance
 	interdistance = False
 	ref_dir = input_path
-	
-	if analysis == 'hotspot' or analysis == 'subClassify':
+
+	if analysis == 'hotspot':
 		output_type = None
 
 	if inter_label == 'SI':
@@ -331,13 +317,10 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 		# os.system("rm "+ ref_dir + '/references/vcf_files/single/'+project+"_indels3.genome")
 		# os.system("rm " + ref_dir + '/references/vcf_files/single/'+project+"_indels2.genome")
 
-	# chrom_suffix = ''
-	# if chrom_based:
-	# 	chrom_suffix = "_chrom"
 	file_context2 = inter_label
 
-	output_path = ref_dir + "output/simulations/" + project + "_intradistance_" + genome + "_" + file_context2  + "/"
-	output_path_chrom = ref_dir + "output/simulations/" + project + "_chromosome_mutation_count_" + genome + "_" + file_context2  + "/"
+	output_path = ref_dir + "output/simulations/" + project + "_intradistance_" + genome + "_" + file_context2 + "/"
+	output_path_chrom = ref_dir + "output/simulations/" + project + "_chromosome_mutation_count_" + genome + "_" + file_context2 + "/"
 	simulation_path_sorted = None
 	original_samples = ref_dir + "output/vcf_files/single/" + context_ref + "/"
 	if sortSims:
@@ -349,8 +332,9 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 		
 	else:
 		simulation_path = ref_dir + "output/simulations/" + project + "_simulations_" + genome + "_" + file_context + "_sorted/"
-	output_path_original = ref_dir + "output/simulations/" + project + "_intradistance_original_" + genome + "_" + file_context2  + "/"
-	output_path_chrom_original = ref_dir + "output/simulations/" + project + "_chromosome_mutation_count_original_" + genome + "_" + file_context2  + "/"
+		# original_samples = ref_dir + "output/vcf_files/single/" + context_ref + "_sorted/"
+	output_path_original = ref_dir + "output/simulations/" + project + "_intradistance_original_" + genome + "_" + file_context2 + "/"
+	output_path_chrom_original = ref_dir + "output/simulations/" + project + "_chromosome_mutation_count_original_" + genome + "_" + file_context2 + "/"
 	
 
 
@@ -371,10 +355,7 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 	simulations = os.listdir(simulation_path)
 	if ".DS_Store" in simulations:
 		simulations.remove(".DS_Store")
-	if max_cpu:
-		processors = max_cpu
-	else:
-		processors = mp.cpu_count()
+	processors = mp.cpu_count()
 	max_seed = processors
 	if processors > len(simulations):
 		max_seed = len(simulations)
@@ -429,7 +410,7 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 		signature = False
 		percentage = False
 
-		hotspot.hotSpotAnalysis(project, genome, contexts, simContext, ref_dir, original, signature, percentage, firstRun, clustering_vaf, centromeres, calculateIMD, chrom_based)
+		hotspot.hotSpotAnalysis(project, genome, contexts, simContext, ref_dir, original, signature, percentage, firstRun, clustering_vaf, centromeres, calculateIMD)
 
 	if extraction:
 		print("Beginning signature extraction...")
@@ -440,20 +421,7 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 		print(endProcess)
 		print(totalIterations)
 		sigs.sigProfilerExtractor("table", ref_dir+"output/extraction_clustered/", ref_dir+"output/vcf_files/"+project+"_clustered/SNV/output/SBS/"+project+"_clustered.SBS96.all", genome, startProcess=startProcess, endProcess=endProcess, totalIterations=totalIterations)#, totalIterations=totalIterations)
-	
-	if subClassify:
-		print("Beginning subclassification of clustered mutations:\n")
-		classifyFunctions.pullVaf (project, input_path, sanger, TCGA)
-		sys.stderr.close()
-		classifyFunctions.findClustersOfClusters (project, chrom_based, input_path)
-		sys.stderr = open(error_file, 'a')
-		chrom_path, ref_dir = matRef.reference_paths(genome)
-		print("Generating a rainfall plot for all samples...", end='')
-		plottingFunctions.rainfall(chrom_based, project, input_path, chrom_path, windowSize)
-		print("done")
-		print("Subclassification of clustered mutations has finished!")
-
-	sys.stderr.close()
+	# sys.stderr.close()
 	end = time.time() - start
 	print("SigProfilerHotSpots successfully finished! Elapsed time: " + str(round(end, 2)) + " seconds.")
 

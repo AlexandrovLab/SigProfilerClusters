@@ -87,7 +87,7 @@ def plot_hist (y2, bincenters2, q_vals, interval_line, orig_mutations, lower_CI,
 
 
 
-def first_run (distances, distances_orig_all, distances_orig, original_vcf, vcf_path_clust, vcf_path_nonClust, sample, original, sim_count, matrix_path_clustered, matrix_path_nonClustered, cutoff, vcf_path_all_clust, vcf_path_all_nonClust, project, distance_path, genome, clustering_vaf, centromeres, chromosomes, chrom_based):
+def first_run (distances, distances_orig_all, distances_orig, original_vcf, vcf_path_clust, vcf_path_nonClust, sample, original, sim_count, matrix_path_clustered, matrix_path_nonClustered, cutoff, vcf_path_all_clust, vcf_path_all_nonClust, project, distance_path, genome, clustering_vaf, centromeres):
 	maximum_sim = 0
 	try:
 		maximum_orig = max(distances_orig)
@@ -112,24 +112,14 @@ def first_run (distances, distances_orig_all, distances_orig, original_vcf, vcf_
 	lower_CI = []
 	mean_counts = []
 	std_dev = []
-
-	cumulativeBackground = [np.cumsum(x) for x in total_bin_counts]
-	mean_counts_cum = []
-	std_dev_cum = []
-
 	CI = int(round(.95 * sim_count, 0))
 
 	for i in range (0, len(total_bin_counts[0]), 1):
 		count = 0
 		bin_std_dev = []
-		bin_std_dev_cum = []
-		for l in range (0, len(total_bin_counts), 1):
-		#for binned in total_bin_counts:
-			# count += binned[i]
-			# bin_std_dev.append(binned[i])
-			count += total_bin_counts[l][i]
-			bin_std_dev.append(total_bin_counts[l][i])
-			bin_std_dev_cum.append(cumulativeBackground[l][i])
+		for binned in total_bin_counts:
+			count += binned[i]
+			bin_std_dev.append(binned[i])
 
 		bin_std_dev.sort()
 		std_dev.append(stdev(bin_std_dev))
@@ -138,9 +128,6 @@ def first_run (distances, distances_orig_all, distances_orig, original_vcf, vcf_
 		upper_CI.append(bin_std_dev[CI-1])
 		lower_CI.append(bin_std_dev[-CI])
 
-		bin_std_dev_cum.sort()
-		std_dev_cum.append(stdev(bin_std_dev_cum))
-		mean_counts_cum.append(median(bin_std_dev_cum))
 
 	y2, binEdges2 = np.histogram(distances_orig, bins = bin1)
 
@@ -165,29 +152,18 @@ def first_run (distances, distances_orig_all, distances_orig, original_vcf, vcf_
 	p_vals = []
 	percent_clustered = 0.90
 
-	current_orig_mutations_cum = 0
-	current_mean_cum = 0
-	current_stdev_cum = 0
-
 	for i in range (0, len(avg_bin_counts), 1):
 		current_orig_mutations = y2[i]
 		current_mean = mean_counts[i]
 		current_stdev = std_dev[i]
-
-		current_orig_mutations_cum += y2[i]
-		current_mean_cum += mean_counts[i]
-		current_stdev_cum += std_dev[i]		
-
 		if current_stdev == 0:
 			p = 0
 		else:
 			z, p = z_test (current_orig_mutations, current_mean, current_stdev)
-			# z, p = z_test (current_orig_mutations_cum, current_mean_cum, current_stdev_cum)
-
 		p_vals.append(p)
 	q_vals = sm.fdrcorrection(p_vals)[1]
 
-	# print(q_vals, bincenters2, y2, avg_bin_counts)
+	print(q_vals, bincenters2, y2, avg_bin_counts)
 	# interval_line = 8 -> imd<256
 	# interval_line=10
 	# orig_mutations = sum(y2[:interval_line+1])
@@ -202,7 +178,7 @@ def first_run (distances, distances_orig_all, distances_orig, original_vcf, vcf_
 		current_stdev = std_dev[i]
 		current_q = q_vals[i]
 		if orig_mutations/total_mutations < percent_clustered or current_q > 0.01:
-			# print(i, orig_mutations/total_mutations, current_q)
+			print(i, orig_mutations/total_mutations, current_q)
 			if abs((orig_mutations/total_mutations) - percent_clustered) < abs(previous_interval - percent_clustered):
 				if current_q > 0.01:
 					interval_line = i-1
@@ -220,7 +196,7 @@ def first_run (distances, distances_orig_all, distances_orig, original_vcf, vcf_
 
 	# distance_cut = bincenters2[interval_line+1]
 	distance_cut = bincenters2[interval_line]
-	# print(interval_line, distance_cut, sim_mutations, orig_mutations)
+	print(interval_line, distance_cut, sim_mutations, orig_mutations)
 
 	clustered_muts = [x[1:] for x in distances_orig_all if int(x[0]) <= distance_cut]
 	nonClustered_muts = [x[1:] for x in distances_orig_all if int(x[0]) > distance_cut]
@@ -252,7 +228,7 @@ def first_run (distances, distances_orig_all, distances_orig, original_vcf, vcf_
 	return(y2, bincenters2, q_vals[i-1], interval_line, len(clustered_muts), lower_CI, upper_CI, avg_bin_counts)
 	# return(y2, bincenters2, q_vals[i-1], interval_line, orig_mutations, lower_CI, upper_CI, avg_bin_counts)
 
-def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, original=False, signature=False, percentage=False, firstRun=False, clustering_vaf=False, centromeres=None, calculateIMD=True, chrom_based=False):
+def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, original=False, signature=False, percentage=False, firstRun=False, clustering_vaf=False, centromeres=None, calculateIMD=True):
 	height = 8
 	width = 13
 	scaled_width = (width/1.75 *.95)/width
@@ -357,19 +333,15 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, original=Fa
 			print("HEADER", file=nonclust)
 		print("Determining sample-dependent intermutational distance (IMD) cutoff...", end='', flush=True)
 		for folder in folders:
-			chromosomes = []
 			if folder == '.DS_Store_intradistance.txt' or folder == '.DS_Store':
 				continue
 			sample = folder
 			files = os.listdir(directory + sample + "/")
-			if chrom_based:
-				overall_distances_all = {}
-				distances_orig_all = {}
-				distances_orig_all_samps = {}
-			else:				
-				overall_distances_all = []
-				distances_orig_all = []
-				distances_orig_all_samps = []
+			overall_distances_all = []
+			distances_orig_all = []
+			distances_orig_all_samps = []
+
+
 
 			if original:
 				try:
@@ -377,69 +349,25 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, original=Fa
 						for lines in f2:
 							line = lines.strip().split()
 							if int(line[0]) >= 1:
-								if chrom_based:
-									if line[2] not in distances_orig_all_samps:
-										distances_orig_all_samps[line[2]] = [line]
-										distances_orig_all[line[2]] = [int(line[0])]
-									else:
-										distances_orig_all_samps[line[2]].append(line)
-										distances_orig_all[line[2]].append(int(line[0]))
-								else:
-									distances_orig_all_samps.append(line)
-									distances_orig_all.append(int(line[0]))
+								distances_orig_all_samps.append(line)
+								distances_orig_all.append(int(line[0]))
 				except:
 					print(sample + " does not have nearby IDs to one another. Skipping this sample.")
 					continue
 
 			sim_count = len(files)
 			for file in files:
-				chroms = []
 				if file == '.DS_Store':
 					continue
-				if chrom_based:
-					distances = {}
-				else:
-					distances = []
+				distances = []
 				with open(directory + sample + "/" + file) as f:
 					for lines in f:
 						line = lines.strip().split()
 						if int(line[0]) >= 1:
-							if chrom_based:
-								if line[2] not in chroms:
-									chroms.append(line[2])
-									distances[line[2]] = [int(line[0])]
-								else:
-									distances[line[2]].append(int(line[0]))
-							else:
-								distances.append(int(line[0]))
-				if chrom_based:
-					for chrom in chroms:
-						if chrom not in chromosomes:
-							chromosomes.append(chrom)
-						if chrom not in overall_distances_all:
-							overall_distances_all[chrom] = [distances[chrom]]
-						else:
-							overall_distances_all[chrom].append(distances[chrom])
-				else:
-					overall_distances_all.append(distances)
-
-			if chrom_based:
-				y2s[sample] = {}
-				bincenters2s[sample] = {}
-				q_values[sample] = {}
-				interval_lines[sample] = {}
-				orig_mutations_samps[sample] = {}
-				lower_CIs[sample] = {}
-				upper_CIs[sample] = {}
-				avg_bin_counts_samp[sample] = {}
-				imds[sample] = {}
-				for chrom in chromosomes:
-					y2s[sample][chrom], bincenters2s[sample][chrom], q_values[sample][chrom], interval_lines[sample][chrom], orig_mutations_samps[sample][chrom], lower_CIs[sample][chrom], upper_CIs[sample][chrom], avg_bin_counts_samp[sample][chrom] = first_run(overall_distances_all[chrom], distances_orig_all_samps[chrom], distances_orig_all[chrom], original_vcf, vcf_path_clust, vcf_path_nonClust, sample, original, sim_count, matrix_path_clustered, matrix_path_nonClustered, cutoff, vcf_path_all_clust, vcf_path_all_nonClust, project, distance_path, genome, clustering_vaf, centromeres, chromosomes, chrom_based)
-					imds[sample][chrom] = bincenters2s[sample][chrom][interval_lines[sample][chrom]]
-
-			else:
-				y2s[sample], bincenters2s[sample], q_values[sample], interval_lines[sample], orig_mutations_samps[sample], lower_CIs[sample], upper_CIs[sample], avg_bin_counts_samp[sample] = first_run(overall_distances_all, distances_orig_all_samps, distances_orig_all, original_vcf, vcf_path_clust, vcf_path_nonClust, sample, original, sim_count, matrix_path_clustered, matrix_path_nonClustered, cutoff, vcf_path_all_clust, vcf_path_all_nonClust, project, distance_path, genome, clustering_vaf, centromeres, chromosomes, chrom_based)
-				imds[sample] = bincenters2s[sample][interval_lines[sample]]
+							distances.append(int(line[0]))
+				overall_distances_all.append(distances)
+			y2s[sample], bincenters2s[sample], q_values[sample], interval_lines[sample], orig_mutations_samps[sample], lower_CIs[sample], upper_CIs[sample], avg_bin_counts_samp[sample] = first_run(overall_distances_all, distances_orig_all_samps, distances_orig_all, original_vcf, vcf_path_clust, vcf_path_nonClust, sample, original, sim_count, matrix_path_clustered, matrix_path_nonClustered, cutoff, vcf_path_all_clust, vcf_path_all_nonClust, project, distance_path, genome, clustering_vaf, centromeres)
+			imds[sample] = bincenters2s[sample][interval_lines[sample]]
 		print("Completed!", flush=True)
 
 		print("\nAnalyzing clustered mutations...", flush=True)
@@ -451,26 +379,23 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, original=Fa
 		if not os.path.exists(ref_dir + 'output/simulations/data/'):
 			os.makedirs(ref_dir + 'output/simulations/data/')
 
-		pickleSuffix = ''
-		if chrom_based:
-			pickleSuffix = "_chrom"
-		with open(ref_dir + 'output/simulations/data/imds'+pickleSuffix+'.pickle', 'wb') as handle:
+		with open(ref_dir + 'output/simulations/data/imds.pickle', 'wb') as handle:
 			pickle.dump(imds, handle, protocol=pickle.HIGHEST_PROTOCOL)
-		with open(ref_dir + 'output/simulations/data/IMDBinHeights'+pickleSuffix+'.pickle', 'wb') as handle:
+		with open(ref_dir + 'output/simulations/data/IMDBinHeights.pickle', 'wb') as handle:
 			pickle.dump(y2s, handle, protocol=pickle.HIGHEST_PROTOCOL)
-		with open(ref_dir + 'output/simulations/data/IMDBins'+pickleSuffix+'.pickle', 'wb') as handle:
+		with open(ref_dir + 'output/simulations/data/IMDBins.pickle', 'wb') as handle:
 			pickle.dump(bincenters2s, handle, protocol=pickle.HIGHEST_PROTOCOL)
-		with open(ref_dir + 'output/simulations/data/qvalues'+pickleSuffix+'.pickle', 'wb') as handle:
+		with open(ref_dir + 'output/simulations/data/qvalues.pickle', 'wb') as handle:
 			pickle.dump(q_values, handle, protocol=pickle.HIGHEST_PROTOCOL)
-		with open(ref_dir + 'output/simulations/data/interval_lines'+pickleSuffix+'.pickle', 'wb') as handle:
+		with open(ref_dir + 'output/simulations/data/interval_lines.pickle', 'wb') as handle:
 			pickle.dump(interval_lines, handle, protocol=pickle.HIGHEST_PROTOCOL)
-		with open(ref_dir + 'output/simulations/data/orig_mutations_samps'+pickleSuffix+'.pickle', 'wb') as handle:
+		with open(ref_dir + 'output/simulations/data/orig_mutations_samps.pickle', 'wb') as handle:
 			pickle.dump(orig_mutations_samps, handle, protocol=pickle.HIGHEST_PROTOCOL)
-		with open(ref_dir + 'output/simulations/data/lower_CIs'+pickleSuffix+'.pickle', 'wb') as handle:
+		with open(ref_dir + 'output/simulations/data/lower_CIs.pickle', 'wb') as handle:
 			pickle.dump(lower_CIs, handle, protocol=pickle.HIGHEST_PROTOCOL)
-		with open(ref_dir + 'output/simulations/data/upper_CIs'+pickleSuffix+'.pickle', 'wb') as handle:
+		with open(ref_dir + 'output/simulations/data/upper_CIs.pickle', 'wb') as handle:
 			pickle.dump(upper_CIs, handle, protocol=pickle.HIGHEST_PROTOCOL)
-		with open(ref_dir + 'output/simulations/data/avg_bin_counts_samp'+pickleSuffix+'.pickle', 'wb') as handle:
+		with open(ref_dir + 'output/simulations/data/avg_bin_counts_samp.pickle', 'wb') as handle:
 			pickle.dump(avg_bin_counts_samp, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
@@ -520,49 +445,26 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, original=Fa
 			histo = False
 		sample = folder
 		files = os.listdir(directory + sample + "/")
-		if chrom_based:
-			continue
-			# for chrom in chromosomes:
-			# 	fig = plt.figure(figsize = (width, height))
-			# 	panel1=plt.axes([0.075, 0.225 + scaled_height*2, scaled_width, scaled_height])
-			# 	panel2=plt.axes([0.125 + scaled_width, 0.225 + scaled_height*2, 0.3, scaled_height])
-			# 	panel3=plt.axes([0.075, 0.15 + scaled_height, scaled_width, scaled_height])
-			# 	panel4=plt.axes([0.125 + scaled_width, 0.15 + scaled_height, 0.3, scaled_height])
-			# 	panel5=plt.axes([0.075, 0.075, scaled_width, scaled_height])
-			# 	panel6=plt.axes([0.125 + scaled_width, 0.075, 0.3, scaled_height])
+
+		fig = plt.figure(figsize = (width, height))
+		panel1=plt.axes([0.075, 0.225 + scaled_height*2, scaled_width, scaled_height])
+		panel2=plt.axes([0.125 + scaled_width, 0.225 + scaled_height*2, 0.3, scaled_height])
+		panel3=plt.axes([0.075, 0.15 + scaled_height, scaled_width, scaled_height])
+		panel4=plt.axes([0.125 + scaled_width, 0.15 + scaled_height, 0.3, scaled_height])
+		panel5=plt.axes([0.075, 0.075, scaled_width, scaled_height])
+		panel6=plt.axes([0.125 + scaled_width, 0.075, 0.3, scaled_height])
 
 
-			# 	if histo:
-			# 		clustered = plot_hist(y2s[sample][chrom], bincenters2s[sample][chrom], q_values[sample][chrom], interval_lines[sample][chrom], orig_mutations_samps[sample][chrom], lower_CIs[sample][chrom], upper_CIs[sample][chrom], avg_bin_counts_samp[sample][chrom], sample + "("+chrom+")", original, panel2, panel3, panel4, panel5, panel6)
-			# 		if clustered:
-			# 			if file_context == '96':
-			# 				plottingFunctions.plot96_same (matrix_path, matrix_path_clustered, matrix_path_nonClustered, sample, percentage, signature, panel1, panel3, panel5, fig, chrom)
-			# 			else:
-			# 				plottingFunctions.plotINDEL_same (matrix_path, matrix_path_clustered, matrix_path_nonClustered, sample, percentage, signature, panel1, panel3, panel5, fig)
-			# 			pp.savefig()
-			# 		plt.close()
-			# 	histo = True
-		else:
-			fig = plt.figure(figsize = (width, height))
-			panel1=plt.axes([0.075, 0.225 + scaled_height*2, scaled_width, scaled_height])
-			panel2=plt.axes([0.125 + scaled_width, 0.225 + scaled_height*2, 0.3, scaled_height])
-			panel3=plt.axes([0.075, 0.15 + scaled_height, scaled_width, scaled_height])
-			panel4=plt.axes([0.125 + scaled_width, 0.15 + scaled_height, 0.3, scaled_height])
-			panel5=plt.axes([0.075, 0.075, scaled_width, scaled_height])
-			panel6=plt.axes([0.125 + scaled_width, 0.075, 0.3, scaled_height])
-
-
-			if histo:
-				if not chrom_based:
-					clustered = plot_hist(y2s[sample], bincenters2s[sample], q_values[sample], interval_lines[sample], orig_mutations_samps[sample], lower_CIs[sample], upper_CIs[sample], avg_bin_counts_samp[sample], sample, original, panel2, panel3, panel4, panel5, panel6)
-					if clustered:
-						if file_context == '96':
-							plottingFunctions.plot96_same (matrix_path, matrix_path_clustered, matrix_path_nonClustered, sample, percentage, signature, panel1, panel3, panel5, fig)
-						else:
-							plottingFunctions.plotINDEL_same (matrix_path, matrix_path_clustered, matrix_path_nonClustered, sample, percentage, signature, panel1, panel3, panel5, fig)
-						pp.savefig()
-					plt.close()
-			histo = True
+		if histo:
+			clustered = plot_hist(y2s[sample], bincenters2s[sample], q_values[sample], interval_lines[sample], orig_mutations_samps[sample], lower_CIs[sample], upper_CIs[sample], avg_bin_counts_samp[sample], sample, original, panel2, panel3, panel4, panel5, panel6)
+			if clustered:
+				if file_context == '96':
+					plottingFunctions.plot96_same (matrix_path, matrix_path_clustered, matrix_path_nonClustered, sample, percentage, signature, panel1, panel3, panel5, fig)
+				else:
+					plottingFunctions.plotINDEL_same (matrix_path, matrix_path_clustered, matrix_path_nonClustered, sample, percentage, signature, panel1, panel3, panel5, fig)
+				pp.savefig()
+			plt.close()
+		histo = True
 
 	plt.close()
 	pp.close()
