@@ -1,3 +1,5 @@
+[![License](https://img.shields.io/badge/License-BSD\%202--Clause-orange.svg)](https://opensource.org/licenses/BSD-2-Clause) [![Build Status](https://travis-ci.com/AlexandrovLab/SigProfilerHotSpots.svg?branch=master)](https://travis-ci.com/AlexandrovLab/SigProfilerHotSpots)
+
 # SigProfilerHotSpots
 Tool for analyzing the inter-mutational distances between SNV-SNV and INDEL-INDEL mutations. Tool separates mutations into clustered and non-clustered groups on a sample-dependent basis. 
 
@@ -62,6 +64,7 @@ See below for a detailed list of available parameters
             sanger:			[boolean] The input files are from Sanger. By default sanger=True
             TCGA:			[boolean] The input files are from TCGA. By default TCGA=False
             windowSize:		[integer] Window size for calculating mutation density in the rainfall plots. By default windowSize=10000000
+            correction		[boolean] Optional parameter to perform a genome-wide mutational density correction (boolean; default=False)
 
 
 **LOG FILES**
