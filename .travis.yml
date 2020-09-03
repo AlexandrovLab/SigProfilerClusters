@@ -6,3 +6,5 @@ python:
 
 install:
   - pip install .
+
+script: python3 test.py
