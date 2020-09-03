@@ -32,36 +32,36 @@ $ python
 This will install the human 37 assembly as a reference genome. You may install as many genomes as you wish. If you have a firewall on your server, you may need to install rsync and use the rsync=True parameter. Similarly, if you do not have bash, 
 use bash=False.
 2. Place your vcf files in your desired output folder. It is recommended that you name this folder based on your project's name. Before you can analyze clustered mutations, you need to generate a background model for each of your samples. To do this, generate a minimum of 100 simulations for your project (see SigProfilerSimulator for a detailed list of parameters):
-
+```
 >>from SigProfilerSimulator import SigProfilerSimulator as sigSim
 >>sigSim.SigProfilerSimulator(project, project_path, genome, contexts=["96"], simulations=100, chrom_based=True)
-
+```
 3. Now the original mutations can be partitioned into clustered and non-clustered sets using the required parameters below:
-
+```
 >> from SigProfilerHotSpots import SigProfilerHotSpots as hp
 >> hp.analysis(project, genome, contexts, simContext, input_path)
-
+```
 See below for a detailed list of available parameters
 
 4. The partitioned vcf files are placed under [project_path]/ouput/vcf_files/[project]_clustered/ and  [project_path]/ouput/vcf_files/[project]_nonClustered/. You can visualize the results by looking at the IMD plots available under [project_path]/ouput/simulations/[project]_simulations_[genome]_[context]_intradistance_plots/.
 
 **AVAILABLE PARAMETERS**
 
-                        project:			[string] Unique name for the given project
-                        genome:			[string] Reference genome to use. Must be installed using SigProfilerMatrixGenerator
-                        contexts:			[string] Mutation context for measuring IMD (e.g. "6", "96", "1536", etc,)
-                        simContext: 		[list of strings] Mutations context that was used for generating the background model (e.g ["6144"] or ["96"])
-                        input_path:			[string] Path to the given project
-                        analysis:	 		[string] Desired analysis pipeline. By default output_type='all'. Other options include "subClassify" and "hotspot". 
-                        sortSims:			[boolean] Option to sort the simulated files if they have already been sorted. By default sortSims=True to ensure accurate results. The files must be sorted for accurate results. 
-                        chrom_based:		[boolean] Option to generate chromosome-dependent IMDs per sample. By default chrom_based=False. 
-                        max_cpu:			[integer] Change the number of allocated CPUs. By default all CPUs are used
-                        subClassify:		[boolean] Subclassify the clustered mutations. Requires that VAF scores are available in TCGA or Sanger format. By default subClassify=False 
-                        
-                        The following parameters are used if the subClassify argument is True:
-                        sanger:			[boolean] The input files are from Sanger. By default sanger=True
-                        TCGA:			[boolean] The input files are from TCGA. By default TCGA=False
-                        windowSize:		[integer] Window size for calculating mutation density in the rainfall plots. By default windowSize=10000000
+            project:			[string] Unique name for the given project
+            genome:			[string] Reference genome to use. Must be installed using SigProfilerMatrixGenerator
+            contexts:			[string] Mutation context for measuring IMD (e.g. "6", "96", "1536", etc,)
+            simContext: 		[list of strings] Mutations context that was used for generating the background model (e.g ["6144"] or ["96"])
+            input_path:			[string] Path to the given project
+            analysis:	 		[string] Desired analysis pipeline. By default output_type='all'. Other options include "subClassify" and "hotspot". 
+            sortSims:			[boolean] Option to sort the simulated files if they have already been sorted. By default sortSims=True to ensure accurate results. The files must be sorted for accurate results. 
+            chrom_based:		[boolean] Option to generate chromosome-dependent IMDs per sample. By default chrom_based=False. 
+            max_cpu:			[integer] Change the number of allocated CPUs. By default all CPUs are used
+            subClassify:		[boolean] Subclassify the clustered mutations. Requires that VAF scores are available in TCGA or Sanger format. By default subClassify=False 
+            
+            The following parameters are used if the subClassify argument is True:
+            sanger:			[boolean] The input files are from Sanger. By default sanger=True
+            TCGA:			[boolean] The input files are from TCGA. By default TCGA=False
+            windowSize:		[integer] Window size for calculating mutation density in the rainfall plots. By default windowSize=10000000
 
 
 **LOG FILES**
