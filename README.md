@@ -1,4 +1,5 @@
-[![License](https://img.shields.io/badge/License-BSD\%202--Clause-orange.svg)](https://opensource.org/licenses/BSD-2-Clause) [![Build Status](https://travis-ci.com/AlexandrovLab/SigProfilerHotSpots.svg?branch=master)](https://travis-ci.com/AlexandrovLab/SigProfilerHotSpots)
+[![License](https://img.shields.io/badge/License-BSD\%202--Clause-orange.svg)](https://opensource.org/licenses/BSD-2-Clause) [![Build Status](https://travis-ci.com/AlexandrovLab/SigProfilerHotSpots.svg?token=Fyqun3zxxDr3YzDRaKKm&branch=master)](https://travis-ci.com/AlexandrovLab/SigProfilerHotSpots)
+https://travis-ci.com/AlexandrovLab/SigProfilerHotSpots.svg?token=Fyqun3zxxDr3YzDRaKKm&branch=master
 
 # SigProfilerHotSpots
 Tool for analyzing the inter-mutational distances between SNV-SNV and INDEL-INDEL mutations. Tool separates mutations into clustered and non-clustered groups on a sample-dependent basis. 
