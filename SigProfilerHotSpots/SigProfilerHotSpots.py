@@ -198,7 +198,7 @@ def distance_one_file (original_samples, output_path_original, file_context2, ge
 
 
 
-def analysis (project, genome, contexts, simContext, input_path, output_type='all', analysis='all', interdistance='96', exome=False, clustering_vaf=False, sortSims=True, extraction=False, correction=True, startProcess=1, endProcess=25, totalIterations=1000, calculateIMD=True, chrom_based=False, max_cpu=None, subClassify=False, sanger=True, TCGA=False, windowSize=10000000):
+def analysis (project, genome, contexts, simContext, input_path, output_type='all', analysis='all', interdistance='96', exome=False, clustering_vaf=False, sortSims=True, extraction=False, correction=True, startProcess=1, endProcess=25, totalIterations=1000, calculateIMD=True, chrom_based=False, max_cpu=None, subClassify=False, sanger=True, TCGA=False, windowSize=10000000, bedRanges=None):
 	'''
 	Organizes all of the data structures and calls all of the sub-functions. This is the main function called when running SigProfilerHotSpots.
 
@@ -273,7 +273,7 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 	chromLengths = {}
 	binsDensity = []
 	if correction or subClassify:
-		chroms = [x.split(".")[0] for x in os.listdir(chrom_path) if x != ".DS_Store" and x[0]!= "G" and x[0] != "M" and x != "BED_" + genome + "_proportions.txt"]
+		chroms = [x.split(".")[0] for x in os.listdir(chrom_path) if x != ".DS_Store" and x[0]!= "G" and x[0] != "M" and x != "BED_" + genome + "_proportions.txt" and x[0] != 'm']
 		chroms = sorted(chroms, key = lambda x: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22','X','Y'].index(x[0:]))
 		chromLengths[genome] = {}
 		totalLength = 0
@@ -315,7 +315,9 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 	output_path = ref_dir + "output/vcf_files" + path_suffix + "/single/"
 	if os.path.exists(output_path) or output_type != None:
 		#if sortSims:
-		os.system("rm -r " + output_path)
+		if os.path.exists(output_path):
+			shutil.rmtree(output_path)
+		# os.system("rm -r " + output_path)
 	os.makedirs(output_path)
 	output_log_path = ref_dir + "logs/"
 	if not os.path.exists(output_log_path):
@@ -534,7 +536,7 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 		sys.stderr.close()
 		sys.stderr = open(error_file, 'a')
 		print("Generating a rainfall plot for all samples...", end='')
-		plottingFunctions.rainfall(chrom_based, project, input_path, chrom_path, correction, windowSize)
+		plottingFunctions.rainfall(chrom_based, project, input_path, chrom_path, chromLengths, centromeres, correction, windowSize, bedRanges)
 		print("done")
 		print("Subclassification of clustered mutations has finished!")
 

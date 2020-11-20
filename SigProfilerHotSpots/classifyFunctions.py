@@ -53,7 +53,7 @@ def pullVaf (project, project_path, sanger=True, TCGA=False, correction=True):
 					try:
 						vaf = float(lines[-1].split(":")[-1])
 					except:
-						print("There does not seem to be VAF scores in this Sanger-produced file.")
+						print("There does not seem to be VAF scores in this Sanger-produced file.\n\t", vcfFile)
 						break
 					keyLine = ":".join([chrom, pos, ref, alt])
 					vafs[sample][keyLine] = vaf
@@ -321,16 +321,18 @@ def findClustersOfClusters (project, chrom_based, project_parent_path, windowSiz
 							continue
 						else:
 							# print(imdsData[lines[0][1]])
-							# print(chromLengths[genome][lines[0][5]])
+							# print(chromLengths[genome][linesa[0][5]])
 							# print(regions[lines[0][1]][bisect.bisect_left(regions[lines[0][1]], (int(lines[0][7]) + chromLengths[genome][lines[0][5]]))])
 							# print((regions[lines[0][1]][bisect.bisect_left(regions[lines[0][1]], (int(lines[0][7]) + chromLengths[genome][lines[0][5]]))] - (int(lines[0][7]) + chromLengths[genome][lines[0][5]])))
 							# print(imds_corrected[lines[0][1]][regions[lines[0][1]][bisect.bisect_left(regions[lines[0][1]], int(lines[0][7]) + chromLengths[genome][lines[0][5]])]])
 							if correction:
 								distancesLine = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if int(y[7])-int(x[7]) > 1 and (int(y[7])-int(x[7]) <= imdsData[y[1]] or (regions[y[1]][bisect.bisect_left(regions[y[1]], (int(y[7]) + chromLengths[genome][y[5]]))] - (int(y[7]) + chromLengths[genome][y[5]]) < windowSize and int(y[-2]) < imds_corrected[y[1]][regions[y[1]][bisect.bisect_left(regions[y[1]], int(y[7]) + chromLengths[genome][y[5]])]]))])
 								distancesFailed = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if (int(y[7])-int(x[7]) > imdsData[y[1]] and (regions[y[1]][bisect.bisect_left(regions[y[1]], (int(y[7]) + chromLengths[genome][y[5]]))] - (int(y[7]) + chromLengths[genome][y[5]]) < windowSize and int(y[-2]) < imds_corrected[y[1]][regions[y[1]][bisect.bisect_left(regions[y[1]], int(y[7]) + chromLengths[genome][y[5]])]]))])
+								zeroDistances = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if int(y[7])-int(x[7]) > 1])
 							else:
 								distancesLine = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if int(y[7])-int(x[7]) > 1 and (int(y[7])-int(x[7]) <= imdsData[y[1]])])
 								distancesFailed = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if (int(y[7])-int(x[7]) > imdsData[y[1]])])
+								zeroDistances = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if int(y[7])-int(x[7]) > 1])
 							vafs = len([abs(float(y[-1]) - float(x[-1])) for x,y in zip(lines, lines[1:]) if round(abs(float(y[-1]) - float(x[-1])),4) > vaf_cut])
 							unknownVafs = len([abs(float(y[-1]) - float(x[-1])) for x,y in zip(lines, lines[1:]) if abs(float(y[-1]) - float(x[-1])) < 0])
 							distancesActual = [int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:])]
@@ -354,7 +356,7 @@ def findClustersOfClusters (project, chrom_based, project_parent_path, windowSiz
 										len_mnvs['I'][str(len(lines))][0] += 1
 										len_mnvs['I'][str(len(lines))][1] += distancesActual
 										len_mnvs['I'][str(len(lines))][2] += vafsActual
-									if distancesLine == 0:
+									if zeroDistances == 0:
 										if len(lines) == 2:
 											writeClassIa = True
 											if str(len(lines)) not in len_mnvs['Ia']:

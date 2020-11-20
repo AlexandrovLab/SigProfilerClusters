@@ -977,7 +977,7 @@ def plotINDEL_same (matrix_path, matrix_path_clustered, matrix_path_nonClustered
 
 
 
-def rainfall (chrom_based_IMD, project, project_path, chrom_path, correction=True, windowSize = 10000000):
+def rainfall (chrom_based_IMD, project, project_path, chrom_path, chromLengths, centromeres, correction=True, windowSize = 10000000, bedRanges=None):
 	'''
 	Generates rainfall plots when subClassify is True.
 
@@ -1037,29 +1037,34 @@ def rainfall (chrom_based_IMD, project, project_path, chrom_path, correction=Tru
 			imdsDataSample_corrected = pickle.load(handle) 
 
 
+	if bedRanges:
+		bedFile = pd.read_csv(bedRanges, sep="\t", header=0, index_col=3)
+		print(bedFile)
+		print("\n\n")
+
 	headerFields = ["project", "samples","ID","genome","mutType","chr","start","end", "ref", "alt", "mutClass", "IMD", "vaf","class", "failedReason"]
 
-	centromeres = {'GRCh38':{'1': [122026460,125184587],'10': [39686683,41593521],'11':[51078349,54425074],'12':[34769408,37185252],'13': [16000001,18051248],
-				'14': [16000001,18173523],'15': [17000001,19725254],'16': [36311159,38280682],'17': [22813680,26885980],'18': [15460900,20861206],
-				'19': [24498981,27190874],'2': [92188146,94090557],'20': [26436233,30038348],'21': [10864561,12915808],'22': [12954789,15054318],
-				'3': [90772459,93655574],'4': [49708101,51743951],'5': [46485901,50059807],'6': [58553889,59829934],'7': [58169654,60828234],
-				'8': [44033745,45877265],'9': [43236168,45518558],'X': [58605580,62412542],'Y': [10316945,10544039]}, 
+	# centromeres = {'GRCh38':{'1': [122026460,125184587],'10': [39686683,41593521],'11':[51078349,54425074],'12':[34769408,37185252],'13': [16000001,18051248],
+	# 			'14': [16000001,18173523],'15': [17000001,19725254],'16': [36311159,38280682],'17': [22813680,26885980],'18': [15460900,20861206],
+	# 			'19': [24498981,27190874],'2': [92188146,94090557],'20': [26436233,30038348],'21': [10864561,12915808],'22': [12954789,15054318],
+	# 			'3': [90772459,93655574],'4': [49708101,51743951],'5': [46485901,50059807],'6': [58553889,59829934],'7': [58169654,60828234],
+	# 			'8': [44033745,45877265],'9': [43236168,45518558],'X': [58605580,62412542],'Y': [10316945,10544039]}, 
 
-				'GRCh37':{'1': [121535434,124535434],'10': [39254935,42254935],'11':[51644205,54644205],'12':[34856694,37856694],'13': [16000000,19000000],
-				'14': [16000000,19000000],'15': [17000000,20000000],'16': [35335801,38335801],'17': [22263006,25263006],'18': [15460898,18460898],
-				'19': [24681782,27681782],'2': [92326171,95326171],'20': [26369569,29369569],'21': [11288129,14288129],'22': [13000000,16000000],
-				'3': [90504854,93504854],'4': [49660117,52660117],'5': [46405641,49405641],'6': [58830166,61830166],'7': [58054331,61054331],
-				'8': [43838887,46838887],'9': [47367679,50367679],'X': [58632012,61632012],'Y': [10316945,10544039]},
+	# 			'GRCh37':{'1': [121535434,124535434],'10': [39254935,42254935],'11':[51644205,54644205],'12':[34856694,37856694],'13': [16000000,19000000],
+	# 			'14': [16000000,19000000],'15': [17000000,20000000],'16': [35335801,38335801],'17': [22263006,25263006],'18': [15460898,18460898],
+	# 			'19': [24681782,27681782],'2': [92326171,95326171],'20': [26369569,29369569],'21': [11288129,14288129],'22': [13000000,16000000],
+	# 			'3': [90504854,93504854],'4': [49660117,52660117],'5': [46405641,49405641],'6': [58830166,61830166],'7': [58054331,61054331],
+	# 			'8': [43838887,46838887],'9': [47367679,50367679],'X': [58632012,61632012],'Y': [10316945,10544039]},
 
-				'mm10':{'1': [110000,3000000],'10': [110000,3000000],'11':[110000,3000000],'12':[110000,3000000],'13': [110000,3000000],
-				'14': [110000,3000000],'15': [110000,3000000],'16': [110000,3000000],'17': [110000,3000000],'18': [110000,3000000],
-				'19': [110000,3000000],'2': [110000,3000000],'3': [110000,3000000],'4': [110000,3000000],'5': [110000,3000000],
-				'6': [110000,3000000],'7': [110000,3000000],'8': [110000,3000000],'9': [110000,3000000],'X': [110000,3000000],'Y': [110000,3000000]},
+	# 			'mm10':{'1': [110000,3000000],'10': [110000,3000000],'11':[110000,3000000],'12':[110000,3000000],'13': [110000,3000000],
+	# 			'14': [110000,3000000],'15': [110000,3000000],'16': [110000,3000000],'17': [110000,3000000],'18': [110000,3000000],
+	# 			'19': [110000,3000000],'2': [110000,3000000],'3': [110000,3000000],'4': [110000,3000000],'5': [110000,3000000],
+	# 			'6': [110000,3000000],'7': [110000,3000000],'8': [110000,3000000],'9': [110000,3000000],'X': [110000,3000000],'Y': [110000,3000000]},
 
-				'mm9':{'1': [0,3000000],'10': [0,3000000],'11':[0,3000000],'12':[0,3000000],'13': [0,3000000],
-				'14': [0,3000000],'15': [0,3000000],'16': [0,3000000],'17': [0,3000000],'18': [0,3000000],
-				'19': [0,3000000],'2': [0,3000000],'3': [0,3000000],'4': [0,3000000],'5': [0,3000000],
-				'6': [0,3000000],'7': [0,3000000],'8': [0,3000000],'9': [0,3000000],'X': [0,3000000],'Y': [0,3000000]}}
+	# 			'mm9':{'1': [0,3000000],'10': [0,3000000],'11':[0,3000000],'12':[0,3000000],'13': [0,3000000],
+	# 			'14': [0,3000000],'15': [0,3000000],'16': [0,3000000],'17': [0,3000000],'18': [0,3000000],
+	# 			'19': [0,3000000],'2': [0,3000000],'3': [0,3000000],'4': [0,3000000],'5': [0,3000000],
+	# 			'6': [0,3000000],'7': [0,3000000],'8': [0,3000000],'9': [0,3000000],'X': [0,3000000],'Y': [0,3000000]}}
 
 	chromLengths = {'GRCh37': {'1':249250619,'2':243199368,'3':198022427,'4':191154274,'5':180915259,'6':171115063,'7':159138662,
 							   '8':146364019,'9':141213427,'10':135534745,'11':135006514,'12':133851894,'13':115169878,'14':107349537,
@@ -1088,7 +1093,7 @@ def rainfall (chrom_based_IMD, project, project_path, chrom_path, correction=Tru
 	if len(mutationsPath) > 1:
 		for i in range(1, len(mutationsPath), 1):
 			if classes[i] == "Class III":
-				newMutations = pd.read_csv(mutationsPath[i], sep="\t", names=headerFields, header=0, skiprows=[0],)
+				newMutations = pd.read_csv(mutationsPath[i], sep="\t", names=headerFields, header=0)#, skiprows=[0],)
 			elif classes[i] == "Non-clust":
 				newMutations = pd.read_csv(mutationsPath[i], sep="\t", names=["project", "samples","ID","genome","mutType","chr","start","end", "ref", "alt", "mutClass", "IMD"], header=0, skiprows=[0], engine='python')
 			else:
@@ -1102,7 +1107,7 @@ def rainfall (chrom_based_IMD, project, project_path, chrom_path, correction=Tru
 
 	# Set up chromosome parameters:
 	# chrom_path = "/anaconda3/lib/python3.6/site-packages/SigProfilerMatrixGenerator/references/chromosomes/tsb/" + genome + "/"
-	chroms = [x.split(".")[0] for x in os.listdir(chrom_path) if x != ".DS_Store" and x[0]!= "G" and x[0] != "M" and x != "BED_" + genome + "_proportions.txt"]
+	chroms = [x.split(".")[0] for x in os.listdir(chrom_path) if x != ".DS_Store" and x[0]!= "G" and x[0] != "M" and x != "BED_" + genome + "_proportions.txt" and 'proportions' not in x]
 	chroms = sorted(chroms, key = lambda x: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22','X','Y'].index(x[0:]))
 	pp = PdfPages(outputPath + "rainfallPlots_clustered_" + plot_suffix +".pdf")
 	colors = ['red',  'orange','black', 'green',  'blue', 'grey']
@@ -1116,7 +1121,7 @@ def rainfall (chrom_based_IMD, project, project_path, chrom_path, correction=Tru
 
 	if correction:
 		chromLengths2 = {}
-		chroms = [x.split(".")[0] for x in os.listdir(chrom_path) if x != ".DS_Store" and x[0]!= "G" and x[0] != "M" and x != "BED_" + genome + "_proportions.txt"]
+		chroms = [x.split(".")[0] for x in os.listdir(chrom_path) if x != ".DS_Store" and x[0]!= "G" and x[0] != "M" and x != "BED_" + genome + "_proportions.txt" and 'proportions' not in x]
 		chroms = sorted(chroms, key = lambda x: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22','X','Y'].index(x[0:]))
 		chromLengths2[genome] = {}
 		totalLength = 0
@@ -1151,6 +1156,7 @@ def rainfall (chrom_based_IMD, project, project_path, chrom_path, correction=Tru
 		bins.append(genomeLength)
 		count = 1
 		for sample in samplesSet:
+			chrom_startsAll = {}
 			if correction:
 				# regions = list(imdsDataSample_corrected[sample.split("_")[0]].keys())
 				regions = list(imdsDataSample_corrected[sample.split(".")[0]].keys())
@@ -1189,7 +1195,8 @@ def rainfall (chrom_based_IMD, project, project_path, chrom_path, correction=Tru
 				if sample not in samples[subclass]:
 					classColor += 1
 					continue
-				for chrom in chroms:	
+				for chrom in chroms:
+					chrom_startsAll[chrom] = chrom_start
 					if firstClass:
 						centromere_start = centromeres[genome][chrom][0]
 						centromere_end = centromeres[genome][chrom][1]
@@ -1300,6 +1307,50 @@ def rainfall (chrom_based_IMD, project, project_path, chrom_path, correction=Tru
 				panel1.set_ylim([1, ymax])
 			else:
 				panel1.set_ylim([1, 10**5])
+
+			############################################
+			############################################
+			if bedRanges:
+				if sample in bedFile.index:
+					currentRanges = bedFile.loc[sample]
+					prev_start = 0
+					prev_end = 0
+					prevIndex = 0
+					print(currentRanges)
+					allRangesCurrent = currentRanges.to_numpy().tolist()
+					if not any(isinstance(i, list) for i in allRangesCurrent):
+						allRangesCurrent = [allRangesCurrent]
+					print(allRangesCurrent)
+					print(len(currentRanges), len(allRangesCurrent))
+					for ranges in allRangesCurrent:
+						print(ranges)
+						start = ranges[1]
+						end = ranges[2]
+						currentChrom = str(ranges[0])
+						ampIndex = ranges[5]
+						if currentChrom in chrom_startsAll:
+							# print(currentChrom, start, ranges[-1])
+							panel1.axvline(x=start+chrom_startsAll[currentChrom], color=ranges[-1], lw=1, zorder=-20)
+							panel1.axvline(x=end+chrom_startsAll[currentChrom], color=ranges[-1], lw=1, zorder=-20)
+							# kw = dict(linestyle=None, lw=1,color=ranges[-1],connectionstyle="arc3,rad=0.2",clip_on=False)
+							# arc = mplpatches.FancyArrowPatch((start+chrom_startsAll[currentChrom], ymax), (end+chrom_startsAll[currentChrom],ymax) , **kw)
+							# panel1.add_patch(arc)
+							# if prevIndex != 0:
+							# 	if ampIndex == prevIndex:
+							# 		if start+chrom_startsAll[currentChrom] > prev_end:
+							# 			kw = dict(linestyle=None, lw=1,color=ranges[-1],connectionstyle="arc3,rad=0.2", clip_on=False)
+							# 			arc = mplpatches.FancyArrowPatch((start+chrom_startsAll[currentChrom], ymax), (prev_end,ymax) , **kw)
+							# 			panel1.add_patch(arc)
+							# 		elif start+chrom_startsAll[currentChrom] < prev_start:
+							# 			kw = dict(linestyle=None, lw=1,color=ranges[-1],connectionstyle="arc3,rad=0.2", clip_on=False)
+							# 			arc = mplpatches.FancyArrowPatch((start+chrom_startsAll[currentChrom], ymax), (prev_start,ymax) , **kw)
+							# 			panel1.add_patch(arc)										
+							prev_start = start+chrom_startsAll[currentChrom]
+							prev_end = end+chrom_startsAll[currentChrom]
+							prevIndex = ampIndex
+
+			############################################
+			############################################
 
 			panel1.set_yscale('log')
 			panel1.set_title("Clustered mutations - " + sample, pad=150, fontsize=20)

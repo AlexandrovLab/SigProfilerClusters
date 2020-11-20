@@ -393,6 +393,7 @@ def first_run (distances, distances_orig_all, distances_orig, vcf_path_clust, vc
 	distance_cut = bincenters2[interval_line]
 	sigValue = 0.01
 	distance_cut, q_val, avgSim, stdevSim, upper_CI_refined, lower_CI_refined = refineIMD (distances, distances_orig, y2, avg_bin_counts, interval_line, bincenters2[interval_line], bincenters2[interval_line+1], CI, lower_CI, upper_CI, sigValue)
+	distance_cut = 1000
 	if not correctionData:
 		if correction:
 			clustered_muts = [x[1:] + [x[0]] for x in distances_orig_all if int(x[0]) <= distance_cut or (regions[bisect.bisect_left(regions, (int(x[3]) + chromLengths[genome][x[2]]))] - (int(x[3]) + chromLengths[genome][x[2]]) < windowSize and int(x[0]) < imds_corrected[x[1]][regions[bisect.bisect_left(regions, int(x[3]) + chromLengths[genome][x[2]])]])]
