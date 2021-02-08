@@ -1,6 +1,6 @@
 
 # THIS FILE IS GENERATED FROM SIGPROFILEHOTSPOTS SETUP.PY
-short_version = '0.0.17'
-version = '0.0.17'
+short_version = '0.0.18'
+version = '0.0.18'
 	
 	

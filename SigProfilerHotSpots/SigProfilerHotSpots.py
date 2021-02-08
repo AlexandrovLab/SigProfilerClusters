@@ -82,15 +82,28 @@ def distance_multiple_files_sims (output_path, simulations, simulation_path, sim
 				if prevSamp == currentSamp:
 					if prevChrom == currentChrom:
 						if currentPos < centroStart:
-							distances[i] = [currentPos - prevPos, prevSamp, prevChrom, prevPos, prevRef, prevMut, 'c']
+							distances[i] = [currentPos - (prevPos-2+len(prevRef)+len(prevMut)), prevSamp, prevChrom, prevPos, prevRef, prevMut, 'c']
 						elif prevPos > centroEnd:
-							distances[i] = [currentPos - prevPos, prevSamp, prevChrom, prevPos, prevRef, prevMut, 'c']
+							distances[i] = [currentPos - (prevPos-2+len(prevRef)+len(prevMut)), prevSamp, prevChrom, prevPos, prevRef, prevMut, 'c']
 						else:
-							distances[i] = [prevPos - int(original_lines[i-1][5]), prevSamp, prevChrom, prevPos, prevRef, prevMut, 'd']
+							distances[i] = [prevPos - (int(original_lines[i-1][5])-2+len(original_lines[i-1][10])+len(original_lines[i-1][12])), prevSamp, prevChrom, prevPos, prevRef, prevMut, 'd']
 					else:
 						distances[i] = ['a', prevSamp, prevChrom, prevPos, prevRef, prevMut]
 				else:
 					distances[i] = ['a', prevSamp, prevChrom, prevPos, prevRef, prevMut]
+
+				# if prevSamp == currentSamp:
+				# 	if prevChrom == currentChrom:
+				# 		if currentPos < centroStart:
+				# 			distances[i] = [currentPos - prevPos, prevSamp, prevChrom, prevPos, prevRef, prevMut, 'c']
+				# 		elif prevPos > centroEnd:
+				# 			distances[i] = [currentPos - prevPos, prevSamp, prevChrom, prevPos, prevRef, prevMut, 'c']
+				# 		else:
+				# 			distances[i] = [prevPos - int(original_lines[i-1][5]), prevSamp, prevChrom, prevPos, prevRef, prevMut, 'd']
+				# 	else:
+				# 		distances[i] = ['a', prevSamp, prevChrom, prevPos, prevRef, prevMut]
+				# else:
+				# 	distances[i] = ['a', prevSamp, prevChrom, prevPos, prevRef, prevMut]
 				i += 1
 			# distances_new = distances + [[distances[-1][0]] + [original_lines[-1][15]] + [distances[-1][-1]]]
 			distances_new = distances + [distances[-1]]
@@ -99,11 +112,17 @@ def distance_multiple_files_sims (output_path, simulations, simulation_path, sim
 			final_distances = [distances_new[0]] + final_distances
 			final_distances_filtered = [x for x in final_distances if x[0] != 'b' and x[0] != 'a']
 
+
+			if len(final_distances_filtered) == 0:
+				continue
 			sample = final_distances_filtered[0][1]
 			file_sample = sample.split("_")[:-1]
 			file_sample = ("_").join([x for x in file_sample])
-			if not os.path.exists(output_path_interdistance + file_sample + "/"):
-				os.makedirs(output_path_interdistance + file_sample + "/")
+			try:
+				if not os.path.exists(output_path_interdistance + file_sample + "/"):
+					os.makedirs(output_path_interdistance + file_sample + "/")
+			except:
+				pass
 			out_file = open(output_path_interdistance  + file_sample + "/"+ sample + "_" + file_context2 + "_intradistance.txt", 'a')
 			for x in final_distances_filtered:
 				if x[1] == sample:
@@ -176,14 +195,18 @@ def distance_one_file (original_samples, output_path_original, file_context2, ge
 		if len(original_lines)>1:
 			centro_start = centromeres[genome][original_lines[0][1]][0]
 			centro_end = centromeres[genome][original_lines[0][1]][1]
-			distances = [[int(y[2])-int(x[2])] + x + ['c'] if x[0] == y[0] and int(y[2])<centro_start else [int(y[2])-int(x[2])] + x +['c']if x[0] == y[0] and centro_end<int(x[2]) else 'aa' if x[0] != y[0] else [int(x[2]) - int(original_lines[original_lines.index(x)-1][2])] + x +['d'] for x,y in zip(original_lines, original_lines[1:])]
+			distances = [[int(y[2])-(int(x[2])-2+len(x[3])+len(x[4]))] + x + ['c'] if x[0] == y[0] and int(y[2])<centro_start else [int(y[2])-(int(x[2])-2+len(x[3])+len(x[4]))] + x +['c'] if x[0] == y[0] and centro_end<int(x[2]) else 'aa' if x[0] != y[0] else [int(x[2]) - (int(original_lines[original_lines.index(x)-1][2])-2+len(original_lines[original_lines.index(x)-1][3])+len(original_lines[original_lines.index(x)-1][4]))] + x +['d'] for x,y in zip(original_lines, original_lines[1:])]
+			# distances = [[int(y[2])-int(x[2])] + x + ['c'] if x[0] == y[0] and int(y[2])<centro_start else [int(y[2])-int(x[2])] + x +['c'] if x[0] == y[0] and centro_end<int(x[2]) else 'aa' if x[0] != y[0] else [int(x[2]) - int(original_lines[original_lines.index(x)-1][2])] + x +['d'] for x,y in zip(original_lines, original_lines[1:])]
 			distances_new = distances[:] + [[distances[-1][0]] + original_lines[-1] + [distances[-1][-1]]]
-			final_distances = ['bb' if x[1] != y[1] else [min(x[0],y[0])]+y[1:-1] if x[0] != 'a' and y[0] != 'a' and x[-1] != 'd' else [y[0]] + y[1:-1] if x[-1] == 'd' and x[0] != 'a' and y[0] != 'a' else x if y[0] == 'a' and x[0] != 'a' else y if x[0] == 'a' and y[0] != 'a' else 'bb' for x,y in zip(distances_new[:], distances_new[1:])]		
+			# final_distances = ['bb' if x[1] != y[1] else [min(x[0],y[0])]+y[1:-1] if x[0] != 'a' and y[0] != 'a' and x[-1] != 'd' else [y[0]] + y[1:-1] if x[-1] == 'd' and x[0] != 'a' and y[0] != 'a' else x if y[0] == 'a' and x[0] != 'a' else y if x[0] == 'a' and y[0] != 'a' else 'bb' for x,y in zip(distances_new[:], distances_new[1:])]		
+			final_distances = ['bb' if x[1] != y[1] else [min(x[0],y[0])]+y[1:-1]+[x[0]] if x[0] != 'a' and y[0] != 'a' and x[-1] != 'd' else [y[0]] + y[1:-1]+[y[0]] if x[-1] == 'd' and x[0] != 'a' and y[0] != 'a' else x if y[0] == 'a' and x[0] != 'a' else y if x[0] == 'a' and y[0] != 'a' else 'bb' for x,y in zip(distances_new[:], distances_new[1:])]		
+
 			final_distances = [distances_new[0]] + final_distances
 			final_distances_filtered = [x for x in final_distances if x[0] != 'b' and x[0] != 'a']
 
 
-
+			if len(final_distances_filtered) == 0:
+				continue
 			sample = final_distances_filtered[0][1]
 			out_file = open(output_path_interdistance + sample + "_" + file_context2 + "_intradistance.txt", 'a')
 			for x in final_distances_filtered:
@@ -273,7 +296,7 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 	chromLengths = {}
 	binsDensity = []
 	if correction or subClassify:
-		chroms = [x.split(".")[0] for x in os.listdir(chrom_path) if x != ".DS_Store" and x[0]!= "G" and x[0] != "M" and x != "BED_" + genome + "_proportions.txt" and x[0] != 'm']
+		chroms = [x.split(".")[0] for x in os.listdir(chrom_path) if x != ".DS_Store" and x[0]!= "G" and x[0] != "M" and x != "BED_" + genome + "_proportions.txt" and x[0] != 'm' and "_proportions" not in x]
 		chroms = sorted(chroms, key = lambda x: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22','X','Y'].index(x[0:]))
 		chromLengths[genome] = {}
 		totalLength = 0
@@ -528,15 +551,16 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 		sigs.sigProfilerExtractor("table", ref_dir+"output/extraction_clustered/", ref_dir+"output/vcf_files" + path_suffix + "/"+project+"_clustered/SNV/output/SBS/"+project+"_clustered.SBS96.all", genome, startProcess=startProcess, endProcess=endProcess, totalIterations=totalIterations)#, totalIterations=totalIterations)
 	
 	if subClassify:
-		print("Beginning subclassification of clustered mutations:\n")
-		classifyFunctions.pullVaf (project, input_path, sanger, TCGA, correction)
-		sys.stderr.close()
-		sys.stderr = open(error_file, 'a')
-		classifyFunctions.findClustersOfClusters (project, chrom_based, input_path, windowSize, chromLengths, regions, genome, imds, correction)
-		sys.stderr.close()
+		if contexts != "ID":
+			print("Beginning subclassification of clustered mutations:\n")
+			classifyFunctions.pullVaf (project, input_path, sanger, TCGA, correction)
+			sys.stderr.close()
+			sys.stderr = open(error_file, 'a')
+			classifyFunctions.findClustersOfClusters (project, chrom_based, input_path, windowSize, chromLengths, regions, genome, imds, correction)
+			sys.stderr.close()
 		sys.stderr = open(error_file, 'a')
 		print("Generating a rainfall plot for all samples...", end='')
-		plottingFunctions.rainfall(chrom_based, project, input_path, chrom_path, chromLengths, centromeres, correction, windowSize, bedRanges)
+		plottingFunctions.rainfall(chrom_based, project, input_path, chrom_path, chromLengths, centromeres, contexts, correction, windowSize, bedRanges)
 		print("done")
 		print("Subclassification of clustered mutations has finished!")
 

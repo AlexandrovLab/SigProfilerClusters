@@ -43,7 +43,7 @@ def plot96_same (matrix_path, matrix_path_clustered, matrix_path_nonClustered, s
 						  panel1	->	axis information for the SBS96 plot of all mutations
 						  panel3	->	axis information for the SBS96 plot of clustered mutations
 						  panel5	->	axis information for the SBS96 plot of non-clustered mutations
-						     fig	->	the matplotlib object for the current figure
+							 fig	->	the matplotlib object for the current figure
 						   chrom	-> 	DO NOT USE
 
 	Returns:
@@ -129,7 +129,7 @@ def plot96_same (matrix_path, matrix_path_clustered, matrix_path_nonClustered, s
 	else:
 		ylabs = [0, ytick_offest, ytick_offest*2, ytick_offest*3, ytick_offest*4]
 		ylabels= [0, ytick_offest, ytick_offest*2, 
-			  	  ytick_offest*3, ytick_offest*4]		
+				  ytick_offest*3, ytick_offest*4]		
 
 	labs = np.arange(0.375,96.375,1)
 	panel1.set_xlim([0, 96])
@@ -241,7 +241,7 @@ def plot96_same (matrix_path, matrix_path_clustered, matrix_path_nonClustered, s
 	else:
 		ylabs = [0, ytick_offest, ytick_offest*2, ytick_offest*3, ytick_offest*4]
 		ylabels= [0, ytick_offest, ytick_offest*2, 
-			  	  ytick_offest*3, ytick_offest*4]		
+				  ytick_offest*3, ytick_offest*4]		
 
 	labs = np.arange(0.375,96.375,1)
 
@@ -350,7 +350,7 @@ def plot96_same (matrix_path, matrix_path_clustered, matrix_path_nonClustered, s
 	else:
 		ylabs = [0, ytick_offest, ytick_offest*2, ytick_offest*3, ytick_offest*4]
 		ylabels= [0, ytick_offest, ytick_offest*2, 
-			  	  ytick_offest*3, ytick_offest*4]		
+				  ytick_offest*3, ytick_offest*4]		
 
 	labs = np.arange(0.375,96.375,1)
 
@@ -399,7 +399,7 @@ def plotINDEL_same (matrix_path, matrix_path_clustered, matrix_path_nonClustered
 						  panel1	->	axis information for the SBS96 plot of all mutations
 						  panel3	->	axis information for the SBS96 plot of clustered mutations
 						  panel5	->	axis information for the SBS96 plot of non-clustered mutations
-						     fig	->	the matplotlib object for the current figure
+							 fig	->	the matplotlib object for the current figure
 
 	Returns:
 		None
@@ -592,7 +592,7 @@ def plotINDEL_same (matrix_path, matrix_path_clustered, matrix_path_nonClustered
 		ytick_offest = int(y/4)
 		ylabs = [0, ytick_offest, ytick_offest*2, ytick_offest*3, ytick_offest*4]
 		ylabels= [0, ytick_offest, ytick_offest*2, 
-			  	  ytick_offest*3, ytick_offest*4]
+				  ytick_offest*3, ytick_offest*4]
 
 
 	labs = np.arange(0.375,83.375,1)
@@ -772,7 +772,7 @@ def plotINDEL_same (matrix_path, matrix_path_clustered, matrix_path_nonClustered
 		ytick_offest = int(y/4)
 		ylabs = [0, ytick_offest, ytick_offest*2, ytick_offest*3, ytick_offest*4]
 		ylabels= [0, ytick_offest, ytick_offest*2, 
-			  	  ytick_offest*3, ytick_offest*4]
+				  ytick_offest*3, ytick_offest*4]
 
 	panel3.set_xlim([0, 83])
 	panel3.set_yticklabels(ylabels, fontsize=8, color='b')
@@ -951,7 +951,7 @@ def plotINDEL_same (matrix_path, matrix_path_clustered, matrix_path_nonClustered
 		ytick_offest = int(y/4)
 		ylabs = [0, ytick_offest, ytick_offest*2, ytick_offest*3, ytick_offest*4]
 		ylabels= [0, ytick_offest, ytick_offest*2, 
-			  	  ytick_offest*3, ytick_offest*4]
+				  ytick_offest*3, ytick_offest*4]
 
 
 	panel5.set_xlim([0, 83])
@@ -977,7 +977,7 @@ def plotINDEL_same (matrix_path, matrix_path_clustered, matrix_path_nonClustered
 
 
 
-def rainfall (chrom_based_IMD, project, project_path, chrom_path, chromLengths, centromeres, correction=True, windowSize = 10000000, bedRanges=None):
+def rainfall (chrom_based_IMD, project, project_path, chrom_path, chromLengths, centromeres, contexts, correction=True, windowSize = 10000000, bedRanges=None):
 	'''
 	Generates rainfall plots when subClassify is True.
 
@@ -1007,7 +1007,10 @@ def rainfall (chrom_based_IMD, project, project_path, chrom_path, chromLengths, 
 
 	projectPath_parent2 = project_path
 	projectPath_parent = project_path
-	projectPath = project_path + "output/vcf_files" + path_suffix2 + "/" + project + "_clustered/subclasses" + path_suffix + "/"
+	if contexts != 'ID':
+		projectPath = project_path + "output/vcf_files" + path_suffix2 + "/" + project + "_clustered/subclasses" + path_suffix + "/"
+	else:
+		projectPath = project_path + "output/vcf_files" + path_suffix2 + "/"
 	outputPath = projectPath_parent + "output/plots/"
 
 	if not os.path.exists(outputPath):
@@ -1022,9 +1025,14 @@ def rainfall (chrom_based_IMD, project, project_path, chrom_path, chromLengths, 
 
 	if correction:
 		plot_suffix += "_corrected"
-	classes = ["Class IA", "Class II", "Class IB", "Class IC",  "Class III", "Non-clust"]
-	mutationsPath = [projectPath + "class1a/" + project + "_clustered_class1a.txt", projectPath + "class2/" + project + "_clustered_class2.txt", projectPath + "class1b/" + project + "_clustered_class1b.txt", projectPath + "class1c/" + project + "_clustered_class1c.txt",
-					 projectPath + "class3/" + project + "_clustered_class3.txt", projectPath_parent + "output/vcf_files" + path_suffix2 + "/" + project + "_nonClustered/SNV/" + project + "_nonClustered.txt"]
+
+	if contexts != "ID":
+		classes = ["Class IA", "Class II", "Class IB", "Class IC",  "Class III", "Non-clust"]
+		mutationsPath = [projectPath + "class1a/" + project + "_clustered_class1a.txt", projectPath + "class2/" + project + "_clustered_class2.txt", projectPath + "class1b/" + project + "_clustered_class1b.txt", projectPath + "class1c/" + project + "_clustered_class1c.txt",
+						 projectPath + "class3/" + project + "_clustered_class3.txt", projectPath_parent + "output/vcf_files" + path_suffix2 + "/" + project + "_nonClustered/SNV/" + project + "_nonClustered.txt"]
+	else:
+		classes = ["Clust", "Non-clust"]
+		mutationsPath = [projectPath + project + "_clustered/INDEL/" + project + "_clustered.txt", projectPath + project + "_nonClustered/INDEL/" + project + "_nonClustered.txt", ]
 
 
 	with open(projectPath_parent2 + "output/simulations/data/imds" + path_suffix + ".pickle", "rb") as handle:
@@ -1039,10 +1047,8 @@ def rainfall (chrom_based_IMD, project, project_path, chrom_path, chromLengths, 
 
 	if bedRanges:
 		bedFile = pd.read_csv(bedRanges, sep="\t", header=0, index_col=3)
-		print(bedFile)
-		print("\n\n")
 
-	headerFields = ["project", "samples","ID","genome","mutType","chr","start","end", "ref", "alt", "mutClass", "IMD", "vaf","class", "failedReason"]
+	headerFields = ["project", "samples","ID","genome","mutType","chr","start","end", "ref", "alt", "mutClass", "IMDplot", "group", "IMD", "vaf","class", "failedReason"]
 
 	# centromeres = {'GRCh38':{'1': [122026460,125184587],'10': [39686683,41593521],'11':[51078349,54425074],'12':[34769408,37185252],'13': [16000001,18051248],
 	# 			'14': [16000001,18173523],'15': [17000001,19725254],'16': [36311159,38280682],'17': [22813680,26885980],'18': [15460900,20861206],
@@ -1081,6 +1087,8 @@ def rainfall (chrom_based_IMD, project, project_path, chrom_path, chromLengths, 
 		mutations = pd.read_csv(mutationsPath[0], sep="\t", names=headerFields[:-3], header=0)#, skiprows=[0])
 	elif classes[0] == "Simulation":
 		mutations = pd.read_csv(mutationsPath[0], sep="\t", names=["project", "ID","sim","genome","chr","start","end","strand","placeHolder","mutType", "ref", "alt1","alt", "placeHolder2","placeHolder3","samples", "seq"], header=None, skiprows=[0])
+	elif classes[0] == 'Clust':
+		mutations = pd.read_csv(mutationsPath[0], sep="\t", names=["project", "samples","ID","genome","mutType","chr","start","end", "ref", "alt", "mutClass", "IMDplot", "IMD"], header=0, skiprows=[0])
 	else:
 		mutations = pd.read_csv(mutationsPath[0], sep="\t", names=headerFields[:-1], header=0)
 	genome = mutations.head(1).loc[0,'genome']
@@ -1095,7 +1103,7 @@ def rainfall (chrom_based_IMD, project, project_path, chrom_path, chromLengths, 
 			if classes[i] == "Class III":
 				newMutations = pd.read_csv(mutationsPath[i], sep="\t", names=headerFields, header=0)#, skiprows=[0],)
 			elif classes[i] == "Non-clust":
-				newMutations = pd.read_csv(mutationsPath[i], sep="\t", names=["project", "samples","ID","genome","mutType","chr","start","end", "ref", "alt", "mutClass", "IMD"], header=0, skiprows=[0], engine='python')
+				newMutations = pd.read_csv(mutationsPath[i], sep="\t", names=["project", "samples","ID","genome","mutType","chr","start","end", "ref", "alt", "mutClass", "IMDplot", "IMD"], header=0, skiprows=[0], engine='python')
 			else:
 				newMutations = pd.read_csv(mutationsPath[i], sep="\t", names=headerFields[:-1], header=0)
 			newMutations['chr'] = newMutations['chr'].astype(str)
@@ -1111,7 +1119,7 @@ def rainfall (chrom_based_IMD, project, project_path, chrom_path, chromLengths, 
 	chroms = sorted(chroms, key = lambda x: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22','X','Y'].index(x[0:]))
 	pp = PdfPages(outputPath + "rainfallPlots_clustered_" + plot_suffix +".pdf")
 	colors = ['red',  'orange','black', 'green',  'blue', 'grey']
-	colors = {'Class IA':'red', "Class IB":'black', "Class IC":'green', "Class II":'orange', "Class III":'blue', "Non-clust":'grey', "Simulation":'grey'}
+	colors = {'Class IA':'red', "Class IB":'black', "Class IC":'green', "Class II":'orange', "Class III":'blue', "Non-clust":'grey', "Simulation":'grey', "Clust":'orange'}
 
 	if genome not in chromLengths:
 		chromLengths[genome] = {}
@@ -1139,6 +1147,10 @@ def rainfall (chrom_based_IMD, project, project_path, chrom_path, chromLengths, 
 	falsePositives = {}
 	falsePositives_1000 = {}
 
+	tokenize = re.compile(r'(\d+)|(\D+)').findall
+	def natural_sortkey(string):          
+		return tuple(int(num) if num else alpha for num, alpha in tokenize(string))
+
 
 	totalMutsIMD = {}
 	totalMuts1000 = {}
@@ -1155,7 +1167,7 @@ def rainfall (chrom_based_IMD, project, project_path, chrom_path, chromLengths, 
 			bins.append(i)
 		bins.append(genomeLength)
 		count = 1
-		for sample in samplesSet:
+		for sample in sorted(samplesSet, key=natural_sortkey):
 			chrom_startsAll = {}
 			if correction:
 				# regions = list(imdsDataSample_corrected[sample.split("_")[0]].keys())
@@ -1181,9 +1193,7 @@ def rainfall (chrom_based_IMD, project, project_path, chrom_path, chromLengths, 
 				except:
 					imd_line = imdsData[sample]
 				panel1.axhline(imd_line, color='red')
-				# panel1.axhline(1000, color='red')
-			# if chrom_based_IMD:
-			# 	panel1.axhline(1000, color='red')					
+					
 
 			ymax = 0
 			classColor = 0
@@ -1221,11 +1231,33 @@ def rainfall (chrom_based_IMD, project, project_path, chrom_path, chromLengths, 
 						except:
 							pos = allMutations[subclass].loc[sample, int(chrom)]
 
-						try:
-							starts = list(pos.loc[(sample, chrom), 'start'])
-							imds_recorded = list(pos.loc[(sample, chrom), 'IMD'])
+						#try:
+						if True:
+							starts = pos.loc[(sample, chrom), 'start']
+							IMDsPlotRecorded = pos.loc[(sample, chrom), 'IMDplot']
+							imds_recorded = pos.loc[(sample, chrom), 'IMD']
+							
+							if type(starts) == np.int64:
+								starts = [starts]
+								imds_recorded = [imds_recorded]
+								IMDsPlotRecorded = [IMDsPlotRecorded]
+							else:
+								starts = list(starts)
+								imds_recorded = list(imds_recorded)	
+								IMDsPlotRecorded = list(IMDsPlotRecorded)
+							newGroup = [0]
+							if subclass != 'Non-clust':# and subclass != "Class III":
+								newGroup = pos.loc[(sample, chrom), 'group']
+								if type(newGroup) == np.int64:
+									newGroup = np.array([newGroup])
+								else:
+									newGroup = np.array(newGroup)
+								if newGroup.size > 0:
+									newGroup = [x+1 for x in list(np.where(newGroup[:-1] !=newGroup[1:])[0])]
+								newGroup = [0] + newGroup
+						
 							imds = [y-x for x,y in zip(starts, starts[1:])]
-							minIMDs = [min(x,y) for x,y in zip([float('inf')] + imds, imds + [float('inf')])]
+							minIMDs = [min(x,y) for x,y in zip([float('inf')] + imds, imds + [float('inf')])]							
 							if not aggregated:
 								if subclass == "Class III":
 									if chrom_based_IMD:
@@ -1239,7 +1271,12 @@ def rainfall (chrom_based_IMD, project, project_path, chrom_path, chromLengths, 
 										plotIMDs = [[x,y] for x,y in zip(starts, imds_recorded)]# if y <= imdsData[sample.split("_")[0]] or y < 10000]
 										# plotIMDs = [[x,y] for x,y in zip(starts, minIMDs) if y <= imdsData[sample.split("_")[0]] or y < 10000]
 								else:
+									# plotIMDs = [[x,y] for x,y in zip(starts, imds) if y <= imdsDataSample[sample.split(".")[0]] or y < 10000]
 									plotIMDs = [[x,y] for x,y in zip(starts, minIMDs)]
+
+								# plotIMDs = [[x,int(y)] for x,y in zip(starts, IMDsPlotRecorded) if y != 'c' ]
+								plotIMDs = [[x,int(y)] for z,(x,y) in enumerate(zip(starts, IMDsPlotRecorded)) if y != 'c' and (z not in newGroup or len(starts) == 1 or len(starts) == len(newGroup))]
+
 								plotX, plotY = zip(*plotIMDs)
 								newMax = max(plotY)
 								if chrom_based_IMD:
@@ -1273,14 +1310,14 @@ def rainfall (chrom_based_IMD, project, project_path, chrom_path, chromLengths, 
 								plotIMDs = [[x,y] for x,y in zip(starts, minIMDs) if y <= 10000]
 								plotX, plotY = zip(*plotIMDs)
 								newMax = max(plotY)
-						except:
-							plotY = 0
-							try:
-								plotX = [int(pos.loc[(sample, chrom), 'start'])]
-							except:
-								plotY = [0 for x in pos.loc[(sample, chrom), 'start']]
-								plotX = [int(x) for x in pos.loc[(sample, chrom), 'start']]
-							newMax = 0
+						# except:
+						# 	plotY = 0
+						# 	try:
+						# 		plotX = [int(pos.loc[(sample, chrom), 'start'])]
+						# 	except:
+						# 		plotY = [0 for x in pos.loc[(sample, chrom), 'start']]
+						# 		plotX = [int(x) for x in pos.loc[(sample, chrom), 'start']]
+						# 	newMax = 0
 						
 						if newMax > ymax:
 							ymax = newMax
@@ -1316,14 +1353,10 @@ def rainfall (chrom_based_IMD, project, project_path, chrom_path, chromLengths, 
 					prev_start = 0
 					prev_end = 0
 					prevIndex = 0
-					print(currentRanges)
 					allRangesCurrent = currentRanges.to_numpy().tolist()
 					if not any(isinstance(i, list) for i in allRangesCurrent):
 						allRangesCurrent = [allRangesCurrent]
-					print(allRangesCurrent)
-					print(len(currentRanges), len(allRangesCurrent))
 					for ranges in allRangesCurrent:
-						print(ranges)
 						start = ranges[1]
 						end = ranges[2]
 						currentChrom = str(ranges[0])

@@ -2,7 +2,6 @@ import os
 import numpy as np
 import os
 from SigProfilerMatrixGenerator.scripts import SigProfilerMatrixGeneratorFunc as matGen
-from SigProfilerHotSpots import hotspot
 import shutil
 from numpy import median
 import pickle
@@ -210,8 +209,7 @@ def findClustersOfClusters (project, chrom_based, project_parent_path, windowSiz
 					# 	print(samp, regions[samp][bisect.bisect_left(regions[samp], pos + chromLengths[genome][chrom])])
 					# 	print(chrom, chromLengths[genome][chrom], pos)
 					# 	continue
-					if pos - prev_pos < cutoff or (correction and ((regions[samp][hotspot.catch([".",".",chrom, pos], regions[samp], chromLengths, genome, imds_corrected[samp])] - (pos + chromLengths[genome][chrom]) < windowSize) and (pos - prev_pos) < imds_corrected[samp][regions[samp][hotspot.catch([".",".",chrom, pos], regions[samp], chromLengths, genome, imds_corrected[samp])]])):
-					# if pos - prev_pos < cutoff or (correction and ((regions[samp][bisect.bisect_left(regions[samp], pos + chromLengths[genome][chrom])] - (pos + chromLengths[genome][chrom]) < windowSize) and (pos - prev_pos) < imds_corrected[samp][regions[samp][bisect.bisect_left(regions[samp], pos + chromLengths[genome][chrom])]])):
+					if pos - prev_pos < cutoff or (correction and ((regions[samp][bisect.bisect_left(regions[samp], pos + chromLengths[genome][chrom])] - (pos + chromLengths[genome][chrom]) < windowSize) and (pos - prev_pos) < imds_corrected[samp][regions[samp][bisect.bisect_left(regions[samp], pos + chromLengths[genome][chrom])]])):
 						distances.append(pos-prev_pos)
 						mnv_length += 1
 						lines[i-1] = [str(count)] + lines[i-1]
@@ -325,13 +323,9 @@ def findClustersOfClusters (project, chrom_based, project_parent_path, windowSiz
 							continue
 						else:
 							if correction:
-								# distancesLine = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if int(y[7])-int(x[7]) > 1 and (int(y[7])-int(x[7]) <= imdsData[y[1]] or (regions[y[1]][bisect.bisect_left(regions[y[1]], (int(y[7]) + chromLengths[genome][y[5]]))] - (int(y[7]) + chromLengths[genome][y[5]]) < windowSize and int(y[-2]) < imds_corrected[y[1]][regions[y[1]][bisect.bisect_left(regions[y[1]], int(y[7]) + chromLengths[genome][y[5]])]]))])
-								# distancesFailed = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if (int(y[7])-int(x[7]) > imdsData[y[1]] and (regions[y[1]][bisect.bisect_left(regions[y[1]], (int(y[7]) + chromLengths[genome][y[5]]))] - (int(y[7]) + chromLengths[genome][y[5]]) < windowSize and int(y[-2]) < imds_corrected[y[1]][regions[y[1]][bisect.bisect_left(regions[y[1]], int(y[7]) + chromLengths[genome][y[5]])]]))])
-								# zeroDistances = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if int(y[7])-int(x[7]) > 1])
-								distancesLine = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if int(y[7])-int(x[7]) > 1 and (int(y[7])-int(x[7]) <= imdsData[y[1]] or (regions[y[1]][hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome, imds_corrected[y[1]])] - (int(y[7]) + chromLengths[genome][y[5]]) < windowSize and int(y[-2]) < imds_corrected[y[1]][regions[y[1]][hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome, imds_corrected[y[1]])]]))])
-								distancesFailed = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if (int(y[7])-int(x[7]) > imdsData[y[1]] and (regions[y[1]][hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome, imds_corrected[y[1]])] - (int(y[7]) + chromLengths[genome][y[5]]) < windowSize and int(y[-2]) < imds_corrected[y[1]][regions[y[1]][hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome, imds_corrected[y[1]])]]))])
+								distancesLine = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if int(y[7])-int(x[7]) > 1 and (int(y[7])-int(x[7]) <= imdsData[y[1]] or (regions[y[1]][bisect.bisect_left(regions[y[1]], (int(y[7]) + chromLengths[genome][y[5]]))] - (int(y[7]) + chromLengths[genome][y[5]]) < windowSize and int(y[-2]) < imds_corrected[y[1]][regions[y[1]][bisect.bisect_left(regions[y[1]], int(y[7]) + chromLengths[genome][y[5]])]]))])
+								distancesFailed = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if (int(y[7])-int(x[7]) > imdsData[y[1]] and (regions[y[1]][bisect.bisect_left(regions[y[1]], (int(y[7]) + chromLengths[genome][y[5]]))] - (int(y[7]) + chromLengths[genome][y[5]]) < windowSize and int(y[-2]) < imds_corrected[y[1]][regions[y[1]][bisect.bisect_left(regions[y[1]], int(y[7]) + chromLengths[genome][y[5]])]]))])
 								zeroDistances = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if int(y[7])-int(x[7]) > 1])
-
 							else:
 								distancesLine = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if int(y[7])-int(x[7]) > 1 and (int(y[7])-int(x[7]) <= imdsData[y[1]])])
 								distancesFailed = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if (int(y[7])-int(x[7]) > imdsData[y[1]])])
@@ -353,24 +347,13 @@ def findClustersOfClusters (project, chrom_based, project_parent_path, windowSiz
 							if unknownVafs == 0 and vafs == 0 and distancesFailed == 0:
 								# Class I or II
 								if distancesLine > 1:
-									# Class IC or II
-									if len(lines) >= 4:
-										writeClassII = True
-										if str(len(lines)) not in len_mnvs['II']:
-											len_mnvs['II'][str(len(lines))] = [1,distancesActual, vafsActual]
-										else:
-											len_mnvs['II'][str(len(lines))][0] += 1
-											len_mnvs['II'][str(len(lines))][1] += distancesActual
-											len_mnvs['II'][str(len(lines))][2] += vafsActual
+									writeClassII = True
+									if str(len(lines)) not in len_mnvs['II']:
+										len_mnvs['II'][str(len(lines))] = [1,distancesActual, vafsActual]
 									else:
-										writeClassI = True
-										writeClassIc = True
-										if str(len(lines)) not in len_mnvs['Ic']:
-											len_mnvs['Ic'][str(len(lines))] = [1,distancesActual, vafsActual]
-										else:
-											len_mnvs['Ic'][str(len(lines))][0] += 1
-											len_mnvs['Ic'][str(len(lines))][1] += distancesActual
-											len_mnvs['Ic'][str(len(lines))][2] += vafsActual										
+										len_mnvs['II'][str(len(lines))][0] += 1
+										len_mnvs['II'][str(len(lines))][1] += distancesActual
+										len_mnvs['II'][str(len(lines))][2] += vafsActual
 								else:
 									writeClassI = True
 									if str(len(lines)) not in len_mnvs['I']:
@@ -427,7 +410,7 @@ def findClustersOfClusters (project, chrom_based, project_parent_path, windowSiz
 									print(lines)
 
 								if writeClassIc:
-									# Writes Class Ic (Omiklis) 
+									# Writes Class Ic (extended MBSs) 
 									try:
 										for i in range(0, len(lines), 1):
 											lines[i][-1] = "ClassIC"
@@ -443,11 +426,14 @@ def findClustersOfClusters (project, chrom_based, project_parent_path, windowSiz
 									except:
 										print(lines)	
 								elif writeClassIb:
+									# print("yes")
 									# Writes Class 1b (MBSs)
 									try:
 										for i in range(0, len(lines), 1):
 											lines[i][-1] = "ClassIB"
+											# lines[i].append(category)
 											print("\t".join([x for x in lines[i]]), file=out7)
+										# print("yes", lines)
 									except:
 										print(lines)
 							elif writeClassIII:
@@ -476,8 +462,7 @@ def findClustersOfClusters (project, chrom_based, project_parent_path, windowSiz
 														lineRef = linesSubClass[i]																			
 											else:
 												if correction:
-													if abs(float(linesSubClass[i][-1]) - float(lineRef[-1])) < vaf_cut and (int(linesSubClass[i][7])-int(lineRef[7]) <= imdsData[lineRef[1]] or (regions[lineRef[1]][hotspot.catch([".",".",lineRef[5], lineRef[7]], regions[lineRef[1]], chromLengths, genome, imds_corrected[lineRef[1]])] - (int(lineRef[7]) + chromLengths[genome][lineRef[5]]) < windowSize and int(lineRef[-2]) < imds_corrected[lineRef[1]][regions[lineRef[1]][hotspot.catch([".",".",lineRef[5], lineRef[7]], regions[lineRef[1]], chromLengths, genome, imds_corrected[lineRef[1]])]])):
-													# if abs(float(linesSubClass[i][-1]) - float(lineRef[-1])) < vaf_cut and (int(linesSubClass[i][7])-int(lineRef[7]) <= imdsData[lineRef[1]] or (regions[lineRef[1]][bisect.bisect_left(regions[lineRef[1]], (int(lineRef[7]) + chromLengths[genome][lineRef[5]]))] - (int(lineRef[7]) + chromLengths[genome][lineRef[5]]) < windowSize and int(lineRef[-2]) < imds_corrected[lineRef[1]][regions[lineRef[1]][bisect.bisect_left(regions[lineRef[1]], int(lineRef[7]) + chromLengths[genome][lineRef[5]])]])):
+													if abs(float(linesSubClass[i][-1]) - float(lineRef[-1])) < vaf_cut and (int(linesSubClass[i][7])-int(lineRef[7]) <= imdsData[lineRef[1]] or (regions[lineRef[1]][bisect.bisect_left(regions[lineRef[1]], (int(lineRef[7]) + chromLengths[genome][lineRef[5]]))] - (int(lineRef[7]) + chromLengths[genome][lineRef[5]]) < windowSize and int(lineRef[-2]) < imds_corrected[lineRef[1]][regions[lineRef[1]][bisect.bisect_left(regions[lineRef[1]], int(lineRef[7]) + chromLengths[genome][lineRef[5]])]])):
 														saveNewEvent.append(linesSubClass[i])
 														lineRef = linesSubClass[i]	
 												else:
@@ -488,8 +473,7 @@ def findClustersOfClusters (project, chrom_based, project_parent_path, windowSiz
 
 									if len(saveNewEvent) > 1:
 										if correction:
-											# distancesLine = len([int(y[7])-int(x[7]) for x,y in zip(saveNewEvent, saveNewEvent[1:]) if int(y[7])-int(x[7]) > 1 and (int(y[7])-int(x[7]) <= imdsData[y[1]] or (regions[y[1]][bisect.bisect_left(regions[y[1]], (int(y[7]) + chromLengths[genome][y[5]]))] - (int(y[7]) + chromLengths[genome][y[5]]) < windowSize and int(y[-2]) < imds_corrected[y[1]][regions[y[1]][bisect.bisect_left(regions[y[1]], int(y[7]) + chromLengths[genome][y[5]])]]))])											
-											distancesLine = len([int(y[7])-int(x[7]) for x,y in zip(saveNewEvent, saveNewEvent[1:]) if int(y[7])-int(x[7]) > 1 and (int(y[7])-int(x[7]) <= imdsData[y[1]] or (regions[y[1]][hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome, imds_corrected[y[1]])] - (int(y[7]) + chromLengths[genome][y[5]]) < windowSize and int(y[-2]) < imds_corrected[y[1]][regions[y[1]][hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome, imds_corrected[y[1]])]]))])
+											distancesLine = len([int(y[7])-int(x[7]) for x,y in zip(saveNewEvent, saveNewEvent[1:]) if int(y[7])-int(x[7]) > 1 and (int(y[7])-int(x[7]) <= imdsData[y[1]] or (regions[y[1]][bisect.bisect_left(regions[y[1]], (int(y[7]) + chromLengths[genome][y[5]]))] - (int(y[7]) + chromLengths[genome][y[5]]) < windowSize and int(y[-2]) < imds_corrected[y[1]][regions[y[1]][bisect.bisect_left(regions[y[1]], int(y[7]) + chromLengths[genome][y[5]])]]))])
 										else:
 											distancesLine = len([int(y[7])-int(x[7]) for x,y in zip(saveNewEvent, saveNewEvent[1:]) if int(y[7])-int(x[7]) > 1 and (int(y[7])-int(x[7]) <= imdsData[y[1]])])
 										vafs = len([abs(float(y[-1]) - float(x[-1])) for x,y in zip(saveNewEvent, saveNewEvent[1:]) if round(abs(float(y[-1]) - float(x[-1])),4) > vaf_cut])
@@ -498,56 +482,52 @@ def findClustersOfClusters (project, chrom_based, project_parent_path, windowSiz
 										vafsActual = [abs(float(y[-1]) - float(x[-1])) for x,y in zip(saveNewEvent, saveNewEvent[1:])]
 										# Class I or II
 										if distancesLine > 1:
-											if len(lines) >=4:
-												writeClassII = True
-											else:
-												writeClassI = True
-												writeClassIc = True
+											writeClassII = True
 										else:
 											writeClassI = True
-											# if str(len(saveNewEvent)) not in len_mnvs['I']:
-											# 	len_mnvs['I'][str(len(saveNewEvent))] = [1,distancesActual, vafsActual]
-											# else:
-											# 	len_mnvs['I'][str(len(saveNewEvent))][0] += 1
-											# 	len_mnvs['I'][str(len(saveNewEvent))][1] += distancesActual
-											# 	len_mnvs['I'][str(len(saveNewEvent))][2] += vafsActual
+											if str(len(saveNewEvent)) not in len_mnvs['I']:
+												len_mnvs['I'][str(len(saveNewEvent))] = [1,distancesActual, vafsActual]
+											else:
+												len_mnvs['I'][str(len(saveNewEvent))][0] += 1
+												len_mnvs['I'][str(len(saveNewEvent))][1] += distancesActual
+												len_mnvs['I'][str(len(saveNewEvent))][2] += vafsActual
 											if distancesLine == 0:
 												if len(saveNewEvent) == 2:
 													writeClassIa = True
-													# if str(len(saveNewEvent)) not in len_mnvs['Ia']:
-													# 	len_mnvs['Ia'][str(len(saveNewEvent))] = [1,distancesActual, vafsActual]
-													# else:
-													# 	len_mnvs['Ia'][str(len(saveNewEvent))][0] += 1
-													# 	len_mnvs['Ia'][str(len(saveNewEvent))][1] += distancesActual
-													# 	len_mnvs['Ia'][str(len(saveNewEvent))][2] += vafsActual
+													if str(len(saveNewEvent)) not in len_mnvs['Ia']:
+														len_mnvs['Ia'][str(len(saveNewEvent))] = [1,distancesActual, vafsActual]
+													else:
+														len_mnvs['Ia'][str(len(saveNewEvent))][0] += 1
+														len_mnvs['Ia'][str(len(saveNewEvent))][1] += distancesActual
+														len_mnvs['Ia'][str(len(saveNewEvent))][2] += vafsActual
 												else:
 													writeClassIb = True
-													# if str(len(saveNewEvent)) not in len_mnvs['Ib']:
-													# 	len_mnvs['Ib'][str(len(saveNewEvent))] = [1,distancesActual, vafsActual]
-													# else:
-													# 	len_mnvs['Ib'][str(len(saveNewEvent))][0] += 1
-													# 	len_mnvs['Ib'][str(len(saveNewEvent))][1] += distancesActual
-													# 	len_mnvs['Ib'][str(len(saveNewEvent))][2] += vafsActual
+													if str(len(saveNewEvent)) not in len_mnvs['Ib']:
+														len_mnvs['Ib'][str(len(saveNewEvent))] = [1,distancesActual, vafsActual]
+													else:
+														len_mnvs['Ib'][str(len(saveNewEvent))][0] += 1
+														len_mnvs['Ib'][str(len(saveNewEvent))][1] += distancesActual
+														len_mnvs['Ib'][str(len(saveNewEvent))][2] += vafsActual
 											else:
 												writeClassIc = True
-												# if str(len(saveNewEvent)) not in len_mnvs['Ic']:
-												# 	len_mnvs['Ic'][str(len(saveNewEvent))] = [1,distancesActual, vafsActual]
-												# else:
-												# 	len_mnvs['Ic'][str(len(saveNewEvent))][0] += 1
-												# 	len_mnvs['Ic'][str(len(saveNewEvent))][1] += distancesActual
-												# 	len_mnvs['Ic'][str(len(saveNewEvent))][2] += vafsActual
+												if str(len(saveNewEvent)) not in len_mnvs['Ic']:
+													len_mnvs['Ic'][str(len(saveNewEvent))] = [1,distancesActual, vafsActual]
+												else:
+													len_mnvs['Ic'][str(len(saveNewEvent))][0] += 1
+													len_mnvs['Ic'][str(len(saveNewEvent))][1] += distancesActual
+													len_mnvs['Ic'][str(len(saveNewEvent))][2] += vafsActual
 									else:
 										writeClassIII = True
 										if unknownVafs > 0:
 											category = 'unknown'
 										else:
 											category = "vaf"
-										# if str(len(saveNewEvent)) not in len_mnvs['III']:
-										# 	len_mnvs['III'][str(len(saveNewEvent))] = [1,distancesActual, vafsActual]
-										# else:
-										# 	len_mnvs['III'][str(len(saveNewEvent))][0] += 1
-										# 	len_mnvs['III'][str(len(saveNewEvent))][1] += distancesActual
-										# 	len_mnvs['III'][str(len(saveNewEvent))][2] += vafsActual
+										if str(len(saveNewEvent)) not in len_mnvs['III']:
+											len_mnvs['III'][str(len(saveNewEvent))] = [1,distancesActual, vafsActual]
+										else:
+											len_mnvs['III'][str(len(saveNewEvent))][0] += 1
+											len_mnvs['III'][str(len(saveNewEvent))][1] += distancesActual
+											len_mnvs['III'][str(len(saveNewEvent))][2] += vafsActual
 									for line in saveNewEvent:
 										linesSubClass.remove(line)
 
@@ -622,6 +602,10 @@ def findClustersOfClusters (project, chrom_based, project_parent_path, windowSiz
 
 		with open(project_path + "clusteredStats" + path_suffix + ".pickle", "wb") as f:
 			pickle.dump(len_mnvs, f)
+		# for classes in len_mnvs:
+		# 	# print(classes)
+		# 	for leng in len_mnvs[classes]:
+		# 		print("\t",leng, len_mnvs[classes][leng][0], median(len_mnvs[classes][leng][1]))
 
 
 	try:

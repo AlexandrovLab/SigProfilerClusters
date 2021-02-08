@@ -22,6 +22,8 @@ import time
 from . import plottingFunctions
 import pickle
 import bisect
+from scipy.signal import find_peaks
+import random
 
 warnings.filterwarnings("ignore", message="invalid value encountered in long_scalars")
 warnings.filterwarnings("ignore", message="Data has no positive values, and therefore cannot be log-scaled.")
@@ -389,15 +391,44 @@ def first_run (distances, distances_orig_all, distances_orig, vcf_path_clust, vc
 				interval_percent = previous_interval*100
 			break
 		previous_interval = orig_mutations/total_mutations		
-
+	interval_line = abs(interval_line)
 	distance_cut = bincenters2[interval_line]
 	sigValue = 0.01
 	distance_cut, q_val, avgSim, stdevSim, upper_CI_refined, lower_CI_refined = refineIMD (distances, distances_orig, y2, avg_bin_counts, interval_line, bincenters2[interval_line], bincenters2[interval_line+1], CI, lower_CI, upper_CI, sigValue)
-	distance_cut = 1000
+	# for x in distances_orig_all:
+	# 	# print(int(x[0]))
+	# 	# print(chromLengths[genome][x[2]])
+	# 	# print(bisect.bisect_left(regions, (int(x[3]) + chromLengths[genome][x[2]])))
+	# 	# print(regions[bisect.bisect_left(regions, (int(x[3]) + chromLengths[genome][x[2]]))])
+	# 	if not correctionData and len(imds_corrected) > 0:
+	# 		print(imds_corrected[x[1]])
+	# 		print(len(imds_corrected[x[1]]))
+	# 		print(chromLengths[genome][x[2]])
+	# 		print([bisect.bisect_left(regions, int(x[3]) + chromLengths[genome][x[2]])])
+	# 		print(regions, len(regions), int(x[3]) + chromLengths[genome][x[2]])
+	# 		print([regions[bisect.bisect_left(regions, int(x[3]) + chromLengths[genome][x[2]])]])
+	# 		print(imds_corrected[x[1]][regions[bisect.bisect_left(regions, int(x[3]) + chromLengths[genome][x[2]])]])
+	# 		print()
+
+		# [x[1:] + [x[0]] for x in distances_orig_all if int(x[0]) <= distance_cut or (regions[bisect.bisect_left(regions, (int(x[3]) + chromLengths[genome][x[2]]))] - (int(x[3]) + chromLengths[genome][x[2]]) < windowSize and int(x[0]) < imds_corrected[x[1]][regions[bisect.bisect_left(regions, int(x[3]) + chromLengths[genome][x[2]])]])]
+	# distance_cut = 1000
 	if not correctionData:
 		if correction:
-			clustered_muts = [x[1:] + [x[0]] for x in distances_orig_all if int(x[0]) <= distance_cut or (regions[bisect.bisect_left(regions, (int(x[3]) + chromLengths[genome][x[2]]))] - (int(x[3]) + chromLengths[genome][x[2]]) < windowSize and int(x[0]) < imds_corrected[x[1]][regions[bisect.bisect_left(regions, int(x[3]) + chromLengths[genome][x[2]])]])]
+			# if len(imds_corrected) > 0:
+			# clustered_muts = [x[1:] + [x[0]] for x in distances_orig_all if int(x[0]) <= distance_cut or (regions[bisect.bisect_left(regions, (int(x[3]) + chromLengths[genome][x[2]]))] - (int(x[3]) + chromLengths[genome][x[2]]) < windowSize and int(x[0]) < imds_corrected[x[1]][regions[bisect.bisect_left(regions, int(x[3]) + chromLengths[genome][x[2]])]])]
+			# nonClustered_muts = [x[1:] + [x[0]] for x in distances_orig_all if x[1:] + [x[0]] not in clustered_muts]
+			# else:
+			# 	clustered_muts = [x[1:] + [x[0]] for x in distances_orig_all if int(x[0]) <= distance_cut ]
+			# 	nonClustered_muts = [x[1:] + [x[0]] for x in distances_orig_all if x[1:] + [x[0]] not in clustered_muts]				
+			
+			# if len(imds_corrected) > 0:
+			clustered_muts = [x[1:] + [x[0]] for x in distances_orig_all if int(x[0]) <= distance_cut or (regions[catch(x, regions, chromLengths, genome, imds_corrected[x[1]])] - (int(x[3]) + chromLengths[genome][x[2]]) < windowSize and int(x[0]) < imds_corrected[x[1]][regions[catch(x, regions, chromLengths, genome, imds_corrected[x[1]])]])]
 			nonClustered_muts = [x[1:] + [x[0]] for x in distances_orig_all if x[1:] + [x[0]] not in clustered_muts]
+			# else:
+			# 	clustered_muts = [x[1:] + [x[0]] for x in distances_orig_all if int(x[0]) <= distance_cut ]
+			# 	nonClustered_muts = [x[1:] + [x[0]] for x in distances_orig_all if x[1:] + [x[0]] not in clustered_muts]	
+
+
 		else:
 			clustered_muts = [x[1:] + [x[0]] for x in distances_orig_all if int(x[0]) <= distance_cut]
 			nonClustered_muts = [x[1:] + [x[0]] for x in distances_orig_all if x[1:] + [x[0]] not in clustered_muts]
@@ -414,12 +445,13 @@ def first_run (distances, distances_orig_all, distances_orig, vcf_path_clust, vc
 				pos = muts[2]
 				ref = muts[3]
 				alt = muts[4]
+				plotIMD = muts[5]
 				imd_recorded = muts[-1]
 				if clustering_vaf:
 					vaf = muts[5]
-					print("\t".join([project,sample,".",genome,"SNP",chrom,pos,pos,ref,alt,"SOMATIC",vaf, imd_recorded]),file=clust)
+					print("\t".join([project,sample,".",genome,"SNP",chrom,pos,pos,ref,alt,"SOMATIC",vaf, plotIMD, imd_recorded]),file=clust)
 				else:
-					print("\t".join([project,sample,".",genome,"SNP",chrom,pos,pos,ref,alt,"SOMATIC", imd_recorded]),file=clust)
+					print("\t".join([project,sample,".",genome,"SNP",chrom,pos,pos,ref,alt,"SOMATIC", plotIMD, imd_recorded]),file=clust)
 
 		with open(vcf_path_nonClust + project + "_nonClustered.txt", 'a') as nonclust:
 			for muts in nonClustered_muts:
@@ -428,13 +460,26 @@ def first_run (distances, distances_orig_all, distances_orig, vcf_path_clust, vc
 				pos = muts[2]
 				ref = muts[3]
 				alt = muts[4]
+				plotIMD = muts[5]
+				if pos == "137122302":
+					print(chrom, pos, distance_cut)
 				imd_recorded = muts[-1]
-				print("\t".join([project,sample,".",genome,"SNP",chrom,pos,pos,ref,alt,"SOMATIC", imd_recorded]),file=nonclust)
+				print("\t".join([project,sample,".",genome,"SNP",chrom,pos,pos,ref,alt,"SOMATIC", plotIMD, imd_recorded]),file=nonclust)
 	
 	return(y2, bincenters2, q_val, interval_line, len(clustered_muts), avgSim, stdevSim, distance_cut,  lower_CI, upper_CI, lower_CI_refined, upper_CI_refined, avg_bin_counts)
 
 
-def densityCorrection (densityMuts, densityMutsSim, binsDensity):
+def catch (x, regions, chromLengths, genome, imds_corrected=None):
+	bisectPos = bisect.bisect_left(regions, int(x[3]) + chromLengths[genome][x[2]])
+	if bisectPos == len(regions):
+		bisectPos -= 1
+	if bisectPos > len(imds_corrected):
+		bisectPos = len(imds_corrected)-1
+	return(bisectPos)
+
+
+
+def densityCorrectionOriginal (densityMuts, densityMutsSim, binsDensity):
 	'''
 	Searched the genome for regions with a higher mutation density than expected by chance (1.25 times greater)
 
@@ -467,6 +512,50 @@ def densityCorrection (densityMuts, densityMutsSim, binsDensity):
 	correctionFolds.append(6000000000)
 	return(correctionFolds)
 
+
+def moving_density(muts, wS, wE):
+
+	return len(list(y for y in muts if wS <= y < wE)) 
+
+
+def densityCorrection (densityMuts, densityMutsSim, windowSize):
+	'''
+	Searched the genome for regions with a higher mutation density than expected by chance (1.25 times greater)
+
+	Parameters:
+		   densityMuts	->	distances with cumulative genomic position added (list; print(densityMuts[0]) for an example)
+		densityMutsSim	->	distances with cumulative genomic position added across each simulation (list; nested list of lists)
+		   binsDensity	->	bins that are generated using a given window size (list)
+
+	Returns:
+	   correctionFolds	->	the cumulative genomic position of regions that have a higher mutation density than what is expected by chance (list)
+	'''
+	threshold = 1.25
+	maxDistance = max(max(densityMuts), max([int(densityMutsSim[x][-1]) for x in densityMutsSim])) + windowSize
+	simDensities = []
+	for x in densityMutsSim:
+		currentWindow = 0
+		densities = []
+		while currentWindow < maxDistance:
+			densities.append(moving_density(densityMutsSim[x], currentWindow, currentWindow + windowSize))
+			currentWindow += windowSize
+		simDensities.append(densities)
+
+	finalSimDensities = np.mean(simDensities, axis=0)
+
+
+	densities = []
+	currentWindow = 0
+
+	while currentWindow < maxDistance:
+		densities.append(moving_density(densityMuts, currentWindow, currentWindow + windowSize))
+		currentWindow += windowSize
+
+	foldChanges = densities/finalSimDensities
+
+	peaks, heights = find_peaks([0] + foldChanges+[0],threshold)
+	regions = [windowSize*(x-1) for x in peaks]
+	return(regions)
 
 
 
@@ -651,6 +740,8 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, windowSize,
 			if original:
 				# try:
 				if True:
+					if not os.path.exists(directory_orig + sample + "_" + contexts + exomeSuffix + "_intradistance.txt"):
+						continue
 					with open (directory_orig + sample + "_" + contexts + exomeSuffix + "_intradistance.txt") as f2:
 						for lines in f2:
 							line = lines.strip().split()
@@ -709,7 +800,8 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, windowSize,
 					overall_distances_all.append(distances)
 
 			if correction:
-				regions = densityCorrection(densityMuts, densityMutsSim, binsDensity)
+				# regions = densityCorrection(densityMuts, densityMutsSim, binsDensity)
+				regions = densityCorrection(densityMuts, densityMutsSim, windowSize)
 				regionsSamps[folder] = regions
 				#try:
 				if True:
@@ -774,6 +866,8 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, windowSize,
 						upper_CIs_refined_corrected[sample] = {}
 						lower_CIs_refined_corrected[sample] = {}
 					try:
+						if len(densityCorrectDistancesSims[region]) == 0 or len(densityCorrectDistances_samps[region]) == 0 or len(densityCorrectDistances[region]) == 0:
+							continue
 						y2s_corrected[sample][region], bincenters2s_corrected[sample][region], q_values_corrected[sample][region], interval_lines_corrected[sample][region], orig_mutations_samps_corrected[sample][region], avg_simCounts_corrected[sample][region],  std_simCounts_corrected[sample][region], imds_corrected[sample][region], lower_CIs_corrected[sample][region], upper_CIs_corrected[sample][region], lower_CIs_refined_corrected[sample][region], upper_CIs_refined_corrected[sample][region], avg_bin_counts_samp_corrected[sample][region] = first_run(densityCorrectDistancesSims[region], densityCorrectDistances_samps[region], densityCorrectDistances[region], vcf_path_clust, vcf_path_nonClust, sample, original, sim_count, project, genome, clustering_vaf, correctionData, chromLengths)
 					except:
 						continue
@@ -796,6 +890,8 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, windowSize,
 				for chrom in chromosomes:
 					y2s[sample][chrom], bincenters2s[sample][chrom], q_values[sample][chrom], interval_lines[sample][chrom], orig_mutations_samps[sample][chrom], avg_simCounts[sample][chrom], std_simCounts[sample][chrom], imds[sample][chrom], lower_CIs[sample][chrom], upper_CIs[sample][chrom], lower_CIs_refined[sample][chrom], upper_CIs_refined[sample][chrom], avg_bin_counts_samp[sample][chrom] = first_run(overall_distances_all[chrom], distances_orig_all_samps[chrom], distances_orig_all[chrom], vcf_path_clust, vcf_path_nonClust, sample, original, sim_count, project, genome, clustering_vaf, correctionData, correction, regions, imds_corrected, windowSize, chromLengths)
 			else:
+				if len(overall_distances_all) == 0 or len(distances_orig_all_samps) == 0 or len(distances_orig_all) == 0:
+					continue
 				y2s[sample], bincenters2s[sample], q_values[sample], interval_lines[sample], orig_mutations_samps[sample], avg_simCounts[sample], std_simCounts[sample], imds[sample], lower_CIs[sample], upper_CIs[sample], lower_CIs_refined[sample], upper_CIs_refined[sample], avg_bin_counts_samp[sample] = first_run(overall_distances_all, distances_orig_all_samps, distances_orig_all, vcf_path_clust, vcf_path_nonClust, sample, original, sim_count, project, genome, clustering_vaf, correctionData, correction, regions, imds_corrected, windowSize, chromLengths)
 
 		print("Completed!", flush=True)
@@ -912,42 +1008,42 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, windowSize,
 
 	if exome:
 		simContext += "_exome"
-	pp = PdfPages(directory_out + project + '_intradistance_plots_' + simContext + path_suffix + '.pdf')
+	# pp = PdfPages(directory_out + project + '_intradistance_plots_' + simContext + path_suffix + '.pdf')
 
-	histo = True
+	# histo = True
 
-	print("Plotting SigProfilerHotSpot Results...", end='', flush=True)
+	# print("Plotting SigProfilerHotSpot Results...", end='', flush=True)
 
-	for folder in folders:
-		if folder == '.DS_Store_intradistance.txt' or folder == '.DS_Store':
-			continue
-		if folder not in samples:
-			histo = False
-		sample = folder
-		files = os.listdir(directory + sample + "/")
-		if not chrom_based:
-			fig = plt.figure(figsize = (width, height))
-			panel1=plt.axes([0.075, 0.225 + scaled_height*2, scaled_width, scaled_height])
-			panel2=plt.axes([0.125 + scaled_width, 0.225 + scaled_height*2, 0.3, scaled_height])
-			panel3=plt.axes([0.075, 0.15 + scaled_height, scaled_width, scaled_height])
-			panel4=plt.axes([0.125 + scaled_width, 0.15 + scaled_height, 0.3, scaled_height])
-			panel5=plt.axes([0.075, 0.075, scaled_width, scaled_height])
-			panel6=plt.axes([0.125 + scaled_width, 0.075, 0.3, scaled_height])
+	# for folder in folders:
+	# 	if folder == '.DS_Store_intradistance.txt' or folder == '.DS_Store':
+	# 		continue
+	# 	if folder not in samples:
+	# 		histo = False
+	# 	sample = folder
+	# 	files = os.listdir(directory + sample + "/")
+	# 	if not chrom_based:
+	# 		fig = plt.figure(figsize = (width, height))
+	# 		panel1=plt.axes([0.075, 0.225 + scaled_height*2, scaled_width, scaled_height])
+	# 		panel2=plt.axes([0.125 + scaled_width, 0.225 + scaled_height*2, 0.3, scaled_height])
+	# 		panel3=plt.axes([0.075, 0.15 + scaled_height, scaled_width, scaled_height])
+	# 		panel4=plt.axes([0.125 + scaled_width, 0.15 + scaled_height, 0.3, scaled_height])
+	# 		panel5=plt.axes([0.075, 0.075, scaled_width, scaled_height])
+	# 		panel6=plt.axes([0.125 + scaled_width, 0.075, 0.3, scaled_height])
 
-			if histo:
-				if not chrom_based:
-					clustered = plot_hist(y2s[sample], bincenters2s[sample], q_values[sample], interval_lines[sample], orig_mutations_samps[sample], avg_simCounts[sample], std_simCounts[sample], imds[sample], lower_CIs[sample], upper_CIs[sample], lower_CIs_refined[sample], upper_CIs_refined[sample], avg_bin_counts_samp[sample], sample, original, panel2, panel3, panel4, panel5, panel6)
-					if clustered:
-						if file_context == '96':
-							plottingFunctions.plot96_same (matrix_path, matrix_path_clustered, matrix_path_nonClustered, sample, percentage, signature, panel1, panel3, panel5, fig)
-						else:
-							plottingFunctions.plotINDEL_same (matrix_path, matrix_path_clustered, matrix_path_nonClustered, sample, percentage, signature, panel1, panel3, panel5, fig)
-						pp.savefig()
-					plt.close()
-			histo = True
+	# 		if histo:
+	# 			if not chrom_based:
+	# 				clustered = plot_hist(y2s[sample], bincenters2s[sample], q_values[sample], interval_lines[sample], orig_mutations_samps[sample], avg_simCounts[sample], std_simCounts[sample], imds[sample], lower_CIs[sample], upper_CIs[sample], lower_CIs_refined[sample], upper_CIs_refined[sample], avg_bin_counts_samp[sample], sample, original, panel2, panel3, panel4, panel5, panel6)
+	# 				if clustered:
+	# 					if file_context == '96':
+	# 						plottingFunctions.plot96_same (matrix_path, matrix_path_clustered, matrix_path_nonClustered, sample, percentage, signature, panel1, panel3, panel5, fig)
+	# 					else:
+	# 						plottingFunctions.plotINDEL_same (matrix_path, matrix_path_clustered, matrix_path_nonClustered, sample, percentage, signature, panel1, panel3, panel5, fig)
+	# 					pp.savefig()
+	# 				plt.close()
+	# 		histo = True
 
-	plt.close()
-	pp.close()
+	# plt.close()
+	# pp.close()
 	print("Completed!\n", flush=True)
 	return(regionsSamps, imds_corrected)
 
