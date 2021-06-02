@@ -33,7 +33,7 @@ def z_test (x, mu, sigma):
 	Performs a z-test for statistical comparisons of simulated and original data.
 
 	Parameters:
-		    x	->	observed number in original sample (mutation count; int)
+			x	->	observed number in original sample (mutation count; int)
 		   mu	->	average number observed in simulations (average mutation count; float)
 		sigma	->	standard deviation in simulations (float)
 
@@ -53,8 +53,8 @@ def plot_clustered (orig_bins, sim_bins, bincenters2, panel4, lower_CI, upper_CI
 	Parameters:
 		  orig_bins	->	histogram heights for clustered mutations in original sample (numpy array)
 		   sim_bins	->	histogram heights for clustered mutations in simulated sample (numpy array)
-	  	bincenters2	->	center bounds of each histogram bin  (numpy array)
-		     panel4	->	axis location for the given clustered plot (matplotlib panel/axes object)
+		bincenters2	->	center bounds of each histogram bin  (numpy array)
+			 panel4	->	axis location for the given clustered plot (matplotlib panel/axes object)
 		   lower_CI	->	lower 95% confidence interval values for each bin (list)
 		   upper_CI	->	upper 95% confidence interval values for each bin (list)
 
@@ -79,8 +79,8 @@ def plot_non_clustered (orig_bins, sim_bins, bincenters2, panel6, lower_CI, uppe
 	Parameters:
 		  orig_bins	->	histogram heights for nonclustered mutations in original sample (numpy array)
 		   sim_bins	->	histogram heights for nonclustered mutations in simulated sample (numpy array)
-	  	bincenters2	->	center bounds of each histogram bin  (numpy array)
-		     panel6	->	axis location for the given nonclustered plot (matplotlib panel/axes object)
+		bincenters2	->	center bounds of each histogram bin  (numpy array)
+			 panel6	->	axis location for the given nonclustered plot (matplotlib panel/axes object)
 		   lower_CI	->	lower 95% confidence interval values for each bin (list)
 		   upper_CI	->	upper 95% confidence interval values for each bin (list)
 
@@ -105,25 +105,25 @@ def plot_hist (y2, bincenters2, q_vals, interval_line, orig_mutations, avgSimCou
 
 	Parameters:
 						y2	->	histogram heights for all mutations in original sample (numpy array)
-	  		   bincenters2	->	center bounds of each histogram bin; uses a 2^n binning  (numpy array)
-	  				q_vals	->	corrected p_value of signifance using FDR correction for a given sample at the given IMD cutoff (float)
-	  		 interval_line	->	the index for the IMD value used for the clustering cutoff; must be a valid index 0<interval_line<len(bincenters2) (integer)
-	  		orig_mutations	->	the number of clustered mutations observed in the original sample using the refinded IMD (int) 
-	  		  avgSimCounts	->	the average number of clustered mutations observed in the simulated sample using the refinded IMD (float) 
-	  		  stdSimCounts	->	the standard deviation of clustered mutations observed in the simulated sample using the refinded IMD (int)
-	  				   imd	->	the refined IMD (int)
-	  			  lower_CI	->	lower 95% confidence interval values for each bin (list)
-	  			  upper_CI	->	upper 95% confidence interval values for each bin (list)
-	  	  lower_CI_refined	->	lower 95% confidence interval value (int)
-	  	  upper_CI_refined	->	upper 95% confidence interval value (int)
-	  		avg_bin_counts	-> 	histogram heights for all mutations in simulated sample (numpy array)
-	  				sample	->	the current sample that is being plotted
-	  			  original	->  option to plot original sample or not (boolean; default=True)
-				  	panel2	->	axis location for the given histogram plot of all IMDs (matplotlib panel/axes object)
-				  	panel3	->	axis location for the given clustered SBS96 plot (matplotlib panel/axes object)
-				  	panel4	->	axis location for the given clustered histogram plot (matplotlib panel/axes object)
-				  	panel5	->	axis location for the given nonclustered SBS96 plot (matplotlib panel/axes object)
-				  	panel6	->	axis location for the given nonclustered histogram plot (matplotlib panel/axes object)
+			   bincenters2	->	center bounds of each histogram bin; uses a 2^n binning  (numpy array)
+					q_vals	->	corrected p_value of signifance using FDR correction for a given sample at the given IMD cutoff (float)
+			 interval_line	->	the index for the IMD value used for the clustering cutoff; must be a valid index 0<interval_line<len(bincenters2) (integer)
+			orig_mutations	->	the number of clustered mutations observed in the original sample using the refinded IMD (int) 
+			  avgSimCounts	->	the average number of clustered mutations observed in the simulated sample using the refinded IMD (float) 
+			  stdSimCounts	->	the standard deviation of clustered mutations observed in the simulated sample using the refinded IMD (int)
+					   imd	->	the refined IMD (int)
+				  lower_CI	->	lower 95% confidence interval values for each bin (list)
+				  upper_CI	->	upper 95% confidence interval values for each bin (list)
+		  lower_CI_refined	->	lower 95% confidence interval value (int)
+		  upper_CI_refined	->	upper 95% confidence interval value (int)
+			avg_bin_counts	-> 	histogram heights for all mutations in simulated sample (numpy array)
+					sample	->	the current sample that is being plotted
+				  original	->  option to plot original sample or not (boolean; default=True)
+					panel2	->	axis location for the given histogram plot of all IMDs (matplotlib panel/axes object)
+					panel3	->	axis location for the given clustered SBS96 plot (matplotlib panel/axes object)
+					panel4	->	axis location for the given clustered histogram plot (matplotlib panel/axes object)
+					panel5	->	axis location for the given nonclustered SBS96 plot (matplotlib panel/axes object)
+					panel6	->	axis location for the given nonclustered histogram plot (matplotlib panel/axes object)
 
 	Returns:
 		True	->	boolean to mark the plotting completion
@@ -258,10 +258,10 @@ def first_run (distances, distances_orig_all, distances_orig, vcf_path_clust, vc
 					avgSim	->	the number of clustered mutations filtered out of the simulations for a given sample (float)
 				  stdevSim	->	the standard deviation of mutations filtered out of the simulations for a given sample (float)
 			  distance_cut	->	the refined IMD cutoff (int)
-	  			  lower_CI	->	lower 95% confidence interval values for each bin (list)
-	  			  upper_CI	->	upper 95% confidence interval values for each bin (list)
-	  	  lower_CI_refined	->	lower 95% confidence interval value (int)
-	  	  upper_CI_refined	->	upper 95% confidence interval value (int)
+				  lower_CI	->	lower 95% confidence interval values for each bin (list)
+				  upper_CI	->	upper 95% confidence interval values for each bin (list)
+		  lower_CI_refined	->	lower 95% confidence interval value (int)
+		  upper_CI_refined	->	upper 95% confidence interval value (int)
 			avg_bin_counts	->  the bin counts for the average number of mutations in each bin across the simulations
 
 	Outputs:
@@ -395,6 +395,8 @@ def first_run (distances, distances_orig_all, distances_orig, vcf_path_clust, vc
 	distance_cut = bincenters2[interval_line]
 	sigValue = 0.01
 	distance_cut, q_val, avgSim, stdevSim, upper_CI_refined, lower_CI_refined = refineIMD (distances, distances_orig, y2, avg_bin_counts, interval_line, bincenters2[interval_line], bincenters2[interval_line+1], CI, lower_CI, upper_CI, sigValue)
+	if distance_cut > 10000:
+		distance_cut = 10000
 	# for x in distances_orig_all:
 	# 	# print(int(x[0]))
 	# 	# print(chromLengths[genome][x[2]])
@@ -422,11 +424,13 @@ def first_run (distances, distances_orig_all, distances_orig, vcf_path_clust, vc
 			# 	nonClustered_muts = [x[1:] + [x[0]] for x in distances_orig_all if x[1:] + [x[0]] not in clustered_muts]				
 			
 			# if len(imds_corrected) > 0:
-			clustered_muts = [x[1:] + [x[0]] for x in distances_orig_all if int(x[0]) <= distance_cut or (regions[catch(x, regions, chromLengths, genome, imds_corrected[x[1]])] - (int(x[3]) + chromLengths[genome][x[2]]) < windowSize and int(x[0]) < imds_corrected[x[1]][regions[catch(x, regions, chromLengths, genome, imds_corrected[x[1]])]])]
-			nonClustered_muts = [x[1:] + [x[0]] for x in distances_orig_all if x[1:] + [x[0]] not in clustered_muts]
-			# else:
-			# 	clustered_muts = [x[1:] + [x[0]] for x in distances_orig_all if int(x[0]) <= distance_cut ]
-			# 	nonClustered_muts = [x[1:] + [x[0]] for x in distances_orig_all if x[1:] + [x[0]] not in clustered_muts]	
+			if len(regions) > 0:
+				clustered_muts = [x[1:] + [x[0]] for x in distances_orig_all if int(x[0]) <= distance_cut or (regions[catch(x, regions, chromLengths, genome)] - (int(x[3]) + chromLengths[genome][x[2]]) < windowSize and cutoffCatch(x, imds_corrected, regions, catch(x, regions, chromLengths, genome), distance_cut, chromLengths[genome], windowSize))]# int(x[0]) < imds_corrected[x[1]][regions[catch(x, regions, chromLengths, genome, imds_corrected[x[1]])]]))]
+				# clustered_muts = [x[1:] + [x[0]] for x in distances_orig_all if int(x[0]) <= distance_cut or (regions[catch(x, regions, chromLengths, genome, imds_corrected[x[1]])] - (int(x[3]) + chromLengths[genome][x[2]]) < windowSize and cutoffCatch(int(x[0]) < imds_corrected[x[1]][regions[catch(x, regions, chromLengths, genome, imds_corrected[x[1]])]]))]
+				nonClustered_muts = [x[1:] + [x[0]] for x in distances_orig_all if x[1:] + [x[0]] not in clustered_muts]
+			else:
+				clustered_muts = [x[1:] + [x[0]] for x in distances_orig_all if int(x[0]) <= distance_cut ]
+				nonClustered_muts = [x[1:] + [x[0]] for x in distances_orig_all if x[1:] + [x[0]] not in clustered_muts]	
 
 
 		else:
@@ -471,12 +475,23 @@ def first_run (distances, distances_orig_all, distances_orig, vcf_path_clust, vc
 
 def catch (x, regions, chromLengths, genome, imds_corrected=None):
 	bisectPos = bisect.bisect_left(regions, int(x[3]) + chromLengths[genome][x[2]])
-	if bisectPos == len(regions):
+	if bisectPos >= len(regions):
 		bisectPos -= 1
-	if bisectPos > len(imds_corrected):
-		bisectPos = len(imds_corrected)-1
+	# if bisectPos >= len(imds_corrected):
+	# 	bisectPos = len(imds_corrected)-1
 	return(bisectPos)
 
+def cutoffCatch (x, imds_corrected, regions, bisectPos, distance_cut, chroms, windowSize):
+	if x[1] not in imds_corrected:
+		return (int(x[0]) < distance_cut)
+	else:
+		if regions[bisectPos] not in imds_corrected[x[1]]:
+			return (int(x[0]) < distance_cut)
+		else:
+			if int(x[3]) + chroms[x[2]] < windowSize:
+				return (int(x[0]) < imds_corrected[x[1]][regions[bisectPos]])
+			else:
+				return(False)
 
 
 def densityCorrectionOriginal (densityMuts, densityMutsSim, binsDensity):
@@ -530,31 +545,40 @@ def densityCorrection (densityMuts, densityMutsSim, windowSize):
 	Returns:
 	   correctionFolds	->	the cumulative genomic position of regions that have a higher mutation density than what is expected by chance (list)
 	'''
-	threshold = 1.25
-	maxDistance = max(max(densityMuts), max([int(densityMutsSim[x][-1]) for x in densityMutsSim])) + windowSize
+	threshold = 9.0
+	try:
+			maxDistance = max(max(densityMuts), max([int(densityMutsSim[x][-1]) for x in densityMutsSim])) + windowSize
+	except:
+		if len(densityMuts) ==0:
+				maxDistance = max([int(densityMutsSim[x][-1]) for x in densityMutsSim]) + windowSize
+		else:
+			maxDistance = max(densityMuts) + windowSize
+	# maxDistance = max(max(densityMuts), max([int(densityMutsSim[x][-1]) for x in densityMutsSim])) + windowSize
 	simDensities = []
+	slideSize = windowSize
+	# slideSize = 50000
 	for x in densityMutsSim:
 		currentWindow = 0
 		densities = []
 		while currentWindow < maxDistance:
-			densities.append(moving_density(densityMutsSim[x], currentWindow, currentWindow + windowSize))
-			currentWindow += windowSize
+			densities.append(moving_density(densityMutsSim[x], currentWindow, currentWindow + slideSize))
+			currentWindow += slideSize
 		simDensities.append(densities)
 
 	finalSimDensities = np.mean(simDensities, axis=0)
+	finalSimDensities[finalSimDensities==0] = 1
 
 
 	densities = []
 	currentWindow = 0
 
 	while currentWindow < maxDistance:
-		densities.append(moving_density(densityMuts, currentWindow, currentWindow + windowSize))
-		currentWindow += windowSize
+		densities.append(moving_density(densityMuts, currentWindow, currentWindow + slideSize))
+		currentWindow += slideSize
 
 	foldChanges = densities/finalSimDensities
-
 	peaks, heights = find_peaks([0] + foldChanges+[0],threshold)
-	regions = [windowSize*(x-1) for x in peaks]
+	regions = [slideSize*(x-1) for x in peaks]
 	return(regions)
 
 
@@ -583,7 +607,7 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, windowSize,
 
 
 	Returns:
-	   	regionsSamps	->	a dictionary that contains all of the regions used for calculating corrected IMDs. If correction=False, then it returns an empty datastructure
+		regionsSamps	->	a dictionary that contains all of the regions used for calculating corrected IMDs. If correction=False, then it returns an empty datastructure
 	  imds_corrected	->	a dictionary of all of the corrected IMDs. If correction=False, then it returns an empty datastructure
 	'''
 	path_suffix=''
@@ -868,6 +892,7 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, windowSize,
 					try:
 						if len(densityCorrectDistancesSims[region]) == 0 or len(densityCorrectDistances_samps[region]) == 0 or len(densityCorrectDistances[region]) == 0:
 							continue
+
 						y2s_corrected[sample][region], bincenters2s_corrected[sample][region], q_values_corrected[sample][region], interval_lines_corrected[sample][region], orig_mutations_samps_corrected[sample][region], avg_simCounts_corrected[sample][region],  std_simCounts_corrected[sample][region], imds_corrected[sample][region], lower_CIs_corrected[sample][region], upper_CIs_corrected[sample][region], lower_CIs_refined_corrected[sample][region], upper_CIs_refined_corrected[sample][region], avg_bin_counts_samp_corrected[sample][region] = first_run(densityCorrectDistancesSims[region], densityCorrectDistances_samps[region], densityCorrectDistances[region], vcf_path_clust, vcf_path_nonClust, sample, original, sim_count, project, genome, clustering_vaf, correctionData, chromLengths)
 					except:
 						continue
@@ -1008,42 +1033,42 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, windowSize,
 
 	if exome:
 		simContext += "_exome"
-	# pp = PdfPages(directory_out + project + '_intradistance_plots_' + simContext + path_suffix + '.pdf')
+	pp = PdfPages(directory_out + project + '_intradistance_plots_' + simContext + path_suffix + '.pdf')
 
-	# histo = True
+	histo = True
 
-	# print("Plotting SigProfilerHotSpot Results...", end='', flush=True)
+	print("Plotting SigProfilerHotSpot Results...", end='', flush=True)
 
-	# for folder in folders:
-	# 	if folder == '.DS_Store_intradistance.txt' or folder == '.DS_Store':
-	# 		continue
-	# 	if folder not in samples:
-	# 		histo = False
-	# 	sample = folder
-	# 	files = os.listdir(directory + sample + "/")
-	# 	if not chrom_based:
-	# 		fig = plt.figure(figsize = (width, height))
-	# 		panel1=plt.axes([0.075, 0.225 + scaled_height*2, scaled_width, scaled_height])
-	# 		panel2=plt.axes([0.125 + scaled_width, 0.225 + scaled_height*2, 0.3, scaled_height])
-	# 		panel3=plt.axes([0.075, 0.15 + scaled_height, scaled_width, scaled_height])
-	# 		panel4=plt.axes([0.125 + scaled_width, 0.15 + scaled_height, 0.3, scaled_height])
-	# 		panel5=plt.axes([0.075, 0.075, scaled_width, scaled_height])
-	# 		panel6=plt.axes([0.125 + scaled_width, 0.075, 0.3, scaled_height])
+	for folder in folders:
+		if folder == '.DS_Store_intradistance.txt' or folder == '.DS_Store':
+			continue
+		if folder not in samples:
+			histo = False
+		sample = folder
+		files = os.listdir(directory + sample + "/")
+		if not chrom_based:
+			fig = plt.figure(figsize = (width, height))
+			panel1=plt.axes([0.075, 0.225 + scaled_height*2, scaled_width, scaled_height])
+			panel2=plt.axes([0.125 + scaled_width, 0.225 + scaled_height*2, 0.3, scaled_height])
+			panel3=plt.axes([0.075, 0.15 + scaled_height, scaled_width, scaled_height])
+			panel4=plt.axes([0.125 + scaled_width, 0.15 + scaled_height, 0.3, scaled_height])
+			panel5=plt.axes([0.075, 0.075, scaled_width, scaled_height])
+			panel6=plt.axes([0.125 + scaled_width, 0.075, 0.3, scaled_height])
 
-	# 		if histo:
-	# 			if not chrom_based:
-	# 				clustered = plot_hist(y2s[sample], bincenters2s[sample], q_values[sample], interval_lines[sample], orig_mutations_samps[sample], avg_simCounts[sample], std_simCounts[sample], imds[sample], lower_CIs[sample], upper_CIs[sample], lower_CIs_refined[sample], upper_CIs_refined[sample], avg_bin_counts_samp[sample], sample, original, panel2, panel3, panel4, panel5, panel6)
-	# 				if clustered:
-	# 					if file_context == '96':
-	# 						plottingFunctions.plot96_same (matrix_path, matrix_path_clustered, matrix_path_nonClustered, sample, percentage, signature, panel1, panel3, panel5, fig)
-	# 					else:
-	# 						plottingFunctions.plotINDEL_same (matrix_path, matrix_path_clustered, matrix_path_nonClustered, sample, percentage, signature, panel1, panel3, panel5, fig)
-	# 					pp.savefig()
-	# 				plt.close()
-	# 		histo = True
+			if histo:
+				if not chrom_based:
+					clustered = plot_hist(y2s[sample], bincenters2s[sample], q_values[sample], interval_lines[sample], orig_mutations_samps[sample], avg_simCounts[sample], std_simCounts[sample], imds[sample], lower_CIs[sample], upper_CIs[sample], lower_CIs_refined[sample], upper_CIs_refined[sample], avg_bin_counts_samp[sample], sample, original, panel2, panel3, panel4, panel5, panel6)
+					if clustered:
+						if file_context == '96':
+							plottingFunctions.plot96_same (matrix_path, matrix_path_clustered, matrix_path_nonClustered, sample, percentage, signature, panel1, panel3, panel5, fig)
+						else:
+							plottingFunctions.plotINDEL_same (matrix_path, matrix_path_clustered, matrix_path_nonClustered, sample, percentage, signature, panel1, panel3, panel5, fig)
+						pp.savefig()
+					plt.close()
+			histo = True
 
-	# plt.close()
-	# pp.close()
+	plt.close()
+	pp.close()
 	print("Completed!\n", flush=True)
 	return(regionsSamps, imds_corrected)
 

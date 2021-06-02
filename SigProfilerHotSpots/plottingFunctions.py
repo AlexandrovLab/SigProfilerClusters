@@ -997,7 +997,7 @@ def rainfall (chrom_based_IMD, project, project_path, chrom_path, chromLengths, 
 	'''
 	aggregated = False
 	chrom_based = False
-
+	windowSize = 10000000
 	path_suffix = ''
 	if chrom_based_IMD:
 		path_suffix = '_chrom'
@@ -1169,9 +1169,9 @@ def rainfall (chrom_based_IMD, project, project_path, chrom_path, chromLengths, 
 		count = 1
 		for sample in sorted(samplesSet, key=natural_sortkey):
 			chrom_startsAll = {}
-			if correction:
-				# regions = list(imdsDataSample_corrected[sample.split("_")[0]].keys())
-				regions = list(imdsDataSample_corrected[sample.split(".")[0]].keys())
+			# if correction:
+			# 	# regions = list(imdsDataSample_corrected[sample.split("_")[0]].keys())
+			# 	regions = list(imdsDataSample_corrected[sample.split(".")[0]].keys())
 			zorderPlot=0
 			# falsePositives[sample.split("_")[0]] = []
 			# falsePositives_1000[sample.split("_")[0]] = []
@@ -1236,7 +1236,6 @@ def rainfall (chrom_based_IMD, project, project_path, chrom_path, chromLengths, 
 							starts = pos.loc[(sample, chrom), 'start']
 							IMDsPlotRecorded = pos.loc[(sample, chrom), 'IMDplot']
 							imds_recorded = pos.loc[(sample, chrom), 'IMD']
-							
 							if type(starts) == np.int64:
 								starts = [starts]
 								imds_recorded = [imds_recorded]
@@ -1245,67 +1244,74 @@ def rainfall (chrom_based_IMD, project, project_path, chrom_path, chromLengths, 
 								starts = list(starts)
 								imds_recorded = list(imds_recorded)	
 								IMDsPlotRecorded = list(IMDsPlotRecorded)
-							newGroup = [0]
-							if subclass != 'Non-clust':# and subclass != "Class III":
-								newGroup = pos.loc[(sample, chrom), 'group']
-								if type(newGroup) == np.int64:
-									newGroup = np.array([newGroup])
-								else:
-									newGroup = np.array(newGroup)
-								if newGroup.size > 0:
-									newGroup = [x+1 for x in list(np.where(newGroup[:-1] !=newGroup[1:])[0])]
-								newGroup = [0] + newGroup
+							if contexts != "ID":
+								newGroup = [0]
+								if subclass != 'Non-clust':# and subclass != "Class III":
+									newGroup = pos.loc[(sample, chrom), 'group']
+									if type(newGroup) == np.int64:
+										newGroup = np.array([newGroup])
+									else:
+										newGroup = np.array(newGroup)
+									if newGroup.size > 0:
+										newGroup = [x+1 for x in list(np.where(newGroup[:-1] !=newGroup[1:])[0])]
+									newGroup = [0] + newGroup
 						
 							imds = [y-x for x,y in zip(starts, starts[1:])]
 							minIMDs = [min(x,y) for x,y in zip([float('inf')] + imds, imds + [float('inf')])]							
 							if not aggregated:
-								if subclass == "Class III":
-									if chrom_based_IMD:
-										try:
-											plotIMDs = [[x,y] for x,y in zip(starts, minIMDs) if y <= imdsData[sample.split(".")[0]][chrom] or y < 10000]
-											# plotIMDs = [[x,y] for x,y in zip(starts, minIMDs) if y <= imdsData[sample.split("_")[0]][chrom] or y < 10000]
-										except:
-											plotIMDs = [[x,y] for x,y in zip(starts, minIMDs) if y <= imdsDataSample[sample.split(".")[0]] or y < 10000]
-											# plotIMDs = [[x,y] for x,y in zip(starts, minIMDs) if y <= imdsDataSample[sample.split("_")[0]] or y < 10000]
+								# if subclass == "Class III":
+								# 	if chrom_based_IMD:
+								# 		try:
+								# 			plotIMDs = [[x,y] for x,y in zip(starts, minIMDs) if y <= imdsData[sample.split(".")[0]][chrom] or y < 10000]
+								# 			# plotIMDs = [[x,y] for x,y in zip(starts, minIMDs) if y <= imdsData[sample.split("_")[0]][chrom] or y < 10000]
+								# 		except:
+								# 			plotIMDs = [[x,y] for x,y in zip(starts, minIMDs) if y <= imdsDataSample[sample.split(".")[0]] or y < 10000]
+								# 			# plotIMDs = [[x,y] for x,y in zip(starts, minIMDs) if y <= imdsDataSample[sample.split("_")[0]] or y < 10000]
+								# 	else:
+								# 		plotIMDs = [[x,y] for x,y in zip(starts, imds_recorded)]# if y <= imdsData[sample.split("_")[0]] or y < 10000]
+								# 		# plotIMDs = [[x,y] for x,y in zip(starts, minIMDs) if y <= imdsData[sample.split("_")[0]] or y < 10000]
+								# else:
+								# 	# plotIMDs = [[x,y] for x,y in zip(starts, imds) if y <= imdsDataSample[sample.split(".")[0]] or y < 10000]
+								# 	plotIMDs = [[x,y] for x,y in zip(starts, minIMDs)]
+								if contexts != 'ID':
+									if subclass == "Class III":
+										plotIMDs = [[x,int(y)] for z,(x,y) in enumerate(zip(starts, imds_recorded)) if y != 'c' and (z not in newGroup or len(starts) == 1 or len(starts) == len(newGroup))]
 									else:
-										plotIMDs = [[x,y] for x,y in zip(starts, imds_recorded)]# if y <= imdsData[sample.split("_")[0]] or y < 10000]
-										# plotIMDs = [[x,y] for x,y in zip(starts, minIMDs) if y <= imdsData[sample.split("_")[0]] or y < 10000]
+										# plotIMDs = [[x,int(y)] for x,y in zip(starts, IMDsPlotRecorded) if y != 'c' ]
+										plotIMDs = [[x,int(y)] for z,(x,y) in enumerate(zip(starts, IMDsPlotRecorded)) if y != 'c' and (z not in newGroup or len(starts) == 1 or len(starts) == len(newGroup))]
 								else:
-									# plotIMDs = [[x,y] for x,y in zip(starts, imds) if y <= imdsDataSample[sample.split(".")[0]] or y < 10000]
-									plotIMDs = [[x,y] for x,y in zip(starts, minIMDs)]
-
-								# plotIMDs = [[x,int(y)] for x,y in zip(starts, IMDsPlotRecorded) if y != 'c' ]
-								plotIMDs = [[x,int(y)] for z,(x,y) in enumerate(zip(starts, IMDsPlotRecorded)) if y != 'c' and (z not in newGroup or len(starts) == 1 or len(starts) == len(newGroup))]
-
+									plotIMDs = [[x,y] for x,y in zip(starts, imds_recorded)]# if y <= imdsData[sample.split("_")[0]] or y < 10000]
+								if len(plotIMDs) == 0:
+									continue
 								plotX, plotY = zip(*plotIMDs)
 								newMax = max(plotY)
-								if chrom_based_IMD:
-									# falsePositivesChrom.append(len([[x,y] for x,y in zip(starts, minIMDs) if y <=imdsData[sample.split("_")[0]][chrom]]))
-									falsePositivesChrom.append(len([[x,y] for x,y in zip(starts, minIMDs) if y <=imdsData[sample.split(".")[0]][chrom]]))
-									falsePositivesChrom_1000.append(len([[x,y] for x,y in zip(starts, minIMDs) if y <=1000]))
-								else:
-									falsePositivesChrom.append(len([[x,y] for x,y in zip(starts, minIMDs) if y <=imdsData[sample.split(".")[0]]]))
-									# falsePositivesChrom.append(len([[x,y] for x,y in zip(starts, minIMDs) if y <=imdsData[sample.split("_")[0]]]))
-									falsePositivesChrom_1000.append(len([[x,y] for x,y in zip(starts, minIMDs) if y <=1000]))
+								# if chrom_based_IMD:
+								# 	# falsePositivesChrom.append(len([[x,y] for x,y in zip(starts, minIMDs) if y <=imdsData[sample.split("_")[0]][chrom]]))
+								# 	falsePositivesChrom.append(len([[x,y] for x,y in zip(starts, minIMDs) if y <=imdsData[sample.split(".")[0]][chrom]]))
+								# 	falsePositivesChrom_1000.append(len([[x,y] for x,y in zip(starts, minIMDs) if y <=1000]))
+								# else:
+								# 	falsePositivesChrom.append(len([[x,y] for x,y in zip(starts, minIMDs) if y <=imdsData[sample.split(".")[0]]]))
+								# 	# falsePositivesChrom.append(len([[x,y] for x,y in zip(starts, minIMDs) if y <=imdsData[sample.split("_")[0]]]))
+								# 	falsePositivesChrom_1000.append(len([[x,y] for x,y in zip(starts, minIMDs) if y <=1000]))
 
 								# try:
 								# 	totalMutsIMDChrom.append(len([[x,y] for x,y in zip(starts, minIMDs) if y <= imdsData[sample.split("_")[0]][chrom]]))
 								# except:
 								# 	totalMutsIMDChrom.append(len([[x,y] for x,y in zip(starts, minIMDs) if y <= imdsDataSample[sample.split("_")[0]]]))
-								totalMuts1000Chrom.append(len([[x,y] for x,y in zip(starts, minIMDs) if y <= 1000]))
-								if correction and subclass != "Non-clust":
-									correctionMuts = []
-									for imd, start in zip(minIMDs, starts):
-									# 	position = int(start) + chromLengths2[genome][chrom]
-									# 	try:
-									# 		bisectRegion = regions[bisect.bisect_left(regions, position)]
-									# 	except:
-									# 		continue
-									# 	if bisectRegion - position < windowSize:
-									# 		imdCorrected = imdsDataSample_corrected[sample.split("_")[0]][bisectRegion]
-										# if imd < imdCorrected and imd > imdsDataSample[sample.split("_")[0]]:
-										correctionMuts.append(1)
-									totalMutsIMDChrom.append(len(correctionMuts))
+								# totalMuts1000Chrom.append(len([[x,y] for x,y in zip(starts, minIMDs) if y <= 1000]))
+								# if correction and subclass != "Non-clust":
+								# 	correctionMuts = []
+								# 	for imd, start in zip(minIMDs, starts):
+								# 	# 	position = int(start) + chromLengths2[genome][chrom]
+								# 	# 	try:
+								# 	# 		bisectRegion = regions[bisect.bisect_left(regions, position)]
+								# 	# 	except:
+								# 	# 		continue
+								# 	# 	if bisectRegion - position < windowSize:
+								# 	# 		imdCorrected = imdsDataSample_corrected[sample.split("_")[0]][bisectRegion]
+								# 		# if imd < imdCorrected and imd > imdsDataSample[sample.split("_")[0]]:
+								# 		correctionMuts.append(1)
+								# 	totalMutsIMDChrom.append(len(correctionMuts))
 							else:
 								plotIMDs = [[x,y] for x,y in zip(starts, minIMDs) if y <= 10000]
 								plotX, plotY = zip(*plotIMDs)
@@ -1363,8 +1369,8 @@ def rainfall (chrom_based_IMD, project, project_path, chrom_path, chromLengths, 
 						ampIndex = ranges[5]
 						if currentChrom in chrom_startsAll:
 							# print(currentChrom, start, ranges[-1])
-							panel1.axvline(x=start+chrom_startsAll[currentChrom], color=ranges[-1], lw=1, zorder=-20)
-							panel1.axvline(x=end+chrom_startsAll[currentChrom], color=ranges[-1], lw=1, zorder=-20)
+							panel1.axvline(x=start+chrom_startsAll[currentChrom], color=ranges[-1], lw=1, zorder=-20, alpha=0.6)
+							panel1.axvline(x=end+chrom_startsAll[currentChrom], color=ranges[-1], lw=1, zorder=-20, alpha=0.6)
 							# kw = dict(linestyle=None, lw=1,color=ranges[-1],connectionstyle="arc3,rad=0.2",clip_on=False)
 							# arc = mplpatches.FancyArrowPatch((start+chrom_startsAll[currentChrom], ymax), (end+chrom_startsAll[currentChrom],ymax) , **kw)
 							# panel1.add_patch(arc)

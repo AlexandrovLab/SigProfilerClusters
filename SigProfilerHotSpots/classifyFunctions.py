@@ -7,6 +7,37 @@ import shutil
 from numpy import median
 import pickle
 import bisect
+import re
+
+
+def processivitySubclassification (event, out2Y, out2K, out2S, out2N):
+	refs = "".join([x[8] for x in event])
+	pyrProcessCG = max(len(max(re.compile("(1+1)*").findall("".join([x for x in ['1' if x == 'C' else '0' for x in refs]])))), len(max(re.compile("(1+1)*").findall("".join([x for x in ['1' if x == 'G' else '0' for x in refs]])))))
+	pyrProcessTA = max(len(max(re.compile("(1+1)*").findall("".join([x for x in ['1' if x == 'T' else '0' for x in refs]])))), len(max(re.compile("(1+1)*").findall("".join([x for x in ['1' if x == 'A' else '0' for x in refs]])))))
+	purityCG = max(refs.count('G')/len(refs), refs.count('C')/len(refs))
+	purityTA = max(refs.count('T')/len(refs), refs.count('A')/len(refs))
+	pyrProcess = max(len(max(re.compile("(1+1)*").findall("".join([x for x in ['1' if x == 'C' or x =='T' else '0' for x in refs]])))), len(max(re.compile("(1+1)*").findall("".join([x for x in ['1' if x == 'G' or x =='A' else '0' for x in refs]])))))
+	ketoProcess = max(len(max(re.compile("(1+1)*").findall("".join([x for x in ['1' if x == 'T' or x =='G' else '0' for x in refs]])))), len(max(re.compile("(1+1)*").findall("".join([x for x in ['1' if x == 'A' or x =='C' else '0' for x in refs]])))))
+	strongProcess = max(len(max(re.compile("(1+1)*").findall("".join([x for x in ['1' if x == 'C' or x =='G' else '0' for x in refs]])))), len(max(re.compile("(1+1)*").findall("".join([x for x in ['1' if x == 'A' or x =='T' else '0' for x in refs]])))))
+
+	maxProcessivity = max(pyrProcess, ketoProcess, strongProcess)
+	processiveLenthRequirement = len(refs)*0.75
+	if pyrProcessCG > processiveLenthRequirement or pyrProcessTA > processiveLenthRequirement or purityCG > 0.9 or purityTA > 0.9:
+		for line in event:
+			print("\t".join([x for x in line]), file=out2Y)
+	else:
+		if maxProcessivity == pyrProcess and maxProcessivity >= processiveLenthRequirement:
+			for line in event:
+				print("\t".join([x for x in line]), file=out2Y)
+		elif maxProcessivity == ketoProcess and maxProcessivity >= processiveLenthRequirement:
+			for line in event:
+				print("\t".join([x for x in line]), file=out2K)
+		elif maxProcessivity == strongProcess and maxProcessivity >= processiveLenthRequirement:
+			for line in event:
+				print("\t".join([x for x in line]), file=out2S)
+		else:
+			for line in event:
+				print("\t".join([x for x in line]), file=out2N)
 
 def pullVaf (project, project_path, sanger=True, TCGA=False, correction=True):
 	'''
@@ -147,6 +178,10 @@ def findClustersOfClusters (project, chrom_based, project_parent_path, windowSiz
 	out_file6 = project_path + 'subclasses' + path_suffix + '/class1a/' + project + '_clustered_class1a.txt'
 	out_file7 = project_path + 'subclasses' + path_suffix + '/class1b/' + project + '_clustered_class1b.txt'
 	out_file8 = project_path + 'subclasses' + path_suffix + '/class1c/' + project + '_clustered_class1c.txt'
+	out_file9 = project_path + 'subclasses' + path_suffix + '/class2Y/' + project + '_clustered_class2Y.txt'
+	out_file10 = project_path + 'subclasses' + path_suffix + '/class2K/' + project + '_clustered_class2K.txt'
+	out_file11 = project_path + 'subclasses' + path_suffix + '/class2S/' + project + '_clustered_class2S.txt'
+	out_file12 = project_path + 'subclasses' + path_suffix + '/class2N/' + project + '_clustered_class2N.txt'
 
 	if os.path.exists(project_path + 'subclasses' + path_suffix + '/class1/'):
 		shutil.rmtree(project_path + 'subclasses' + path_suffix + '/class1/')
@@ -166,8 +201,22 @@ def findClustersOfClusters (project, chrom_based, project_parent_path, windowSiz
 	if os.path.exists(project_path + 'subclasses' + path_suffix + '/class1c/'):
 		shutil.rmtree(project_path + 'subclasses' + path_suffix + '/class1c/')
 	os.makedirs(project_path + 'subclasses' + path_suffix + '/class1c/')
+	if os.path.exists(project_path + 'subclasses' + path_suffix + '/class2Y/'):
+		shutil.rmtree(project_path + 'subclasses' + path_suffix + '/class2Y/')
+	os.makedirs(project_path + 'subclasses' + path_suffix + '/class2Y/')
+	if os.path.exists(project_path + 'subclasses' + path_suffix + '/class2K/'):
+		shutil.rmtree(project_path + 'subclasses' + path_suffix + '/class2K/')
+	os.makedirs(project_path + 'subclasses' + path_suffix + '/class2K/')
+	if os.path.exists(project_path + 'subclasses' + path_suffix + '/class2S/'):
+		shutil.rmtree(project_path + 'subclasses' + path_suffix + '/class2S/')
+	os.makedirs(project_path + 'subclasses' + path_suffix + '/class2S/')
+	if os.path.exists(project_path + 'subclasses' + path_suffix + '/class2N/'):
+		shutil.rmtree(project_path + 'subclasses' + path_suffix + '/class2N/')
+	os.makedirs(project_path + 'subclasses' + path_suffix + '/class2N/')
+
+
 	cutoff = 10001
-	imd = 21
+	# imd = 21
 	vaf_cut = 0.1
 
 	if chrom_based:
@@ -210,7 +259,9 @@ def findClustersOfClusters (project, chrom_based, project_parent_path, windowSiz
 					# 	print(samp, regions[samp][bisect.bisect_left(regions[samp], pos + chromLengths[genome][chrom])])
 					# 	print(chrom, chromLengths[genome][chrom], pos)
 					# 	continue
-					if pos - prev_pos < cutoff or (correction and ((regions[samp][hotspot.catch([".",".",chrom, pos], regions[samp], chromLengths, genome, imds_corrected[samp])] - (pos + chromLengths[genome][chrom]) < windowSize) and (pos - prev_pos) < imds_corrected[samp][regions[samp][hotspot.catch([".",".",chrom, pos], regions[samp], chromLengths, genome, imds_corrected[samp])]])):
+					
+					if pos - prev_pos < cutoff or (correction and len(regions[samp]) > 0 and ((regions[samp][hotspot.catch([".",".",chrom, pos], regions[samp], chromLengths, genome)] - (pos + chromLengths[genome][chrom]) < windowSize) and hotspot.cutoffCatch([(pos - prev_pos),samp,chrom, pos], imds_corrected, regions[samp], hotspot.catch([".",".",chrom, pos], regions[samp], chromLengths, genome), imdsData[samp], chromLengths[genome], windowSize))):# (pos - prev_pos) < imds_corrected[samp][regions[samp][hotspot.catch([".",".",chrom, pos], regions[samp], chromLengths, genome, imds_corrected[samp])]])):
+					# if pos - prev_pos < cutoff or (correction and ((regions[samp][hotspot.catch([".",".",chrom, pos], regions[samp], chromLengths, genome, imds_corrected[samp])] - (pos + chromLengths[genome][chrom]) < windowSize) and (pos - prev_pos) < imds_corrected[samp][regions[samp][hotspot.catch([".",".",chrom, pos], regions[samp], chromLengths, genome, imds_corrected[samp])]])):
 					# if pos - prev_pos < cutoff or (correction and ((regions[samp][bisect.bisect_left(regions[samp], pos + chromLengths[genome][chrom])] - (pos + chromLengths[genome][chrom]) < windowSize) and (pos - prev_pos) < imds_corrected[samp][regions[samp][bisect.bisect_left(regions[samp], pos + chromLengths[genome][chrom])]])):
 						distances.append(pos-prev_pos)
 						mnv_length += 1
@@ -290,7 +341,7 @@ def findClustersOfClusters (project, chrom_based, project_parent_path, windowSiz
 		distances_mnv = {}
 		lines = []
 		count = 1
-		with open(out_file) as f, open(out_file2, 'w') as out2, open(out_file3, 'w') as out3, open(out_file4, 'w') as out4, open(out_file5, 'w') as out5, open(out_file6, 'w') as out6, open(out_file7, 'w') as out7, open(out_file8, 'w') as out8:
+		with open(out_file) as f, open(out_file2, 'w') as out2, open(out_file3, 'w') as out3, open(out_file4, 'w') as out4, open(out_file5, 'w') as out5, open(out_file6, 'w') as out6, open(out_file7, 'w') as out7, open(out_file8, 'w') as out8, open(out_file9, 'w') as out2Y, open(out_file10, 'w') as out2K, open(out_file11, 'w') as out2S, open(out_file12, 'w') as out2N:
 			print("HEADER", file=out2)
 			print("HEADER", file=out3)
 			print("HEADER", file=out4)
@@ -298,6 +349,11 @@ def findClustersOfClusters (project, chrom_based, project_parent_path, windowSiz
 			print("HEADER", file=out6)
 			print("HEADER", file=out7)
 			print("HEADER", file=out8)
+			print("HEADER", file=out2Y)
+			print("HEADER", file=out2K)
+			print("HEADER", file=out2S)
+			print("HEADER", file=out2N)
+
 			for line in f:
 				# line = line.strip().split()[1:] 
 				line = line.strip().split()
@@ -328,8 +384,11 @@ def findClustersOfClusters (project, chrom_based, project_parent_path, windowSiz
 								# distancesLine = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if int(y[7])-int(x[7]) > 1 and (int(y[7])-int(x[7]) <= imdsData[y[1]] or (regions[y[1]][bisect.bisect_left(regions[y[1]], (int(y[7]) + chromLengths[genome][y[5]]))] - (int(y[7]) + chromLengths[genome][y[5]]) < windowSize and int(y[-2]) < imds_corrected[y[1]][regions[y[1]][bisect.bisect_left(regions[y[1]], int(y[7]) + chromLengths[genome][y[5]])]]))])
 								# distancesFailed = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if (int(y[7])-int(x[7]) > imdsData[y[1]] and (regions[y[1]][bisect.bisect_left(regions[y[1]], (int(y[7]) + chromLengths[genome][y[5]]))] - (int(y[7]) + chromLengths[genome][y[5]]) < windowSize and int(y[-2]) < imds_corrected[y[1]][regions[y[1]][bisect.bisect_left(regions[y[1]], int(y[7]) + chromLengths[genome][y[5]])]]))])
 								# zeroDistances = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if int(y[7])-int(x[7]) > 1])
-								distancesLine = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if int(y[7])-int(x[7]) > 1 and (int(y[7])-int(x[7]) <= imdsData[y[1]] or (regions[y[1]][hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome, imds_corrected[y[1]])] - (int(y[7]) + chromLengths[genome][y[5]]) < windowSize and int(y[-2]) < imds_corrected[y[1]][regions[y[1]][hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome, imds_corrected[y[1]])]]))])
-								distancesFailed = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if (int(y[7])-int(x[7]) > imdsData[y[1]] and (regions[y[1]][hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome, imds_corrected[y[1]])] - (int(y[7]) + chromLengths[genome][y[5]]) < windowSize and int(y[-2]) < imds_corrected[y[1]][regions[y[1]][hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome, imds_corrected[y[1]])]]))])
+								# distancesLine = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if int(y[7])-int(x[7]) > 1 and (int(y[7])-int(x[7]) <= imdsData[y[1]] or (regions[y[1]][hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome, imds_corrected[y[1]])] - (int(y[7]) + chromLengths[genome][y[5]]) < windowSize and int(y[-2]) < imds_corrected[y[1]][regions[y[1]][hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome, imds_corrected[y[1]])]]))])
+								# distancesFailed = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if (int(y[7])-int(x[7]) > imdsData[y[1]] and (regions[y[1]][hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome, imds_corrected[y[1]])] - (int(y[7]) + chromLengths[genome][y[5]]) < windowSize and int(y[-2]) < imds_corrected[y[1]][regions[y[1]][hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome, imds_corrected[y[1]])]]))])
+								# zeroDistances = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if int(y[7])-int(x[7]) > 1])
+								distancesLine = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if int(y[7])-int(x[7]) > 1 and (int(y[7])-int(x[7]) <= imdsData[y[1]] or (len(regions[y[1]]) > 0 and regions[y[1]][hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome)] - (int(y[7]) + chromLengths[genome][y[5]]) < windowSize and hotspot.cutoffCatch([int(y[-2]),y[1],y[5], y[7]], imds_corrected, regions[y[1]], hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome), imdsData[y[1]], chromLengths[genome], windowSize)))])#   int(y[-2]) < imds_corrected[y[1]][regions[y[1]][hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome, imds_corrected[y[1]])]])   )])
+								distancesFailed = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if (int(y[7])-int(x[7]) > imdsData[y[1]] and (len(regions[y[1]]) > 0 and regions[y[1]][hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome)] - (int(y[7]) + chromLengths[genome][y[5]]) < windowSize and hotspot.cutoffCatch([int(y[-2]),y[1],y[5], y[7]], imds_corrected[y[1]], regions[y[1]], hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome), imdsData[y[1]], chromLengths[genome], windowSize)))])
 								zeroDistances = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if int(y[7])-int(x[7]) > 1])
 
 							else:
@@ -409,6 +468,7 @@ def findClustersOfClusters (project, chrom_based, project_parent_path, windowSiz
 
 						
 						if writeClassII:
+							processivitySubclassification (lines, out2Y, out2K, out2S, out2N)
 							for i in range(0, len(lines), 1):
 								lines[i].append("ClassII")
 								print("\t".join([x for x in lines[i]]), file=out4)
@@ -476,7 +536,8 @@ def findClustersOfClusters (project, chrom_based, project_parent_path, windowSiz
 														lineRef = linesSubClass[i]																			
 											else:
 												if correction:
-													if abs(float(linesSubClass[i][-1]) - float(lineRef[-1])) < vaf_cut and (int(linesSubClass[i][7])-int(lineRef[7]) <= imdsData[lineRef[1]] or (regions[lineRef[1]][hotspot.catch([".",".",lineRef[5], lineRef[7]], regions[lineRef[1]], chromLengths, genome, imds_corrected[lineRef[1]])] - (int(lineRef[7]) + chromLengths[genome][lineRef[5]]) < windowSize and int(lineRef[-2]) < imds_corrected[lineRef[1]][regions[lineRef[1]][hotspot.catch([".",".",lineRef[5], lineRef[7]], regions[lineRef[1]], chromLengths, genome, imds_corrected[lineRef[1]])]])):
+													if abs(float(linesSubClass[i][-1]) - float(lineRef[-1])) < vaf_cut and (int(linesSubClass[i][7])-int(lineRef[7]) <= imdsData[lineRef[1]] or (len(regions[lineRef[1]]) > 0 and regions[lineRef[1]][hotspot.catch([".",".",lineRef[5], lineRef[7]], regions[lineRef[1]], chromLengths, genome)] - (int(lineRef[7]) + chromLengths[genome][lineRef[5]]) < windowSize and hotspot.cutoffCatch([int(lineRef[-2]),lineRef[1],lineRef[5], lineRef[7]], imds_corrected, regions[lineRef[1]], hotspot.catch([".",".",lineRef[5], lineRef[7]], regions[lineRef[1]], chromLengths, genome), imdsData[lineRef[1]], chromLengths[genome], windowSize))):
+													# if abs(float(linesSubClass[i][-1]) - float(lineRef[-1])) < vaf_cut and (int(linesSubClass[i][7])-int(lineRef[7]) <= imdsData[lineRef[1]] or (regions[lineRef[1]][hotspot.catch([".",".",lineRef[5], lineRef[7]], regions[lineRef[1]], chromLengths, genome, imds_corrected[lineRef[1]])] - (int(lineRef[7]) + chromLengths[genome][lineRef[5]]) < windowSize and int(lineRef[-2]) < imds_corrected[lineRef[1]][regions[lineRef[1]][hotspot.catch([".",".",lineRef[5], lineRef[7]], regions[lineRef[1]], chromLengths, genome, imds_corrected[lineRef[1]])]])):
 													# if abs(float(linesSubClass[i][-1]) - float(lineRef[-1])) < vaf_cut and (int(linesSubClass[i][7])-int(lineRef[7]) <= imdsData[lineRef[1]] or (regions[lineRef[1]][bisect.bisect_left(regions[lineRef[1]], (int(lineRef[7]) + chromLengths[genome][lineRef[5]]))] - (int(lineRef[7]) + chromLengths[genome][lineRef[5]]) < windowSize and int(lineRef[-2]) < imds_corrected[lineRef[1]][regions[lineRef[1]][bisect.bisect_left(regions[lineRef[1]], int(lineRef[7]) + chromLengths[genome][lineRef[5]])]])):
 														saveNewEvent.append(linesSubClass[i])
 														lineRef = linesSubClass[i]	
@@ -489,7 +550,9 @@ def findClustersOfClusters (project, chrom_based, project_parent_path, windowSiz
 									if len(saveNewEvent) > 1:
 										if correction:
 											# distancesLine = len([int(y[7])-int(x[7]) for x,y in zip(saveNewEvent, saveNewEvent[1:]) if int(y[7])-int(x[7]) > 1 and (int(y[7])-int(x[7]) <= imdsData[y[1]] or (regions[y[1]][bisect.bisect_left(regions[y[1]], (int(y[7]) + chromLengths[genome][y[5]]))] - (int(y[7]) + chromLengths[genome][y[5]]) < windowSize and int(y[-2]) < imds_corrected[y[1]][regions[y[1]][bisect.bisect_left(regions[y[1]], int(y[7]) + chromLengths[genome][y[5]])]]))])											
-											distancesLine = len([int(y[7])-int(x[7]) for x,y in zip(saveNewEvent, saveNewEvent[1:]) if int(y[7])-int(x[7]) > 1 and (int(y[7])-int(x[7]) <= imdsData[y[1]] or (regions[y[1]][hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome, imds_corrected[y[1]])] - (int(y[7]) + chromLengths[genome][y[5]]) < windowSize and int(y[-2]) < imds_corrected[y[1]][regions[y[1]][hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome, imds_corrected[y[1]])]]))])
+											# distancesLine = len([int(y[7])-int(x[7]) for x,y in zip(saveNewEvent, saveNewEvent[1:]) if int(y[7])-int(x[7]) > 1 and (int(y[7])-int(x[7]) <= imdsData[y[1]] or (regions[y[1]][hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome, imds_corrected[y[1]])] - (int(y[7]) + chromLengths[genome][y[5]]) < windowSize and int(y[-2]) < imds_corrected[y[1]][regions[y[1]][hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome, imds_corrected[y[1]])]]))])
+											distancesLine = len([int(y[7])-int(x[7]) for x,y in zip(saveNewEvent, saveNewEvent[1:]) if int(y[7])-int(x[7]) > 1 and (int(y[7])-int(x[7]) <= imdsData[y[1]] or (len(regions[y[1]]) > 0 and regions[y[1]][hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome)] - (int(y[7]) + chromLengths[genome][y[5]]) < windowSize and hotspot.cutoffCatch([int(y[-2]),y[1],y[5], y[7]], imds_corrected, regions[y[1]], hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome), imdsData[y[1]], chromLengths[genome], windowSize)))])
+
 										else:
 											distancesLine = len([int(y[7])-int(x[7]) for x,y in zip(saveNewEvent, saveNewEvent[1:]) if int(y[7])-int(x[7]) > 1 and (int(y[7])-int(x[7]) <= imdsData[y[1]])])
 										vafs = len([abs(float(y[-1]) - float(x[-1])) for x,y in zip(saveNewEvent, saveNewEvent[1:]) if round(abs(float(y[-1]) - float(x[-1])),4) > vaf_cut])
@@ -498,7 +561,7 @@ def findClustersOfClusters (project, chrom_based, project_parent_path, windowSiz
 										vafsActual = [abs(float(y[-1]) - float(x[-1])) for x,y in zip(saveNewEvent, saveNewEvent[1:])]
 										# Class I or II
 										if distancesLine > 1:
-											if len(lines) >=4:
+											if len(saveNewEvent) >=4:
 												writeClassII = True
 											else:
 												writeClassI = True
@@ -552,6 +615,7 @@ def findClustersOfClusters (project, chrom_based, project_parent_path, windowSiz
 										linesSubClass.remove(line)
 
 									if writeClassII:
+										processivitySubclassification (saveNewEvent, out2Y, out2K, out2S, out2N)
 										for i in range(0, len(saveNewEvent), 1):
 											saveNewEvent[i].append("ClassII")
 											print("\t".join([x for x in saveNewEvent[i]]), file=out4)
@@ -559,6 +623,7 @@ def findClustersOfClusters (project, chrom_based, project_parent_path, windowSiz
 											print("\t".join([x for x in saveNewEvent[i]]), file=out2)
 										count += 1
 										print("\n\n", file=out2)
+										
 									else:
 										if writeClassI:
 											# Writes Class I (Single Events)
@@ -660,7 +725,30 @@ def findClustersOfClusters (project, chrom_based, project_parent_path, windowSiz
 		print()
 	except:
 		pass
-
+	try:
+		print("Generating matrices for Class 2Y mutations:")
+		matrices = matGen.SigProfilerMatrixGeneratorFunc("class2Y", genome, project_path + 'subclasses'+ path_suffix +'/class2Y/', seqInfo=True)#, plot=True)
+		print()
+	except:
+		pass
+	try:
+		print("Generating matrices for Class 2K mutations:")
+		matrices = matGen.SigProfilerMatrixGeneratorFunc("class2K", genome, project_path + 'subclasses'+ path_suffix +'/class2K/', seqInfo=True)#, plot=True)
+		print()
+	except:
+		pass
+	try:
+		print("Generating matrices for Class 2S mutations:")
+		matrices = matGen.SigProfilerMatrixGeneratorFunc("class2S", genome, project_path + 'subclasses'+ path_suffix +'/class2S/', seqInfo=True)#, plot=True)
+		print()
+	except:
+		pass
+	try:
+		print("Generating matrices for Class 2N mutations:")
+		matrices = matGen.SigProfilerMatrixGeneratorFunc("class2N", genome, project_path + 'subclasses'+ path_suffix +'/class2N/', seqInfo=True)#, plot=True)
+		print()
+	except:
+		pass
 
 
 
