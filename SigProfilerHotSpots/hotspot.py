@@ -397,47 +397,20 @@ def first_run (distances, distances_orig_all, distances_orig, vcf_path_clust, vc
 	distance_cut, q_val, avgSim, stdevSim, upper_CI_refined, lower_CI_refined = refineIMD (distances, distances_orig, y2, avg_bin_counts, interval_line, bincenters2[interval_line], bincenters2[interval_line+1], CI, lower_CI, upper_CI, sigValue)
 	if distance_cut > 10000:
 		distance_cut = 10000
-	# for x in distances_orig_all:
-	# 	# print(int(x[0]))
-	# 	# print(chromLengths[genome][x[2]])
-	# 	# print(bisect.bisect_left(regions, (int(x[3]) + chromLengths[genome][x[2]])))
-	# 	# print(regions[bisect.bisect_left(regions, (int(x[3]) + chromLengths[genome][x[2]]))])
-	# 	if not correctionData and len(imds_corrected) > 0:
-	# 		print(imds_corrected[x[1]])
-	# 		print(len(imds_corrected[x[1]]))
-	# 		print(chromLengths[genome][x[2]])
-	# 		print([bisect.bisect_left(regions, int(x[3]) + chromLengths[genome][x[2]])])
-	# 		print(regions, len(regions), int(x[3]) + chromLengths[genome][x[2]])
-	# 		print([regions[bisect.bisect_left(regions, int(x[3]) + chromLengths[genome][x[2]])]])
-	# 		print(imds_corrected[x[1]][regions[bisect.bisect_left(regions, int(x[3]) + chromLengths[genome][x[2]])]])
-	# 		print()
 
-		# [x[1:] + [x[0]] for x in distances_orig_all if int(x[0]) <= distance_cut or (regions[bisect.bisect_left(regions, (int(x[3]) + chromLengths[genome][x[2]]))] - (int(x[3]) + chromLengths[genome][x[2]]) < windowSize and int(x[0]) < imds_corrected[x[1]][regions[bisect.bisect_left(regions, int(x[3]) + chromLengths[genome][x[2]])]])]
 	# distance_cut = 1000
 	if not correctionData:
 		if correction:
-			# if len(imds_corrected) > 0:
-			# clustered_muts = [x[1:] + [x[0]] for x in distances_orig_all if int(x[0]) <= distance_cut or (regions[bisect.bisect_left(regions, (int(x[3]) + chromLengths[genome][x[2]]))] - (int(x[3]) + chromLengths[genome][x[2]]) < windowSize and int(x[0]) < imds_corrected[x[1]][regions[bisect.bisect_left(regions, int(x[3]) + chromLengths[genome][x[2]])]])]
-			# nonClustered_muts = [x[1:] + [x[0]] for x in distances_orig_all if x[1:] + [x[0]] not in clustered_muts]
-			# else:
-			# 	clustered_muts = [x[1:] + [x[0]] for x in distances_orig_all if int(x[0]) <= distance_cut ]
-			# 	nonClustered_muts = [x[1:] + [x[0]] for x in distances_orig_all if x[1:] + [x[0]] not in clustered_muts]				
-			
-			# if len(imds_corrected) > 0:
 			if len(regions) > 0:
 				clustered_muts = [x[1:] + [x[0]] for x in distances_orig_all if int(x[0]) <= distance_cut or (regions[catch(x, regions, chromLengths, genome)] - (int(x[3]) + chromLengths[genome][x[2]]) < windowSize and cutoffCatch(x, imds_corrected, regions, catch(x, regions, chromLengths, genome), distance_cut, chromLengths[genome], windowSize))]# int(x[0]) < imds_corrected[x[1]][regions[catch(x, regions, chromLengths, genome, imds_corrected[x[1]])]]))]
-				# clustered_muts = [x[1:] + [x[0]] for x in distances_orig_all if int(x[0]) <= distance_cut or (regions[catch(x, regions, chromLengths, genome, imds_corrected[x[1]])] - (int(x[3]) + chromLengths[genome][x[2]]) < windowSize and cutoffCatch(int(x[0]) < imds_corrected[x[1]][regions[catch(x, regions, chromLengths, genome, imds_corrected[x[1]])]]))]
 				nonClustered_muts = [x[1:] + [x[0]] for x in distances_orig_all if x[1:] + [x[0]] not in clustered_muts]
 			else:
 				clustered_muts = [x[1:] + [x[0]] for x in distances_orig_all if int(x[0]) <= distance_cut ]
 				nonClustered_muts = [x[1:] + [x[0]] for x in distances_orig_all if x[1:] + [x[0]] not in clustered_muts]	
-
-
 		else:
 			clustered_muts = [x[1:] + [x[0]] for x in distances_orig_all if int(x[0]) <= distance_cut]
 			nonClustered_muts = [x[1:] + [x[0]] for x in distances_orig_all if x[1:] + [x[0]] not in clustered_muts]
 	else:
-		# print(sample, orig_mutations, total_mutations, interval_percent, current_q, distance_cut)
 		clustered_muts = [x[1:] for x in distances_orig_all if int(x[0]) <= distance_cut]
 		nonClustered_muts = [x[1:] for x in distances_orig_all if int(x[0]) > distance_cut]
 
@@ -465,8 +438,6 @@ def first_run (distances, distances_orig_all, distances_orig, vcf_path_clust, vc
 				ref = muts[3]
 				alt = muts[4]
 				plotIMD = muts[5]
-				if pos == "137122302":
-					print(chrom, pos, distance_cut)
 				imd_recorded = muts[-1]
 				print("\t".join([project,sample,".",genome,"SNP",chrom,pos,pos,ref,alt,"SOMATIC", plotIMD, imd_recorded]),file=nonclust)
 	
@@ -477,8 +448,6 @@ def catch (x, regions, chromLengths, genome, imds_corrected=None):
 	bisectPos = bisect.bisect_left(regions, int(x[3]) + chromLengths[genome][x[2]])
 	if bisectPos >= len(regions):
 		bisectPos -= 1
-	# if bisectPos >= len(imds_corrected):
-	# 	bisectPos = len(imds_corrected)-1
 	return(bisectPos)
 
 def cutoffCatch (x, imds_corrected, regions, bisectPos, distance_cut, chroms, windowSize):
@@ -556,7 +525,6 @@ def densityCorrection (densityMuts, densityMutsSim, windowSize):
 	# maxDistance = max(max(densityMuts), max([int(densityMutsSim[x][-1]) for x in densityMutsSim])) + windowSize
 	simDensities = []
 	slideSize = windowSize
-	# slideSize = 50000
 	for x in densityMutsSim:
 		currentWindow = 0
 		densities = []
@@ -602,7 +570,7 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, windowSize,
 			firstRun	->	optional parameter for debugging purposes. Always set to True by default (boolean)
 	  clustering_vaf	-> 	optional paramater to save the VAF from the original mutation files. Required if performing subclassification (default=False; switched to True if subclassify=True)	
 		calculateIMD	->	optional parameter to skip or calculate IMD. (boolean; default=True)
-		 chrom_based	->	option to generate IMDs per chromosome (boolean; default=False)
+		 chrom_based	->	option to generate IMDs per chromosome (boolean; default=False). This parameter is deprecated. Please DO NOT use.
 		  correction	->	optional parameter to perform a genome-wide mutational density correction (boolean; default=False)
 
 
@@ -610,6 +578,10 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, windowSize,
 		regionsSamps	->	a dictionary that contains all of the regions used for calculating corrected IMDs. If correction=False, then it returns an empty datastructure
 	  imds_corrected	->	a dictionary of all of the corrected IMDs. If correction=False, then it returns an empty datastructure
 	'''
+
+	################################################################
+	# Organize path suffixes, paths, and several plotting parameters
+	################################################################
 	path_suffix=''
 	if correction:
 		path_suffix = "_corrected"
@@ -630,7 +602,6 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, windowSize,
 	elif contexts ==  'INDEL' or contexts ==  'ID':
 		matrix_file_suffix = '.ID83.'
 
-
 	if exome:
 		matrix_file_suffix_original = matrix_file_suffix + "exome"
 		exomeSuffix = '_exome'
@@ -642,14 +613,6 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, windowSize,
 	directory = ref_dir + 'output/simulations/' + project + "_intradistance_" + genome + "_" + contexts + exomeSuffix + "/"
 	directory_out = ref_dir + "output/plots/"
 	directory_orig = ref_dir + "output/simulations/" + project + "_intradistance_original_" + genome + "_" + contexts + exomeSuffix + "/"
-	# distance_path = ref_dir + "output/vcf_files" + path_suffix + "/" + project + "_distances/"
-
-	# if os.path.exists(distance_path):
-	# 	shutil.rmtree(distance_path)
-	# os.mkdir(distance_path)
-
-	# if not os.path.exists(directory_out):
-	# 	os.makedirs(directory_out)
 
 
 	if file_context == '96':
@@ -676,8 +639,6 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, windowSize,
 		matrix_path_all_nonClustered = ref_dir + "/references/matrix/" + project + "_all_nonClustered/" + project + "_all_nonClustered" + matrix_file_suffix + "all"
 		output_path = directory_out + project + '_intradistance_plots_' + contexts +  path_suffix + '.pdf'
 
-
-
 	if os.path.exists(directory_out) == False:
 		os.mkdir(directory_out)
 
@@ -693,7 +654,11 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, windowSize,
 
 	if not os.path.exists(vcf_path_nonClust):
 		os.makedirs(vcf_path_nonClust)
+	################################################################
 
+
+
+	# Instantiate the majority of the data structures
 	imds = {}
 	y2s = {}
 	bincenters2s = {} 
@@ -725,7 +690,11 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, windowSize,
 	lower_CIs_refined_corrected = {}
 
 	folders = os.listdir(directory)
-	first_sort = True
+
+	############################################################################################################
+	# Start calculating the IMDs for each sample. This includes IMD corrections and calculations for both the 
+	# original sample and the simulated samples.
+	############################################################################################################
 	if firstRun and calculateIMD:
 		if os.path.exists(vcf_path_clust + project + "_clustered.txt"):
 			os.remove(vcf_path_clust + project + "_clustered.txt")
@@ -735,11 +704,12 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, windowSize,
 			os.remove(vcf_path_all_clust + project + "_all_clustered.txt")
 		if os.path.exists(vcf_path_all_nonClust + project + "_all_nonClustered.txt"):
 			os.remove(vcf_path_all_nonClust + project + "_all_nonClustered.txt")
+
 		with open(vcf_path_clust + project + "_clustered.txt", 'a') as clust:
 			print("HEADER", file=clust)
-
 		with open(vcf_path_nonClust + project + "_nonClustered.txt", 'a') as nonclust:
 			print("HEADER", file=nonclust)
+
 		print("Determining sample-dependent intermutational distance (IMD) cutoff...", end='', flush=True)
 		for folder in folders:
 			regionsSamps[folder] = []
@@ -761,9 +731,9 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, windowSize,
 				densityMuts = []
 				densityMutsSim = {}
 
-			if original:
-				# try:
-				if True:
+			if original: # Calculate data/plots for original sample
+				# Gather the distances for the original sample
+				try:
 					if not os.path.exists(directory_orig + sample + "_" + contexts + exomeSuffix + "_intradistance.txt"):
 						continue
 					with open (directory_orig + sample + "_" + contexts + exomeSuffix + "_intradistance.txt") as f2:
@@ -782,10 +752,11 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, windowSize,
 									distances_orig_all.append(int(line[0]))
 								if correction:
 									densityMuts.append(int(line[3]) + chromLengths[genome][line[2]])
-				# except:
-				# 	print(sample + " does not have nearby IDs to one another. Skipping this sample.")
-				# 	continue
+				except:
+					print(sample + " does not have nearby IDs to one another. Skipping this sample.")
+					continue
 
+			# Collect simulation distances
 			sim_count = len(files)
 			for file in files:
 				if correction:
@@ -823,12 +794,11 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, windowSize,
 				else:
 					overall_distances_all.append(distances)
 
+			# Perform the regional mutation density corrections
 			if correction:
-				# regions = densityCorrection(densityMuts, densityMutsSim, binsDensity)
 				regions = densityCorrection(densityMuts, densityMutsSim, windowSize)
 				regionsSamps[folder] = regions
-				#try:
-				if True:
+				try:
 					densityCorrectDistances = {}
 					densityCorrectDistances_samps = {}
 					densityCorrectDistancesSims = {}
@@ -848,9 +818,9 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, windowSize,
 								if bisectRegion - position < windowSize:
 									densityCorrectDistances_samps[bisectRegion].append(line)
 									densityCorrectDistances[bisectRegion].append(int(line[0]))
-				# except:
-				# 	print(sample + " does not have nearby IDs to one another. Skipping this sample.")
-				# 	continue
+				except:
+					print(sample + " does not have nearby IDs to one another. Skipping this sample.")
+					continue
 
 				for file in files:
 					if file == '.DS_Store':
@@ -892,7 +862,6 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, windowSize,
 					try:
 						if len(densityCorrectDistancesSims[region]) == 0 or len(densityCorrectDistances_samps[region]) == 0 or len(densityCorrectDistances[region]) == 0:
 							continue
-
 						y2s_corrected[sample][region], bincenters2s_corrected[sample][region], q_values_corrected[sample][region], interval_lines_corrected[sample][region], orig_mutations_samps_corrected[sample][region], avg_simCounts_corrected[sample][region],  std_simCounts_corrected[sample][region], imds_corrected[sample][region], lower_CIs_corrected[sample][region], upper_CIs_corrected[sample][region], lower_CIs_refined_corrected[sample][region], upper_CIs_refined_corrected[sample][region], avg_bin_counts_samp_corrected[sample][region] = first_run(densityCorrectDistancesSims[region], densityCorrectDistances_samps[region], densityCorrectDistances[region], vcf_path_clust, vcf_path_nonClust, sample, original, sim_count, project, genome, clustering_vaf, correctionData, chromLengths)
 					except:
 						continue
@@ -920,16 +889,20 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, windowSize,
 				y2s[sample], bincenters2s[sample], q_values[sample], interval_lines[sample], orig_mutations_samps[sample], avg_simCounts[sample], std_simCounts[sample], imds[sample], lower_CIs[sample], upper_CIs[sample], lower_CIs_refined[sample], upper_CIs_refined[sample], avg_bin_counts_samp[sample] = first_run(overall_distances_all, distances_orig_all_samps, distances_orig_all, vcf_path_clust, vcf_path_nonClust, sample, original, sim_count, project, genome, clustering_vaf, correctionData, correction, regions, imds_corrected, windowSize, chromLengths)
 
 		print("Completed!", flush=True)
+		############################################################################################################
 
+		# Generate matrices for all clustered mutations and for all non-clustered mutations
 		print("\nAnalyzing clustered mutations...", flush=True)
 		matGen.SigProfilerMatrixGeneratorFunc(project + "_clustered", genome, vcf_path_clust,plot=False)
 		print("\nAnalyzing non-clustered mutations...", flush=True)
 		matGen.SigProfilerMatrixGeneratorFunc(project + "_nonClustered", genome, vcf_path_nonClust,plot=False)
 		print(flush=True)
 
+		############################################################################################################
+		# Save all of the relevant data including the imds, imds_corrected, the mutation counts per bin, etc.
+		############################################################################################################
 		if not os.path.exists(ref_dir + 'output/simulations/data/'):
 			os.makedirs(ref_dir + 'output/simulations/data/')
-
 		pickleSuffix = ''
 		if chrom_based:
 			pickleSuffix = "_chrom"
@@ -981,8 +954,14 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, windowSize,
 			pickle.dump(lower_CIs_refined, handle, protocol=pickle.HIGHEST_PROTOCOL)
 		with open(ref_dir + 'output/simulations/data/upper_CIs_refined'+pickleSuffix+'.pickle', 'wb') as handle:
 			pickle.dump(upper_CIs_refined, handle, protocol=pickle.HIGHEST_PROTOCOL)
+	############################################################################################################
 
 
+
+	############################################################################################################
+	# If calculateIMD==False, you can skip the previous steps and simply load the saved data for the remainder of 
+	# the analysis.
+	############################################################################################################
 	if not calculateIMD:
 		pickleSuffix = ''
 		if chrom_based:
@@ -1018,8 +997,10 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, windowSize,
 			lower_CIs_refined = pickle.load(handle)	
 		with open(ref_dir + 'output/simulations/data/upper_CIs_refined'+pickleSuffix+'.pickle', 'rb') as handle:
 			upper_CIs_refined = pickle.load(handle)	
+	############################################################################################################
 
 
+	# Recollect samples names
 	if contexts == '96':
 		with open(ref_dir + "output/vcf_files" + path_suffix + "/" + project + "_clustered/SNV/output/SBS/" + project + "_clustered.SBS6.all" ) as f:
 			first_line = f.readline()
@@ -1031,14 +1012,14 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, windowSize,
 			samples = first_line.strip().split()
 			samples = samples[1:]
 
+	################################
+	# Generate the IMD/spectra plots
+	################################
 	if exome:
 		simContext += "_exome"
 	pp = PdfPages(directory_out + project + '_intradistance_plots_' + simContext + path_suffix + '.pdf')
-
 	histo = True
-
 	print("Plotting SigProfilerHotSpot Results...", end='', flush=True)
-
 	for folder in folders:
 		if folder == '.DS_Store_intradistance.txt' or folder == '.DS_Store':
 			continue
@@ -1070,5 +1051,8 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, windowSize,
 	plt.close()
 	pp.close()
 	print("Completed!\n", flush=True)
+	################################
+
+
 	return(regionsSamps, imds_corrected)
 
