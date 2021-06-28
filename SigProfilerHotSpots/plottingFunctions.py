@@ -977,7 +977,7 @@ def plotINDEL_same (matrix_path, matrix_path_clustered, matrix_path_nonClustered
 
 
 
-def rainfall (chrom_based_IMD, project, project_path, chrom_path, chromLengths, centromeres, contexts, correction=True, windowSize = 10000000, bedRanges=None):
+def rainfall (chrom_based_IMD, project, project_path, chrom_path, chromLengths, centromeres, contexts, includedVAFs, correction=True, windowSize = 10000000, bedRanges=None):
 	'''
 	Generates rainfall plots when subClassify is True.
 
@@ -1048,8 +1048,10 @@ def rainfall (chrom_based_IMD, project, project_path, chrom_path, chromLengths, 
 	if bedRanges:
 		bedFile = pd.read_csv(bedRanges, sep="\t", header=0, index_col=3)
 
-	headerFields = ["project", "samples","ID","genome","mutType","chr","start","end", "ref", "alt", "mutClass", "IMDplot", "group", "IMD", "vaf","class", "failedReason"]
 
+	headerFields = ["project", "samples","ID","genome","mutType","chr","start","end", "ref", "alt", "mutClass", "IMDplot", "group", "IMD", "vaf","class", "failedReason"]
+	if not includedVAFs:
+		headerFields = ["project", "samples","ID","genome","mutType","chr","start","end", "ref", "alt", "mutClass", "group", "IMDplot","IMD", "class", "failedReason"]
 	# centromeres = {'GRCh38':{'1': [122026460,125184587],'10': [39686683,41593521],'11':[51078349,54425074],'12':[34769408,37185252],'13': [16000001,18051248],
 	# 			'14': [16000001,18173523],'15': [17000001,19725254],'16': [36311159,38280682],'17': [22813680,26885980],'18': [15460900,20861206],
 	# 			'19': [24498981,27190874],'2': [92188146,94090557],'20': [26436233,30038348],'21': [10864561,12915808],'22': [12954789,15054318],

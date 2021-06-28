@@ -226,7 +226,7 @@ def distance_one_file (sample_path, output_path_original, file_context2, genome,
 
 
 
-def analysis (project, genome, contexts, simContext, input_path, output_type='all', analysis='all', interdistance='96', exome=False, clustering_vaf=False, sortSims=True, extraction=False, correction=True, startProcess=1, endProcess=25, totalIterations=1000, calculateIMD=True, chrom_based=False, max_cpu=None, subClassify=False, sanger=True, TCGA=False, windowSize=1000000, bedRanges=None):
+def analysis (project, genome, contexts, simContext, input_path, output_type='all', analysis='all', interdistance='96', exome=False, clustering_vaf=False, sortSims=True, extraction=False, correction=True, startProcess=1, endProcess=25, totalIterations=1000, calculateIMD=True, chrom_based=False, max_cpu=None, subClassify=False, sanger=True, TCGA=False, includedVAFs=True, windowSize=1000000, bedRanges=None):
 	'''
 	Organizes all of the data structures and calls all of the sub-functions. This is the main function called when running SigProfilerHotSpots.
 
@@ -252,6 +252,7 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 			subClassify	->	optional parameter to subclassify the clustered mutations into refinded classes including DBSs, extended MBSs, kataegis, etc. (boolean; default=False)
 				 sanger	-> 	optional parameter that informs the tool of what format the VAF scores are provided. This is required when subClassify=True (boolean; default=True)
 				   TCGA	->	optional parameter that informs the tool of what format the VAF scores are provided. This is required when subClassify=True and sanger=False (boolean; default=False)
+		   includedVAFs ->  optional parameter that informs the tool of the inclusion of VAFs in the dataset (boolean; default=True)
 			 windowSize	->	the size of the window used for correcting the IMDs based upon mutational density within a given genomic range (integer; default=10000000)
 
 	Returns:
@@ -553,16 +554,20 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 	if subClassify:
 		if contexts != "ID":
 			print("Beginning subclassification of clustered mutations:\n")
-			classifyFunctions.pullVaf (project, input_path, sanger, TCGA, correction)
-			sys.stderr.close()
-			sys.stderr = open(error_file, 'a')
-			classifyFunctions.findClustersOfClusters (project, chrom_based, input_path, windowSize, chromLengths, regions, genome, imds, correction)
-			sys.stderr.close()
+			if includedVAFs:
+				classifyFunctions.pullVaf (project, input_path, sanger, TCGA, correction)
+				sys.stderr.close()
+				sys.stderr = open(error_file, 'a')
+				classifyFunctions.findClustersOfClusters (project, chrom_based, input_path, windowSize, chromLengths, regions, genome, imds, correction)
+				sys.stderr.close()
+			else:
+				classifyFunctions.findClustersOfClusters_noVAF (project, chrom_based, input_path, windowSize, chromLengths, regions, genome, imds, correction)
+				sys.stderr.close()
 		sys.stderr = open(error_file, 'a')
 
 		# Generate the rainfall plots.
 		print("Generating a rainfall plot for all samples...", end='')
-		plottingFunctions.rainfall(chrom_based, project, input_path, chrom_path, chromLengths, centromeres, contexts, correction, windowSize, bedRanges)
+		plottingFunctions.rainfall(chrom_based, project, input_path, chrom_path, chromLengths, centromeres, contexts, includedVAFs, correction, windowSize, bedRanges)
 		print("done")
 		print("Subclassification of clustered mutations has finished!")
 

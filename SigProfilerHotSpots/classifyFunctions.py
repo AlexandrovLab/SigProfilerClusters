@@ -419,54 +419,18 @@ def findClustersOfClusters (project, chrom_based, project_parent_path, windowSiz
 									# Class IC or II
 									if len(lines) >= 4:
 										writeClassII = True
-										if str(len(lines)) not in len_mnvs['II']:
-											len_mnvs['II'][str(len(lines))] = [1,distancesActual, vafsActual]
-										else:
-											len_mnvs['II'][str(len(lines))][0] += 1
-											len_mnvs['II'][str(len(lines))][1] += distancesActual
-											len_mnvs['II'][str(len(lines))][2] += vafsActual
 									else:
 										writeClassI = True
-										writeClassIc = True
-										if str(len(lines)) not in len_mnvs['Ic']:
-											len_mnvs['Ic'][str(len(lines))] = [1,distancesActual, vafsActual]
-										else:
-											len_mnvs['Ic'][str(len(lines))][0] += 1
-											len_mnvs['Ic'][str(len(lines))][1] += distancesActual
-											len_mnvs['Ic'][str(len(lines))][2] += vafsActual										
+										writeClassIc = True									
 								else:
 									writeClassI = True
-									if str(len(lines)) not in len_mnvs['I']:
-										len_mnvs['I'][str(len(lines))] = [1,distancesActual, vafsActual]
-									else:
-										len_mnvs['I'][str(len(lines))][0] += 1
-										len_mnvs['I'][str(len(lines))][1] += distancesActual
-										len_mnvs['I'][str(len(lines))][2] += vafsActual
 									if zeroDistances == 0:
 										if len(lines) == 2:
 											writeClassIa = True
-											if str(len(lines)) not in len_mnvs['Ia']:
-												len_mnvs['Ia'][str(len(lines))] = [1,distancesActual, vafsActual]
-											else:
-												len_mnvs['Ia'][str(len(lines))][0] += 1
-												len_mnvs['Ia'][str(len(lines))][1] += distancesActual
-												len_mnvs['Ia'][str(len(lines))][2] += vafsActual
 										else:
 											writeClassIb = True
-											if str(len(lines)) not in len_mnvs['Ib']:
-												len_mnvs['Ib'][str(len(lines))] = [1,distancesActual, vafsActual]
-											else:
-												len_mnvs['Ib'][str(len(lines))][0] += 1
-												len_mnvs['Ib'][str(len(lines))][1] += distancesActual
-												len_mnvs['Ib'][str(len(lines))][2] += vafsActual
 									else:
-										writeClassIc = True
-										if str(len(lines)) not in len_mnvs['Ic']:
-											len_mnvs['Ic'][str(len(lines))] = [1,distancesActual, vafsActual]
-										else:
-											len_mnvs['Ic'][str(len(lines))][0] += 1
-											len_mnvs['Ic'][str(len(lines))][1] += distancesActual
-											len_mnvs['Ic'][str(len(lines))][2] += vafsActual																			
+										writeClassIc = True																			
 							else:
 								writeClassIII = True
 
@@ -727,7 +691,390 @@ def findClustersOfClusters (project, chrom_based, project_parent_path, windowSiz
 
 
 
+def findClustersOfClusters_noVAF (project, chrom_based, project_parent_path, windowSize, chromLengths, regions, genome, imds, correction=True):
+	'''
+	Subclassifies the clustered mutations into different categories including DBS, MBS, omikli, and kataegis. This is only performed
+	for simple single base substutions when no VAFs are present. Indels are not subclassified using this scheme. 
 
+	Parameters:
+				project	->	user provided project name (string)
+			chrom_based	->	option to generate IMDs per chromosome (boolean; default=False)
+	project_parent_path	->	the directory for the given project (string)
+			 windowSize	->	the window size used to calculate the mutation densities across the genome (integer; default=None)
+		   chromLengths	->	a dictionary of the cumulative chromosome lengths for a given reference genome (dictionary)
+				regions	->	a dictionary that contains all of the regions used for calculating corrected IMDs. If correction=False, then it returns an empty datastructure. (dictionary)
+				 genome	->	the reference genome used for the given analysis (string)
+				   imds	->	a dictionary of all of the corrected IMDs. If correction=False, then it returns an empty datastructure (dictionary)
+			 correction	->	optional parameter to perform a genome-wide mutational density correction (boolean; default=False)
+
+	Returns:
+		None
+
+	Outputs:
+		Subclassification files for all clustered mutations.
+	'''
+
+	####################################################################################
+	# Organize paths and file names
+	####################################################################################
+	path_suffix = ''
+	path_suffix2 = ''
+	if chrom_based:
+		path_suffix = "_chrom"
+	if correction:
+		path_suffix2 += "_corrected"
+
+	project_path = project_parent_path + "output/vcf_files" + path_suffix2 + "/" + project + "_clustered/"
+	file  = project_path + "/SNV/" + project + "_clustered.txt"
+	out_file = project_path + project + '_clusters_of_clusters.txt'
+	out_file2 = project_path + project + '_clusters_of_clusters_imd.txt'
+
+
+
+	out_file3 = project_path + 'subclasses' + path_suffix + '/class1/' + project + '_clustered_class1.txt'
+	out_file4 = project_path + 'subclasses' + path_suffix + '/class2/' + project + '_clustered_class2.txt'
+	out_file5 = project_path + 'subclasses' + path_suffix + '/class3/' + project + '_clustered_class3.txt'
+	out_file6 = project_path + 'subclasses' + path_suffix + '/class1a/' + project + '_clustered_class1a.txt'
+	out_file7 = project_path + 'subclasses' + path_suffix + '/class1b/' + project + '_clustered_class1b.txt'
+	out_file8 = project_path + 'subclasses' + path_suffix + '/class1c/' + project + '_clustered_class1c.txt'
+	out_file9 = project_path + 'subclasses' + path_suffix + '/class2Y/' + project + '_clustered_class2Y.txt'
+	out_file10 = project_path + 'subclasses' + path_suffix + '/class2K/' + project + '_clustered_class2K.txt'
+	out_file11 = project_path + 'subclasses' + path_suffix + '/class2S/' + project + '_clustered_class2S.txt'
+	out_file12 = project_path + 'subclasses' + path_suffix + '/class2N/' + project + '_clustered_class2N.txt'
+
+	if os.path.exists(project_path + 'subclasses' + path_suffix + '/class1/'):
+		shutil.rmtree(project_path + 'subclasses' + path_suffix + '/class1/')
+	os.makedirs(project_path + 'subclasses' + path_suffix + '/class1/')
+	if os.path.exists(project_path + 'subclasses' + path_suffix + '/class2/'):
+		shutil.rmtree(project_path + 'subclasses' + path_suffix + '/class2/')
+	os.makedirs(project_path + 'subclasses' + path_suffix + '/class2/')
+	if os.path.exists(project_path + 'subclasses' + path_suffix + '/class3/'):
+		shutil.rmtree(project_path + 'subclasses' + path_suffix + '/class3/')
+	os.makedirs(project_path + 'subclasses' + path_suffix + '/class3/')
+	if os.path.exists(project_path + 'subclasses' + path_suffix + '/class1a/'):
+		shutil.rmtree(project_path + 'subclasses' + path_suffix + '/class1a/')
+	os.makedirs(project_path + 'subclasses' + path_suffix + '/class1a/')
+	if os.path.exists(project_path + 'subclasses' + path_suffix + '/class1b/'):
+		shutil.rmtree(project_path + 'subclasses' + path_suffix + '/class1b/')
+	os.makedirs(project_path + 'subclasses' + path_suffix + '/class1b/')
+	if os.path.exists(project_path + 'subclasses' + path_suffix + '/class1c/'):
+		shutil.rmtree(project_path + 'subclasses' + path_suffix + '/class1c/')
+	os.makedirs(project_path + 'subclasses' + path_suffix + '/class1c/')
+	if os.path.exists(project_path + 'subclasses' + path_suffix + '/class2Y/'):
+		shutil.rmtree(project_path + 'subclasses' + path_suffix + '/class2Y/')
+	os.makedirs(project_path + 'subclasses' + path_suffix + '/class2Y/')
+	if os.path.exists(project_path + 'subclasses' + path_suffix + '/class2K/'):
+		shutil.rmtree(project_path + 'subclasses' + path_suffix + '/class2K/')
+	os.makedirs(project_path + 'subclasses' + path_suffix + '/class2K/')
+	if os.path.exists(project_path + 'subclasses' + path_suffix + '/class2S/'):
+		shutil.rmtree(project_path + 'subclasses' + path_suffix + '/class2S/')
+	os.makedirs(project_path + 'subclasses' + path_suffix + '/class2S/')
+	if os.path.exists(project_path + 'subclasses' + path_suffix + '/class2N/'):
+		shutil.rmtree(project_path + 'subclasses' + path_suffix + '/class2N/')
+	os.makedirs(project_path + 'subclasses' + path_suffix + '/class2N/')
+	####################################################################################
+
+
+	# Hard-coded cutoffs, which can later be used as additional parameters to the tool.
+	cutoff = 10001 # Min distance required between adjacenet events
+
+	# Load the IMD data structures
+	if chrom_based:
+		with open(project_parent_path + "output/simulations/data/imds_chrom.pickle", "rb") as handle:
+			imdsData = pickle.load(handle) 
+	else:
+		with open(project_parent_path + "output/simulations/data/imds.pickle", "rb") as handle:
+			imdsData = pickle.load(handle) 
+	if correction:
+		with open(project_parent_path + "output/simulations/data/imds_corrected.pickle", "rb") as handle:
+			imds_corrected = pickle.load(handle) 	
+
+
+	first_pass = True # Deprecated option when originally developing. Can probably be deleted
+	total_muts = {}
+	if first_pass:
+		mnv_length = 0
+		len_mnvs = {}
+		total_mnvs = {}
+		distances = []
+		count = 1
+		out = open(out_file, 'w')
+		with open(file) as f:
+			next(f)
+			lines = [line.strip().split() for line in f]
+
+		for i in range(1, len(lines), 1):
+			prev_chrom = lines[i-1][5]
+			prev_pos = int(lines[i-1][6])
+			prev_samp = lines[i-1][1]
+			chrom = lines[i][5]
+			pos = int(lines[i][6])
+			samp = lines[i][1]
+			if samp not in total_muts:
+				total_muts[samp] = 0
+			if prev_samp == samp:
+				if prev_chrom == chrom:					
+					if pos - prev_pos < cutoff or (correction and len(regions[samp]) > 0 and ((regions[samp][hotspot.catch([".",".",chrom, pos], regions[samp], chromLengths, genome)] - (pos + chromLengths[genome][chrom]) < windowSize) and hotspot.cutoffCatch([(pos - prev_pos),samp,chrom, pos], imds_corrected, regions[samp], hotspot.catch([".",".",chrom, pos], regions[samp], chromLengths, genome), imdsData[samp], chromLengths[genome], windowSize))):# (pos - prev_pos) < imds_corrected[samp][regions[samp][hotspot.catch([".",".",chrom, pos], regions[samp], chromLengths, genome, imds_corrected[samp])]])):
+						distances.append(pos-prev_pos)
+						mnv_length += 1
+						lines[i-1] = [str(count)] + lines[i-1]
+						print("\t".join([x for x in lines[i-1]]), file=out)
+						total_muts[samp] += 1
+					else:
+						mnv_length += 1
+						if samp not in len_mnvs:
+							len_mnvs[samp] = {}
+						if str(mnv_length) not in len_mnvs[samp]:
+							len_mnvs[samp][str(mnv_length)] = 1
+						else:
+							len_mnvs[samp][str(mnv_length)] += 1
+						if str(mnv_length) not in total_mnvs:
+							total_mnvs[str(mnv_length)] = 1
+						else:
+							total_mnvs[str(mnv_length)] += 1
+						mnv_length = 0
+						lines[i-1] = [str(count)] + lines[i-1]
+						print("\t".join([x for x in lines[i-1]]), file=out)
+						total_muts[samp] += 1
+						count += 1
+						print("\n\n", file=out)
+				else:
+					mnv_length += 1
+					if samp not in len_mnvs:
+						len_mnvs[samp] = {}
+					if str(mnv_length) not in len_mnvs[samp]:
+						len_mnvs[samp][str(mnv_length)] = 1
+					else:
+						len_mnvs[samp][str(mnv_length)] += 1
+					if str(mnv_length) not in total_mnvs:
+						total_mnvs[str(mnv_length)] = 1
+					else:
+						total_mnvs[str(mnv_length)] += 1
+					mnv_length = 0
+
+					lines[i-1] = [str(count)] + lines[i-1]
+					print("\t".join([x for x in lines[i-1]]), file=out)
+					total_muts[samp] += 1
+					count += 1
+					print("\n\n", file=out)
+			else:
+				mnv_length += 1
+				if prev_samp not in len_mnvs:
+					len_mnvs[prev_samp] = {}
+				if str(mnv_length) not in len_mnvs[prev_samp]:
+					len_mnvs[prev_samp][str(mnv_length)] = 1
+				else:
+					len_mnvs[prev_samp][str(mnv_length)] += 1
+				if str(mnv_length) not in total_mnvs:
+					total_mnvs[str(mnv_length)] = 1
+				else:
+					total_mnvs[str(mnv_length)] += 1
+				mnv_length = 0
+
+				lines[i-1] = [str(count)] + lines[i-1]
+				print("\t".join([x for x in lines[i-1]]), file=out)
+				total_muts[samp] += 1
+				count += 1
+				count = 1
+				print("\n\n################ New Sample #################", file=out)
+				print("\n\n", file=out)
+
+		lines[i] = [str(count)] + lines[i]
+		print("\t".join([x for x in lines[i]]), file=out)
+		total_muts[samp] += 1
+		out.close()
+		with open(project_parent_path + "output/simulations/data/originalCounts" + path_suffix2 + ".pickle", "wb") as f:
+			pickle.dump(total_muts, f)
+
+
+	if True:
+		len_mnvs = {'I':{}, 'II':{},'III':{},'Ia':{},'Ib':{},'Ic':{}}
+		distances = []
+		distances_mnv = {}
+		lines = []
+		count = 1
+		with open(out_file) as f, open(out_file2, 'w') as out2, open(out_file3, 'w') as out3, open(out_file4, 'w') as out4, open(out_file5, 'w') as out5, open(out_file6, 'w') as out6, open(out_file7, 'w') as out7, open(out_file8, 'w') as out8, open(out_file9, 'w') as out2Y, open(out_file10, 'w') as out2K, open(out_file11, 'w') as out2S, open(out_file12, 'w') as out2N:
+			print("HEADER", file=out2)
+			print("HEADER", file=out3)
+			print("HEADER", file=out4)
+			print("HEADER", file=out5)
+			print("HEADER", file=out6)
+			print("HEADER", file=out7)
+			print("HEADER", file=out8)
+			print("HEADER", file=out2Y)
+			print("HEADER", file=out2K)
+			print("HEADER", file=out2S)
+			print("HEADER", file=out2N)
+
+			for line in f:
+				# line = line.strip().split()[1:] 
+				line = line.strip().split()
+				if line != []:
+					line = line[1:-2] + [line[0]] + line[-2:]
+					lines.append(line)
+				else:
+					write_out = False
+					category = None
+					writeClassI = False
+					writeClassII = False
+					writeClassIII = False
+					writeClassII = False
+					writeClassIb = False
+					writeClassIc = False
+					writeClassIa = False
+
+					if len(lines) > 0:
+						if lines[-1][0] == "New":
+							lines = lines[1:]
+							count = 1
+							write_out = False
+						if len(lines) == 1 or len(lines) == 0:
+							lines = []
+							continue
+						else:
+							if correction:
+								distancesLine = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if int(y[7])-int(x[7]) > 1 and (int(y[7])-int(x[7]) <= imdsData[y[1]] or (len(regions[y[1]]) > 0 and regions[y[1]][hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome)] - (int(y[7]) + chromLengths[genome][y[5]]) < windowSize and hotspot.cutoffCatch([int(y[-2]),y[1],y[5], y[7]], imds_corrected, regions[y[1]], hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome), imdsData[y[1]], chromLengths[genome], windowSize)))])#   int(y[-2]) < imds_corrected[y[1]][regions[y[1]][hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome, imds_corrected[y[1]])]])   )])
+								distancesFailed = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if (int(y[7])-int(x[7]) > imdsData[y[1]] and (len(regions[y[1]]) > 0 and regions[y[1]][hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome)] - (int(y[7]) + chromLengths[genome][y[5]]) < windowSize and hotspot.cutoffCatch([int(y[-2]),y[1],y[5], y[7]], imds_corrected[y[1]], regions[y[1]], hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome), imdsData[y[1]], chromLengths[genome], windowSize)))])
+								zeroDistances = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if int(y[7])-int(x[7]) > 1])
+
+							else:
+								distancesLine = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if int(y[7])-int(x[7]) > 1 and (int(y[7])-int(x[7]) <= imdsData[y[1]])])
+								distancesFailed = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if (int(y[7])-int(x[7]) > imdsData[y[1]])])
+								zeroDistances = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if int(y[7])-int(x[7]) > 1])
+
+							if distancesFailed == 0:
+								# Class I or II
+								if distancesLine > 1:
+									# Class IC or II
+									if len(lines) >= 4:
+										writeClassII = True
+									else:
+										writeClassI = True
+										writeClassIc = True									
+								else:
+									writeClassI = True
+									if zeroDistances == 0:
+										if len(lines) == 2:
+											writeClassIa = True
+										else:
+											writeClassIb = True
+									else:
+										writeClassIc = True																		
+							else:
+								writeClassIII = True
+
+						
+						if writeClassII:
+							processivitySubclassification (lines, out2Y, out2K, out2S, out2N)
+							for i in range(0, len(lines), 1):
+								lines[i].append("ClassII")
+								print("\t".join([x for x in lines[i]]), file=out4)
+								lines[i] = [str(count)] + lines[i]
+								print("\t".join([x for x in lines[i]]), file=out2)
+							count += 1
+							print("\n\n", file=out2)
+						else:
+							if writeClassI:
+								# Writes Class I (Single Events)
+								try:
+									for i in range(0, len(lines), 1):
+										lines[i].append("ClassI")
+										print("\t".join([x for x in lines[i]]), file=out3)
+								except:
+									print(lines)
+
+								if writeClassIc:
+									# Writes Class Ic (Omiklis) 
+									try:
+										for i in range(0, len(lines), 1):
+											lines[i][-1] = "ClassIC"
+											print("\t".join([x for x in lines[i]]), file=out8)
+									except:
+										print(lines)	
+								elif writeClassIa:
+									# Writes Class Ia (DBSs) 
+									try:
+										for i in range(0, len(lines), 1):
+											lines[i][-1] = "ClassIA"
+											print("\t".join([x for x in lines[i]]), file=out6)
+									except:
+										print(lines)	
+								elif writeClassIb:
+									# Writes Class 1b (MBSs)
+									try:
+										for i in range(0, len(lines), 1):
+											lines[i][-1] = "ClassIB"
+											print("\t".join([x for x in lines[i]]), file=out7)
+									except:
+										print(lines)
+	
+					lines = []
+
+
+		with open(project_path + "clusteredStats" + path_suffix + ".pickle", "wb") as f:
+			pickle.dump(len_mnvs, f)
+
+
+	try:
+		print("Generating matrices for Class 1 mutations:")
+		matrices = matGen.SigProfilerMatrixGeneratorFunc("class1", genome, project_path + 'subclasses'+ path_suffix + '/class1/', seqInfo=True)#, plot=True)
+		print()
+	except:
+		pass
+	try:
+		print("Generating matrices for Class 2 mutations:")
+		matrices = matGen.SigProfilerMatrixGeneratorFunc("class2", genome, project_path + 'subclasses'+ path_suffix +'/class2/', seqInfo=True)#, plot=True)
+		print()
+	except:
+		pass
+	# try:
+	# 	print("Generating matrices for Class 3 mutations:")
+	# 	matrices = matGen.SigProfilerMatrixGeneratorFunc("class3", genome, project_path + 'subclasses'+ path_suffix +'/class3/', seqInfo=True)#, plot=True)
+	# 	print()
+	# except:
+	# 	pass
+	try:
+		print("Generating matrices for Class 1a mutations:")
+		matrices = matGen.SigProfilerMatrixGeneratorFunc("class1a", genome, project_path + 'subclasses'+ path_suffix +'/class1a/', seqInfo=True)#, plot=True)
+		print()
+	except:
+		pass
+	try:	
+		print("Generating matrices for Class 1b mutations:")
+		matrices = matGen.SigProfilerMatrixGeneratorFunc("class1b", genome, project_path + 'subclasses'+ path_suffix +'/class1b/', seqInfo=True)#, plot=True)
+		print()
+	except:
+		pass
+	try:
+		print("Generating matrices for Class 1c mutations:")
+		matrices = matGen.SigProfilerMatrixGeneratorFunc("class1c", genome, project_path + 'subclasses'+ path_suffix +'/class1c/', seqInfo=True)#, plot=True)
+		print()
+	except:
+		pass
+	try:
+		print("Generating matrices for Class 2Y mutations:")
+		matrices = matGen.SigProfilerMatrixGeneratorFunc("class2Y", genome, project_path + 'subclasses'+ path_suffix +'/class2Y/', seqInfo=True)#, plot=True)
+		print()
+	except:
+		pass
+	try:
+		print("Generating matrices for Class 2K mutations:")
+		matrices = matGen.SigProfilerMatrixGeneratorFunc("class2K", genome, project_path + 'subclasses'+ path_suffix +'/class2K/', seqInfo=True)#, plot=True)
+		print()
+	except:
+		pass
+	try:
+		print("Generating matrices for Class 2S mutations:")
+		matrices = matGen.SigProfilerMatrixGeneratorFunc("class2S", genome, project_path + 'subclasses'+ path_suffix +'/class2S/', seqInfo=True)#, plot=True)
+		print()
+	except:
+		pass
+	try:
+		print("Generating matrices for Class 2N mutations:")
+		matrices = matGen.SigProfilerMatrixGeneratorFunc("class2N", genome, project_path + 'subclasses'+ path_suffix +'/class2N/', seqInfo=True)#, plot=True)
+		print()
+	except:
+		pass
 
 
 
