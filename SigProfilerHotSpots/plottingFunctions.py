@@ -1123,6 +1123,8 @@ def rainfall (chrom_based_IMD, project, project_path, chrom_path, chromLengths, 
 	colors = ['red',  'orange','black', 'green',  'blue', 'grey']
 	colors = {'Class IA':'red', "Class IB":'black', "Class IC":'green', "Class II":'orange', "Class III":'blue', "Non-clust":'grey', "Simulation":'grey', "Clust":'orange'}
 
+	subClassConversion = {'Class IA':'DBS', "Class IB":'MBS', "Class IC":'OMIKLI', "Class II":'KATAEGIS', "Class III":'OTHER', "Non-clust":'Non-clust', "Simulation":'Simulation', "Clust":'Clust'}
+
 	if genome not in chromLengths:
 		chromLengths[genome] = {}
 		for chrom in chroms:
@@ -1333,7 +1335,7 @@ def rainfall (chrom_based_IMD, project, project_path, chrom_path, chromLengths, 
 						densityMuts += plotX
 						if subclass == "Non-clust":
 							zorderPlot = -10
-						panel1.scatter(plotX, plotY, color=colors[subclass], clip_on=False, s=12, label=subclass, zorder=zorderPlot)
+						panel1.scatter(plotX, plotY, color=colors[subclass], clip_on=False, s=12, label=subClassConversion[subclass], zorder=zorderPlot)
 						
 					chrom_start += chromLengths[genome][chrom] + 10000
 				classColor += 1

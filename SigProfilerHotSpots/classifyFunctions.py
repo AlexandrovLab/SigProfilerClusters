@@ -8,7 +8,8 @@ from numpy import median
 import pickle
 import bisect
 import re
-
+import multiprocessing as mp
+import sys
 
 def processivitySubclassification (event, out2Y, out2K, out2S, out2N):
 	'''
@@ -156,7 +157,7 @@ def pullVaf (project, project_path, sanger=True, TCGA=False, correction=True):
 				print("\t".join([x for x in lines]), file=out)
 
 
-def findClustersOfClusters (project, chrom_based, project_parent_path, windowSize, chromLengths, regions, genome, imds, correction=True):
+def findClustersOfClusters (project, chrom_based, project_parent_path, windowSize, chromLengths, regions, log_out, genome, processors, imds, correction=True):
 	'''
 	Subclassifies the clustered mutations into different categories including DBS, MBS, omikli, kataegis, and other. This is only performed
 	for simple single base substutions. Indels are not subclassified using this scheme. 
@@ -627,71 +628,99 @@ def findClustersOfClusters (project, chrom_based, project_parent_path, windowSiz
 			pickle.dump(len_mnvs, f)
 
 
-	try:
-		print("Generating matrices for Class 1 mutations:")
-		matrices = matGen.SigProfilerMatrixGeneratorFunc("class1", genome, project_path + 'subclasses'+ path_suffix + '/class1/', seqInfo=True)#, plot=True)
-		print()
-	except:
-		pass
-	try:
-		print("Generating matrices for Class 2 mutations:")
-		matrices = matGen.SigProfilerMatrixGeneratorFunc("class2", genome, project_path + 'subclasses'+ path_suffix +'/class2/', seqInfo=True)#, plot=True)
-		print()
-	except:
-		pass
-	try:
-		print("Generating matrices for Class 3 mutations:")
-		matrices = matGen.SigProfilerMatrixGeneratorFunc("class3", genome, project_path + 'subclasses'+ path_suffix +'/class3/', seqInfo=True)#, plot=True)
-		print()
-	except:
-		pass
-	try:
-		print("Generating matrices for Class 1a mutations:")
-		matrices = matGen.SigProfilerMatrixGeneratorFunc("class1a", genome, project_path + 'subclasses'+ path_suffix +'/class1a/', seqInfo=True)#, plot=True)
-		print()
-	except:
-		pass
-	try:	
-		print("Generating matrices for Class 1b mutations:")
-		matrices = matGen.SigProfilerMatrixGeneratorFunc("class1b", genome, project_path + 'subclasses'+ path_suffix +'/class1b/', seqInfo=True)#, plot=True)
-		print()
-	except:
-		pass
-	try:
-		print("Generating matrices for Class 1c mutations:")
-		matrices = matGen.SigProfilerMatrixGeneratorFunc("class1c", genome, project_path + 'subclasses'+ path_suffix +'/class1c/', seqInfo=True)#, plot=True)
-		print()
-	except:
-		pass
-	try:
-		print("Generating matrices for Class 2Y mutations:")
-		matrices = matGen.SigProfilerMatrixGeneratorFunc("class2Y", genome, project_path + 'subclasses'+ path_suffix +'/class2Y/', seqInfo=True)#, plot=True)
-		print()
-	except:
-		pass
-	try:
-		print("Generating matrices for Class 2K mutations:")
-		matrices = matGen.SigProfilerMatrixGeneratorFunc("class2K", genome, project_path + 'subclasses'+ path_suffix +'/class2K/', seqInfo=True)#, plot=True)
-		print()
-	except:
-		pass
-	try:
-		print("Generating matrices for Class 2S mutations:")
-		matrices = matGen.SigProfilerMatrixGeneratorFunc("class2S", genome, project_path + 'subclasses'+ path_suffix +'/class2S/', seqInfo=True)#, plot=True)
-		print()
-	except:
-		pass
-	try:
-		print("Generating matrices for Class 2N mutations:")
-		matrices = matGen.SigProfilerMatrixGeneratorFunc("class2N", genome, project_path + 'subclasses'+ path_suffix +'/class2N/', seqInfo=True)#, plot=True)
-		print()
-	except:
-		pass
+	
+	# Parallelize and generate matrices for each subclass
+	subclasses = ['class1', 'class2', 'class3', 'class1a', 'class1b', 'class1c', 'class2Y', 'class2K', 'class2S', 'class2N']
+	if processors > len(subclasses):
+		max_seed = len(subclasses)
+	else:
+		max_seed = processors
+	pool = mp.Pool(max_seed)
+
+	subclasses_parallel = [[] for i in range(max_seed)]
+	subclass_bin = 0
+	for subclass in subclasses:
+		if subclass_bin == max_seed:
+			subclass_bin = 0
+		subclasses_parallel[subclass_bin].append(subclass)
+		subclass_bin += 1
+	results = []
+	for i in range (0, len(subclasses_parallel), 1):
+		r = pool.apply_async(generateMatrices, args=(genome, log_out, project_path, path_suffix, subclasses_parallel[i]))
+		results.append(r)
+	pool.close()
+	pool.join()
+	for r in results:
+		r.wait()
+		if not r.successful():
+			# Raises an error when not successful
+			r.get()
+
+	# try:
+	# 	print("Generating matrices for Class 1 mutations:")
+	# 	matrices = matGen.SigProfilerMatrixGeneratorFunc("class1", genome, project_path + 'subclasses'+ path_suffix + '/class1/', seqInfo=True)#, plot=True)
+	# 	print()
+	# except:
+	# 	pass
+	# try:
+	# 	print("Generating matrices for Class 2 mutations:")
+	# 	matrices = matGen.SigProfilerMatrixGeneratorFunc("class2", genome, project_path + 'subclasses'+ path_suffix +'/class2/', seqInfo=True)#, plot=True)
+	# 	print()
+	# except:
+	# 	pass
+	# try:
+	# 	print("Generating matrices for Class 3 mutations:")
+	# 	matrices = matGen.SigProfilerMatrixGeneratorFunc("class3", genome, project_path + 'subclasses'+ path_suffix +'/class3/', seqInfo=True)#, plot=True)
+	# 	print()
+	# except:
+	# 	pass
+	# try:
+	# 	print("Generating matrices for Class 1a mutations:")
+	# 	matrices = matGen.SigProfilerMatrixGeneratorFunc("class1a", genome, project_path + 'subclasses'+ path_suffix +'/class1a/', seqInfo=True)#, plot=True)
+	# 	print()
+	# except:
+	# 	pass
+	# try:	
+	# 	print("Generating matrices for Class 1b mutations:")
+	# 	matrices = matGen.SigProfilerMatrixGeneratorFunc("class1b", genome, project_path + 'subclasses'+ path_suffix +'/class1b/', seqInfo=True)#, plot=True)
+	# 	print()
+	# except:
+	# 	pass
+	# try:
+	# 	print("Generating matrices for Class 1c mutations:")
+	# 	matrices = matGen.SigProfilerMatrixGeneratorFunc("class1c", genome, project_path + 'subclasses'+ path_suffix +'/class1c/', seqInfo=True)#, plot=True)
+	# 	print()
+	# except:
+	# 	pass
+	# try:
+	# 	print("Generating matrices for Class 2Y mutations:")
+	# 	matrices = matGen.SigProfilerMatrixGeneratorFunc("class2Y", genome, project_path + 'subclasses'+ path_suffix +'/class2Y/', seqInfo=True)#, plot=True)
+	# 	print()
+	# except:
+	# 	pass
+	# try:
+	# 	print("Generating matrices for Class 2K mutations:")
+	# 	matrices = matGen.SigProfilerMatrixGeneratorFunc("class2K", genome, project_path + 'subclasses'+ path_suffix +'/class2K/', seqInfo=True)#, plot=True)
+	# 	print()
+	# except:
+	# 	pass
+	# try:
+	# 	print("Generating matrices for Class 2S mutations:")
+	# 	matrices = matGen.SigProfilerMatrixGeneratorFunc("class2S", genome, project_path + 'subclasses'+ path_suffix +'/class2S/', seqInfo=True)#, plot=True)
+	# 	print()
+	# except:
+	# 	pass
+	# try:
+	# 	print("Generating matrices for Class 2N mutations:")
+	# 	matrices = matGen.SigProfilerMatrixGeneratorFunc("class2N", genome, project_path + 'subclasses'+ path_suffix +'/class2N/', seqInfo=True)#, plot=True)
+	# 	print()
+	# except:
+	# 	pass
 
 
 
 
-def findClustersOfClusters_noVAF (project, chrom_based, project_parent_path, windowSize, chromLengths, regions, genome, imds, correction=True):
+def findClustersOfClusters_noVAF (project, chrom_based, project_parent_path, windowSize, chromLengths, regions, log_out, genome, processors, imds, correction=True):
 	'''
 	Subclassifies the clustered mutations into different categories including DBS, MBS, omikli, and kataegis. This is only performed
 	for simple single base substutions when no VAFs are present. Indels are not subclassified using this scheme. 
@@ -1015,68 +1044,98 @@ def findClustersOfClusters_noVAF (project, chrom_based, project_parent_path, win
 			pickle.dump(len_mnvs, f)
 
 
-	try:
-		print("Generating matrices for Class 1 mutations:")
-		matrices = matGen.SigProfilerMatrixGeneratorFunc("class1", genome, project_path + 'subclasses'+ path_suffix + '/class1/', seqInfo=True)#, plot=True)
-		print()
-	except:
-		pass
-	try:
-		print("Generating matrices for Class 2 mutations:")
-		matrices = matGen.SigProfilerMatrixGeneratorFunc("class2", genome, project_path + 'subclasses'+ path_suffix +'/class2/', seqInfo=True)#, plot=True)
-		print()
-	except:
-		pass
+
+	# Parallelize and generate matrices for each subclass
+	subclasses = ['class1', 'class2', 'class1a', 'class1b', 'class1c', 'class2Y', 'class2K', 'class2S', 'class2N']
+	if processors > len(subclasses):
+		max_seed = len(subclasses)
+	else:
+		max_seed = processors
+	pool = mp.Pool(max_seed)
+
+	subclasses_parallel = [[] for i in range(max_seed)]
+	subclass_bin = 0
+	for subclass in subclasses:
+		if subclass_bin == max_seed:
+			subclass_bin = 0
+		subclasses_parallel[subclass_bin].append(subclass)
+		subclass_bin += 1
+	results = []
+	for i in range (0, len(subclasses_parallel), 1):
+		r = pool.apply_async(generateMatrices, args=(genome, log_out, project_path, path_suffix, subclasses_parallel[i]))
+		results.append(r)
+	pool.close()
+	pool.join()
+	for r in results:
+		r.wait()
+		if not r.successful():
+			# Raises an error when not successful
+			r.get()
+
+
 	# try:
-	# 	print("Generating matrices for Class 3 mutations:")
-	# 	matrices = matGen.SigProfilerMatrixGeneratorFunc("class3", genome, project_path + 'subclasses'+ path_suffix +'/class3/', seqInfo=True)#, plot=True)
+	# 	print("Generating matrices for Class 1 mutations:")
+	# 	matrices = matGen.SigProfilerMatrixGeneratorFunc("class1", genome, project_path + 'subclasses'+ path_suffix + '/class1/', seqInfo=True)#, plot=True)
 	# 	print()
 	# except:
 	# 	pass
-	try:
-		print("Generating matrices for Class 1a mutations:")
-		matrices = matGen.SigProfilerMatrixGeneratorFunc("class1a", genome, project_path + 'subclasses'+ path_suffix +'/class1a/', seqInfo=True)#, plot=True)
-		print()
-	except:
-		pass
-	try:	
-		print("Generating matrices for Class 1b mutations:")
-		matrices = matGen.SigProfilerMatrixGeneratorFunc("class1b", genome, project_path + 'subclasses'+ path_suffix +'/class1b/', seqInfo=True)#, plot=True)
-		print()
-	except:
-		pass
-	try:
-		print("Generating matrices for Class 1c mutations:")
-		matrices = matGen.SigProfilerMatrixGeneratorFunc("class1c", genome, project_path + 'subclasses'+ path_suffix +'/class1c/', seqInfo=True)#, plot=True)
-		print()
-	except:
-		pass
-	try:
-		print("Generating matrices for Class 2Y mutations:")
-		matrices = matGen.SigProfilerMatrixGeneratorFunc("class2Y", genome, project_path + 'subclasses'+ path_suffix +'/class2Y/', seqInfo=True)#, plot=True)
-		print()
-	except:
-		pass
-	try:
-		print("Generating matrices for Class 2K mutations:")
-		matrices = matGen.SigProfilerMatrixGeneratorFunc("class2K", genome, project_path + 'subclasses'+ path_suffix +'/class2K/', seqInfo=True)#, plot=True)
-		print()
-	except:
-		pass
-	try:
-		print("Generating matrices for Class 2S mutations:")
-		matrices = matGen.SigProfilerMatrixGeneratorFunc("class2S", genome, project_path + 'subclasses'+ path_suffix +'/class2S/', seqInfo=True)#, plot=True)
-		print()
-	except:
-		pass
-	try:
-		print("Generating matrices for Class 2N mutations:")
-		matrices = matGen.SigProfilerMatrixGeneratorFunc("class2N", genome, project_path + 'subclasses'+ path_suffix +'/class2N/', seqInfo=True)#, plot=True)
-		print()
-	except:
-		pass
+	# try:
+	# 	print("Generating matrices for Class 2 mutations:")
+	# 	matrices = matGen.SigProfilerMatrixGeneratorFunc("class2", genome, project_path + 'subclasses'+ path_suffix +'/class2/', seqInfo=True)#, plot=True)
+	# 	print()
+	# except:
+	# 	pass
+	# try:
+	# 	print("Generating matrices for Class 1a mutations:")
+	# 	matrices = matGen.SigProfilerMatrixGeneratorFunc("class1a", genome, project_path + 'subclasses'+ path_suffix +'/class1a/', seqInfo=True)#, plot=True)
+	# 	print()
+	# except:
+	# 	pass
+	# try:	
+	# 	print("Generating matrices for Class 1b mutations:")
+	# 	matrices = matGen.SigProfilerMatrixGeneratorFunc("class1b", genome, project_path + 'subclasses'+ path_suffix +'/class1b/', seqInfo=True)#, plot=True)
+	# 	print()
+	# except:
+	# 	pass
+	# try:
+	# 	print("Generating matrices for Class 1c mutations:")
+	# 	matrices = matGen.SigProfilerMatrixGeneratorFunc("class1c", genome, project_path + 'subclasses'+ path_suffix +'/class1c/', seqInfo=True)#, plot=True)
+	# 	print()
+	# except:
+	# 	pass
+	# try:
+	# 	print("Generating matrices for Class 2Y mutations:")
+	# 	matrices = matGen.SigProfilerMatrixGeneratorFunc("class2Y", genome, project_path + 'subclasses'+ path_suffix +'/class2Y/', seqInfo=True)#, plot=True)
+	# 	print()
+	# except:
+	# 	pass
+	# try:
+	# 	print("Generating matrices for Class 2K mutations:")
+	# 	matrices = matGen.SigProfilerMatrixGeneratorFunc("class2K", genome, project_path + 'subclasses'+ path_suffix +'/class2K/', seqInfo=True)#, plot=True)
+	# 	print()
+	# except:
+	# 	pass
+	# try:
+	# 	print("Generating matrices for Class 2S mutations:")
+	# 	matrices = matGen.SigProfilerMatrixGeneratorFunc("class2S", genome, project_path + 'subclasses'+ path_suffix +'/class2S/', seqInfo=True)#, plot=True)
+	# 	print()
+	# except:
+	# 	pass
+	# try:
+	# 	print("Generating matrices for Class 2N mutations:")
+	# 	matrices = matGen.SigProfilerMatrixGeneratorFunc("class2N", genome, project_path + 'subclasses'+ path_suffix +'/class2N/', seqInfo=True)#, plot=True)
+	# 	print()
+	# except:
+	# 	pass
 
 
 
-
-
+def generateMatrices (genome, log_out, project_path, path_suffix, subclassesProcessor):
+	temp = sys.stdout
+	sys.stdout = open(log_out, 'a')
+	try:
+		for subclass in subclassesProcessor:
+			matrices = matGen.SigProfilerMatrixGeneratorFunc(subclass, genome, project_path + 'subclasses'+ path_suffix + '/' + subclass + '/', seqInfo=True)#, plot=True)
+		sys.stdout.close()
+	except:
+		pass

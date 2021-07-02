@@ -122,7 +122,7 @@ def distance_multiple_files_sims (output_path, simulations, simulation_path, sim
 			# If a new sample is reached, close the current file and open the new one
 			# The files are written under the simulations/ folder with the following fields:
 			# <IMD> <Sample_sim#> <chrom> <pos> <ref> <alt>
-			out_file = open(output_path  + file_sample + "/"+ sample + "_" + file_context2 + "_intradistance.txt", 'a')
+			out_file = open(output_path  + file_sample + "/"+ sample + "_" + file_context2 + "_intradistance.txt", 'a', 10000000)
 			for x in final_distances_filtered:
 				if x[1] == sample:
 					print("\t".join([str(y) for y in x]), file=out_file)
@@ -139,7 +139,7 @@ def distance_multiple_files_sims (output_path, simulations, simulation_path, sim
 								os.makedirs(output_path + file_sample + "/")
 						except:
 							pass
-						out_file = open(output_path  + file_sample + "/"+ sample + "_" + file_context2 + "_intradistance.txt", 'a')
+						out_file = open(output_path  + file_sample + "/"+ sample + "_" + file_context2 + "_intradistance.txt", 'a', 10000000)
 						print("\t".join([str(y) for y in x]), file=out_file)
 					else:
 						try:
@@ -155,7 +155,7 @@ def distance_multiple_files_sims (output_path, simulations, simulation_path, sim
 
 
 
-def distance_one_file (sample_path, output_path_original, file_context2, genome, centromeres):
+def distance_one_file (sample_path, original_samples, output_path_original, file_context2, genome, centromeres):
 	'''
 	#################################################################
 	############### Needs to be parallelized ########################
@@ -177,19 +177,23 @@ def distance_one_file (sample_path, output_path_original, file_context2, genome,
 		Distance files for all mutations in each original sample.
 	'''
 
-	# Organize the output paths (ie remove if they exist, and then create and emtpy folder)
-	if os.path.exists(output_path_original):
-		shutil.rmtree(output_path_original)
-		os.makedirs(output_path_original)
-	else:
-		os.makedirs(output_path_original)
+	# # Organize the output paths (ie remove if they exist, and then create and emtpy folder)
+	# if os.path.exists(output_path_original):
+	# 	shutil.rmtree(output_path_original)
+	# 	os.makedirs(output_path_original)
+	# else:
+	# 	os.makedirs(output_path_original)
 
 	# Iterate through each chromomse file that contains all of the mutations
 	# from the original samples. Sample_path is found under vcf_files_[suffix]
-	for file in os.listdir(sample_path):
+	# for file in os.listdir(sample_path):
+	for file in sample_path:
+
 
 		# Read in the files and sort them
-		with open(sample_path + file) as f:
+		# with open(sample_path + file) as f:
+		with open(original_samples + file) as f:
+
 			lines = [line.strip().split() for line in f]
 		original_lines = sorted(lines, key = lambda x: (x[0], int(x[2])))
 
@@ -213,20 +217,20 @@ def distance_one_file (sample_path, output_path_original, file_context2, genome,
 			# The files are written under the simulations/ folder with the following fiels:
 			# <IMD> <Sample_sim#> <chrom> <pos> <ref> <alt> <plotIMD_for_rainfall plots>
 			sample = final_distances_filtered[0][1]
-			out_file = open(output_path_original + sample + "_" + file_context2 + "_intradistance.txt", 'a')
+			out_file = open(output_path_original + sample + "_" + file_context2 + "_intradistance.txt", 'a', 10000000)
 			for x in final_distances_filtered:
 				if x[1] == sample:
 					print("\t".join([str(y) for y in x]), file=out_file)
 				else:
 					out_file.close()
 					sample = x[1]
-					out_file = open(output_path_original + sample + "_" + file_context2 + "_intradistance.txt", 'a')
+					out_file = open(output_path_original + sample + "_" + file_context2 + "_intradistance.txt", 'a', 10000000)
 					print("\t".join([str(y) for y in x]), file=out_file)
 			out_file.close()
 
 
 
-def analysis (project, genome, contexts, simContext, input_path, output_type='all', analysis='all', interdistance='96', exome=False, clustering_vaf=False, sortSims=True, extraction=False, correction=True, startProcess=1, endProcess=25, totalIterations=1000, calculateIMD=True, chrom_based=False, max_cpu=None, subClassify=False, sanger=True, TCGA=False, includedVAFs=True, windowSize=1000000, bedRanges=None):
+def analysis (project, genome, contexts, simContext, input_path, output_type='all', analysis='all', interdistance='96', exome=False, clustering_vaf=False, sortSims=True, extraction=False, correction=True, startProcess=1, endProcess=25, totalIterations=1000, calculateIMD=True, chrom_based=False, max_cpu=None, subClassify=False, sanger=True, TCGA=False, includedVAFs=True, windowSize=1000000, bedRanges=None, plotIMDfigure=True, plotRainfall=True):
 	'''
 	Organizes all of the data structures and calls all of the sub-functions. This is the main function called when running SigProfilerHotSpots.
 
@@ -254,6 +258,8 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 				   TCGA	->	optional parameter that informs the tool of what format the VAF scores are provided. This is required when subClassify=True and sanger=False (boolean; default=False)
 		   includedVAFs ->  optional parameter that informs the tool of the inclusion of VAFs in the dataset (boolean; default=True)
 			 windowSize	->	the size of the window used for correcting the IMDs based upon mutational density within a given genomic range (integer; default=10000000)
+		  plotIMDfigure	->	optional parameter that generates IMD and mutational spectra plots for each sample (boolean; default=True).
+		   plotRainfall	->	optional parameter that generates rainfall plots for each sample using the subclassification of clustered events (boolean; default=True).
 
 	Returns:
 		None
@@ -472,24 +478,13 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 	simulations = os.listdir(simulation_path)
 	if ".DS_Store" in simulations:
 		simulations.remove(".DS_Store")
+
+	# Assign max_seed as all available or user-provided number of processors for parallelization
 	if max_cpu:
 		processors = max_cpu
 	else:
 		processors = mp.cpu_count()
 	max_seed = processors
-	if processors > len(simulations):
-		max_seed = len(simulations)
-	pool = mp.Pool(max_seed)
-
-	sim_break = len(simulations)/max_seed
-	simulations_parallel = [[] for i in range(max_seed)]
-
-	sim_bin = 0
-	for sim in simulations:
-		if sim_bin == max_seed:
-			sim_bin = 0
-		simulations_parallel[sim_bin].append(sim)
-		sim_bin += 1
 
 	# Calculate the mutational distances for the original samples (distance_one_file())
 	# and for the simulated samples (distance_multiple_files_sims()). These series of if/else
@@ -501,15 +496,61 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 		print("Calculating mutational distances...", end='', flush=True)
 	if output_type == 'original':
 		distance_one_file (original_samples, output_path_original, file_context2, genome, centromeres)
+
+
+
 	elif output_type == 'all':
 		# Remove old path iterations if they exist
 		if os.path.exists(output_path):
 			shutil.rmtree(output_path)
 		os.makedirs(output_path)
+
 		# Calculate distances for the original samples
-		distance_one_file (original_samples, output_path_original, file_context2, genome, centromeres)
+		# Parallelize and calculate distances for the simulated samples
+		# Organize the output paths (ie remove if they exist, and then create and emtpy folder)
+		if os.path.exists(output_path_original):
+			shutil.rmtree(output_path_original)
+			os.makedirs(output_path_original)
+		else:
+			os.makedirs(output_path_original)
+		original_samples_length = os.listdir(original_samples)
+		if processors > len(original_samples_length):
+			max_seed = len(original_samples_length)
+		pool = mp.Pool(max_seed)
+		# pool_break = len(simulations)/max_seed
+		samples_parallel = [[] for i in range(max_seed)]
+		pool_bin = 0
+		for chromFile in original_samples_length:
+			if pool_bin == max_seed:
+				pool_bin = 0
+			samples_parallel[pool_bin].append(chromFile)
+			pool_bin += 1
 		results = []
-		# Calculate distances for the simulated samples
+		for i in range (0, len(samples_parallel), 1):
+			r = pool.apply_async(distance_one_file, args=(samples_parallel[i], original_samples, output_path_original, file_context2, genome, centromeres))
+			results.append(r)
+		pool.close()
+		pool.join()
+		for r in results:
+			r.wait()
+			if not r.successful():
+				# Raises an error when not successful
+				r.get()
+
+
+		# Parallelize and calculate distances for the simulated samples
+		if processors > len(simulations):
+			max_seed = len(simulations)
+		pool = mp.Pool(max_seed)
+		# sim_break = len(simulations)/max_seed
+		simulations_parallel = [[] for i in range(max_seed)]
+		sim_bin = 0
+		for sim in simulations:
+			if sim_bin == max_seed:
+				sim_bin = 0
+			simulations_parallel[sim_bin].append(sim)
+			sim_bin += 1
+		results = []
 		for i in range (0, len(simulations_parallel), 1):
 			r = pool.apply_async(distance_multiple_files_sims, args=(output_path, simulations_parallel[i], simulation_path, simulation_path_sorted, file_context2, genome, centromeres, sortSims))
 			results.append(r)
@@ -520,17 +561,17 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 			if not r.successful():
 				# Raises an error when not successful
 				r.get()
+
+
 	elif output_type == 'simulations':
 		if os.path.exists(output_path):
 			shutil.rmtree(output_path)
-		os.makedirs(output_path)
 		distance_multiple_files_sims (output_path, simulation_path, simulation_path_sorted, file_context2, genome, centromeres, sortSims)
-	else:
-		print("Output type is not a valid option.")
-		sys.exit()
+	# elif :
+	# 	print("Output type is not a valid option.")
+	# 	sys.exit()
 	if output_type != None:
 		print("Completed!", flush=True) # IMD calculations have successfully completed.
-
 
 
 
@@ -540,7 +581,7 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 		firstRun=True
 		signature = False
 		percentage = False
-		regions, imds = hotspot.hotSpotAnalysis(project, genome, contexts, simContext, ref_dir, windowSize, exome, chromLengths, binsDensity, original, signature, percentage, firstRun, clustering_vaf, calculateIMD, chrom_based, correction)
+		regions, imds = hotspot.hotSpotAnalysis(project, genome, contexts, simContext, ref_dir, windowSize, processors, plotIMDfigure, exome, chromLengths, binsDensity, original, signature, percentage, firstRun, clustering_vaf, calculateIMD, chrom_based, correction)
 
 	# Allows for the clustered muutations to automactically run through the extraction.
 	# This option is not recommended, but rather the extractions should be run separately after 
@@ -553,23 +594,26 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 	# produce the rainfall plots.
 	if subClassify:
 		if contexts != "ID":
-			print("Beginning subclassification of clustered mutations:\n")
+			print("Beginning subclassification of clustered mutations...", end='')
 			if includedVAFs:
 				classifyFunctions.pullVaf (project, input_path, sanger, TCGA, correction)
 				sys.stderr.close()
 				sys.stderr = open(error_file, 'a')
-				classifyFunctions.findClustersOfClusters (project, chrom_based, input_path, windowSize, chromLengths, regions, genome, imds, correction)
+				classifyFunctions.findClustersOfClusters (project, chrom_based, input_path, windowSize, chromLengths, regions, log_file, genome, processors, imds, correction)
 				sys.stderr.close()
 			else:
-				classifyFunctions.findClustersOfClusters_noVAF (project, chrom_based, input_path, windowSize, chromLengths, regions, genome, imds, correction)
+				classifyFunctions.findClustersOfClusters_noVAF (project, chrom_based, input_path, windowSize, chromLengths, regions, log_file, genome, processors, imds, correction)
 				sys.stderr.close()
+			print("Completed!", flush=True)
 		sys.stderr = open(error_file, 'a')
+		
 
 		# Generate the rainfall plots.
-		print("Generating a rainfall plot for all samples...", end='')
-		plottingFunctions.rainfall(chrom_based, project, input_path, chrom_path, chromLengths, centromeres, contexts, includedVAFs, correction, windowSize, bedRanges)
-		print("done")
-		print("Subclassification of clustered mutations has finished!")
+		if plotRainfall:
+			print("Generating a rainfall plot for all samples...", end='')
+			plottingFunctions.rainfall(chrom_based, project, input_path, chrom_path, chromLengths, centromeres, contexts, includedVAFs, correction, windowSize, bedRanges)
+			print("done")
+			print("Subclassification of clustered mutations has finished!")
 
 	sys.stderr.close()
 	end = time.time() - start
