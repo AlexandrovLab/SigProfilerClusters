@@ -15,7 +15,7 @@ def readme():
 	# with open('README.rst') as f:
 	# 	return(f.read())
 
-VERSION = '0.0.24'
+VERSION = '0.0.25'
 
 def write_version_py(filename='SigProfilerHotSpots/version.py'):
 	# Copied from numpy setup.py
