@@ -232,7 +232,7 @@ def distance_one_file (sample_path, original_samples, output_path_original, file
 
 
 
-def analysis (project, genome, contexts, simContext, input_path, output_type='all', analysis='all', interdistance='96', exome=False, clustering_vaf=False, sortSims=True, extraction=False, correction=True, startProcess=1, endProcess=25, totalIterations=1000, calculateIMD=True, chrom_based=False, max_cpu=None, subClassify=False, sanger=True, TCGA=False, includedVAFs=True, windowSize=1000000, bedRanges=None, plotIMDfigure=True, plotRainfall=True):
+def analysis (project, genome, contexts, simContext, input_path, output_type='all', analysis='all', interdistance='96', exome=False, clustering_vaf=False, sortSims=True, extraction=False, correction=True, startProcess=1, endProcess=25, totalIterations=1000, calculateIMD=True, chrom_based=False, max_cpu=None, subClassify=False, sanger=True, TCGA=False, standardVC=False, includedVAFs=True, windowSize=1000000, bedRanges=None, plotIMDfigure=True, plotRainfall=True):
 	'''
 	Organizes all of the data structures and calls all of the sub-functions. This is the main function called when running SigProfilerHotSpots.
 
@@ -258,6 +258,7 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 			subClassify	->	optional parameter to subclassify the clustered mutations into refinded classes including DBSs, extended MBSs, kataegis, etc. (boolean; default=False)
 				 sanger	-> 	optional parameter that informs the tool of what format the VAF scores are provided. This is required when subClassify=True (boolean; default=True)
 				   TCGA	->	optional parameter that informs the tool of what format the VAF scores are provided. This is required when subClassify=True and sanger=False (boolean; default=False)
+			 standardVC	->	optional parameter that informs the tool of what format the VAF scores are provided. This is required when subClassify=True and sanger=False and TCGA=False and when the data contains VAF formatted in the 7th column as AF=XX (boolean; default=False)
 		   includedVAFs ->  optional parameter that informs the tool of the inclusion of VAFs in the dataset (boolean; default=True)
 			 windowSize	->	the size of the window used for correcting the IMDs based upon mutational density within a given genomic range (integer; default=10000000)
 		  plotIMDfigure	->	optional parameter that generates IMD and mutational spectra plots for each sample (boolean; default=True).
@@ -598,7 +599,7 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 		if contexts != "ID":
 			print("Beginning subclassification of clustered mutations...", end='')
 			if includedVAFs:
-				classifyFunctions.pullVaf (project, input_path, sanger, TCGA, correction)
+				classifyFunctions.pullVaf (project, input_path, sanger, TCGA, standardVC, correction)
 				sys.stderr.close()
 				sys.stderr = open(error_file, 'a')
 				classifyFunctions.findClustersOfClusters (project, chrom_based, input_path, windowSize, chromLengths, regions, log_file, genome, processors, imds, correction)

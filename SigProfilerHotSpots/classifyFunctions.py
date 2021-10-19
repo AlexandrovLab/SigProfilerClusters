@@ -60,7 +60,7 @@ def processivitySubclassification (event, out2Y, out2K, out2S, out2N):
 			for line in event:
 				print("\t".join([x for x in line]), file=out2N)
 
-def pullVaf (project, project_path, sanger=True, TCGA=False, correction=True):
+def pullVaf (project, project_path, sanger=True, TCGA=False, standardVC=False, correction=True):
 	'''
 	Collects the VAFs from the original mutation files. Assumes that these are provided in the same 
 	format as Sanger or TCGA.
@@ -70,6 +70,7 @@ def pullVaf (project, project_path, sanger=True, TCGA=False, correction=True):
 		project_path	->	the directory for the given project (string)
 			  sanger	->	optional parameter that informs the tool of what format the VAF scores are provided. This is required when subClassify=True (boolean; default=True)
 				TCGA	->	optional parameter that informs the tool of what format the VAF scores are provided. This is required when subClassify=True and sanger=False (boolean; default=False)
+		  standardVC	->	optional parameter that informs the tool of what format the VAF scores are provided. This is required when subClassify=True and sanger=False and TCGA=False and when the data contains VAF formatted in the 7th column as AF=XX (boolean; default=False)
 		  correction	->	optional parameter to perform a genome-wide mutational density correction (boolean; default=False)
 
 	Returns:
@@ -142,6 +143,28 @@ def pullVaf (project, project_path, sanger=True, TCGA=False, correction=True):
 						vaf = -1.5
 					keyLine = ":".join([chrom, pos, ref, alt])
 					vafs[sample][keyLine] = vaf
+
+	elif standardVC:
+		vafs = {}
+		for vcfFile in vcf_files:
+			sample = vcfFile.split(".")[0]
+			vafs[sample] = {}
+			with open(vcf_path + vcfFile) as f:
+				for lines in f:
+					if lines[0] == "#":
+						continue
+					lines = lines.strip().split()
+					chrom = lines[0]
+					pos = lines[1]
+					ref = lines[3]
+					alt = lines[4]
+					try:
+						vaf = float(lines[7].split("AF=")[1].split(";")[0])
+					except:
+						vaf = -1.5
+					keyLine = ":".join([chrom, pos, ref, alt])
+					vafs[sample][keyLine] = vaf
+
 
 		with open(clusteredMutsFile) as f, open(clusteredMutsPath + project + "_clustered_vaf.txt", "w") as out:
 			next(f)
