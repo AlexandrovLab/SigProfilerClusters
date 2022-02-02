@@ -1,4 +1,4 @@
-[![Docs](https://img.shields.io/badge/docs-latest-blue.svg)](https://osf.io/qpmzw/wiki/home/) [![License](https://img.shields.io/badge/License-BSD\%202--Clause-orange.svg)](https://opensource.org/licenses/BSD-2-Clause) [![Build Status](https://app.travis-ci.com/AlexandrovLab/SigProfilerHotSpots.svg?branch=master)](https://app.travis-ci.com/AlexandrovLab/SigProfilerHotSpots)
+[![Docs](https://img.shields.io/badge/docs-latest-blue.svg)](https://osf.io/qpmzw/wiki/home/) [![License](https://img.shields.io/badge/License-BSD\%202--Clause-orange.svg)](https://opensource.org/licenses/BSD-2-Clause) [![Build Status](https://app.travis-ci.com/AlexandrovLab/SigProfilerHotSpots.svg?token=Fyqun3zxxDr3YzDRaKKm&branch=master)](https://app.travis-ci.com/AlexandrovLab/SigProfilerHotSpots)
 
 
 # SigProfilerClusters
