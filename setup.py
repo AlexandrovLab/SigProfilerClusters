@@ -15,7 +15,7 @@ def readme():
 	# with open('README.rst') as f:
 	# 	return(f.read())
 
-VERSION = '0.0.28'
+VERSION = '0.0.29'
 
 def write_version_py(filename='SigProfilerClusters/version.py'):
 	# Copied from numpy setup.py
