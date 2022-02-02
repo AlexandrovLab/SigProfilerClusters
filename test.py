@@ -1,1 +1,1 @@
-from SigProfilerHotSpots import SigProfilerHotSpots as hp
+from SigProfilerClusters import SigProfilerClusters as hp
