@@ -234,7 +234,7 @@ def distance_one_file (sample_path, original_samples, output_path_original, file
 
 def analysis (project, genome, contexts, simContext, input_path, output_type='all', analysis='all', interdistance='96', exome=False, clustering_vaf=False, sortSims=True, extraction=False, correction=True, startProcess=1, endProcess=25, totalIterations=1000, calculateIMD=True, chrom_based=False, max_cpu=None, subClassify=False, sanger=True, TCGA=False, standardVC=False, includedVAFs=True, windowSize=1000000, bedRanges=None, plotIMDfigure=True, plotRainfall=True):
 	'''
-	Organizes all of the data structures and calls all of the sub-functions. This is the main function called when running SigProfilerHotSpots.
+	Organizes all of the data structures and calls all of the sub-functions. This is the main function called when running SigProfilerClusters.
 
 	Parameters:
 				project	->	user provided project name (string)
@@ -369,8 +369,8 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 
 	time_stamp = datetime.date.today()
 
-	log_file = output_log_path + 'SigProfilerHotSpots_' + project + "_" + genome + "_" + str(time_stamp) + ".out"
-	error_file = output_log_path + 'SigProfilerHotSpots_' + project + "_" + genome + "_" + str(time_stamp) + ".err"
+	log_file = output_log_path + 'SigProfilerClusters_' + project + "_" + genome + "_" + str(time_stamp) + ".out"
+	error_file = output_log_path + 'SigProfilerClusters_' + project + "_" + genome + "_" + str(time_stamp) + ".err"
 	if os.path.exists(error_file):
 		os.remove(error_file)
 	if os.path.exists(log_file):
@@ -397,7 +397,7 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 	log_out.close()
 
 	print("\n\n=====================================", flush=True)
-	print("Beginning SigProfilerHotSpot Analysis", flush=True)
+	print("Beginning SigProfilerClusters Analysis", flush=True)
 	print("=====================================\n\n", flush=True)
 	# Log files are done begin created and the majority of the folder structures are set
 
@@ -465,16 +465,16 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 
 
 	# Checks for simulated data. If there are not simulations, then inform the user to generate simulations first before
-	# performing the hotspot analysis:
+	# performing the clusters analysis:
 	if not os.path.exists(simulation_path):
-		print("There are no simulated data present for this project. Please generate simulations before running SigProfilerHotSpots.\n"\
+		print("There are no simulated data present for this project. Please generate simulations before running SigProfilerClusters.\n"\
 				"\tThe package can be installed via pip:\n\t\t\t$ pip install SigProfilerSimulator\n"\
 				"\n\tand used within a python3 sessions as follows:\n\t\t\t$ python3\n\t\t\t>> from SigProfilerSimulator import SigProfilerSimulator as sigSim\n"\
 				"\t\t\t>> sigSim.SigProfilerSimulator(project, project_path, genome, contexts=['6144'], simulations=100)\n\n"\
 				"\tFor a complete list of parameters, visit the github repo (https://github.com/AlexandrovLab/SigProfilerSimulator) or the documentation page (https://osf.io/usxjz/wiki/home/)")
 		sys.exit()
 	if len(os.listdir(simulation_path)) < 100:
-		print("Please simulate a minimum of 100 simulations per sample to successfully run SigProfilerHotSpots.")
+		print("Please simulate a minimum of 100 simulations per sample to successfully run SigProfilerClusters.")
 		sys.exit()
 
 	# Collect simulation files and distribute them into the available processors for parallelization
@@ -620,5 +620,5 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 
 	sys.stderr.close()
 	end = time.time() - start
-	print("SigProfilerHotSpots successfully finished! Elapsed time: " + str(round(end, 2)) + " seconds.")
+	print("SigProfilerClusters successfully finished! Elapsed time: " + str(round(end, 2)) + " seconds.")
 

@@ -2,7 +2,7 @@ import os
 import numpy as np
 import os
 from SigProfilerMatrixGenerator.scripts import SigProfilerMatrixGeneratorFunc as matGen
-from SigProfilerHotSpots import hotspot
+from SigProfilerClusters import hotspot
 import shutil
 from numpy import median
 import pickle

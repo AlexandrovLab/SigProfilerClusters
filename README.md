@@ -4,10 +4,11 @@
 # SigProfilerClusters
 Tool for analyzing the inter-mutational distances between SNV-SNV and INDEL-INDEL mutations. Tool separates mutations into clustered and non-clustered groups on a sample-dependent basis and subclassifies all SNVs into a set category of clustered event: i) DBS; ii) MBS; iii) omikli; and iv) kataegis. Indels are not subclassifed. 
 
+This tool was previously under the project name of SigProfilerHotSpots, but has been renamed to SigProfilerClusters. For all instructions below, SigProfilerClusters may be interchanged with SigProfilerHotSpots if the older version of the tools is being used.
 
 **INTRODUCTION**
 
-The purpose of this document is to provide a guide for using the SigProfilerHotSpots framework. An extensive Wiki page detailing the usage of this tool can be found at https://osf.io/qpmzw/wiki/home/.
+The purpose of this document is to provide a guide for using the SigProfilerClusters framework. An extensive Wiki page detailing the usage of this tool can be found at https://osf.io/qpmzw/wiki/home/.
 
 
 **PREREQUISITES**
@@ -30,6 +31,7 @@ This section will guide you through the minimum steps required to perform cluste
 1b. Install the python package using pip (deprecated version):
                           pip install SigProfilerHotSpots
                           
+                          
 Install your desired reference genome from the command line/terminal as follows (available reference genomes are: GRCh37, GRCh38, mm9, and mm10):
 ```
 $ python
@@ -38,6 +40,7 @@ $ python
 ```
 This will install the human 37 assembly as a reference genome. You may install as many genomes as you wish. If you have a firewall on your server, you may need to install rsync and use the rsync=True parameter. Similarly, if you do not have bash, 
 use bash=False.
+
 2. Place your vcf files in your desired output folder. It is recommended that you name this folder based on your project's name. Before you can analyze clustered mutations, you need to generate a background model for each of your samples. To do this, generate a minimum of 100 simulations for your project (see SigProfilerSimulator for a detailed list of parameters):
 ```
 >>from SigProfilerSimulator import SigProfilerSimulator as sigSim
@@ -45,7 +48,7 @@ use bash=False.
 ```
 3. Now the original mutations can be partitioned into clustered and non-clustered sets using the required parameters below:
 ```
->> from SigProfilerHotSpots import SigProfilerHotSpots as hp
+>> from SigProfilerClusters import SigProfilerClusters as hp
 >> hp.analysis(project, genome, contexts, simContext, input_path)
 ```
 See below for a detailed list of available parameters
@@ -82,7 +85,7 @@ See below for a detailed list of available parameters
 
 **LOG FILES**
 
-All errors and progress checkpoints are saved into SigProfilerHotSpots_[project]_[genome].err and SigProfilerHotSpots_[project]_[genome].out, respectively. For all errors, please email the error and progress log files to the primary contact under CONTACT INFORMATION.
+All errors and progress checkpoints are saved into SigProfilerClusters_[project]_[genome].err and SigProfilerClusters_[project]_[genome].out, respectively. For all errors, please email the error and progress log files to the primary contact under CONTACT INFORMATION.
 
 CITATION
 

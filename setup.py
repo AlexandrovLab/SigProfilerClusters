@@ -17,10 +17,10 @@ def readme():
 
 VERSION = '0.0.28'
 
-def write_version_py(filename='SigProfilerHotSpots/version.py'):
+def write_version_py(filename='SigProfilerClusters/version.py'):
 	# Copied from numpy setup.py
 	cnt = """
-# THIS FILE IS GENERATED FROM SIGPROFILEHOTSPOTS SETUP.PY
+# THIS FILE IS GENERATED FROM SIGPROFILECLUSTERS SETUP.PY
 short_version = '%(version)s'
 version = '%(version)s'
 	
@@ -31,9 +31,9 @@ version = '%(version)s'
 
 write_version_py()
 
-setup(name='SigProfilerHotSpots',
+setup(name='SigProfilerClusters',
 		version=VERSION,
-		description='SigProfilerHotSpots tool',
+		description='SigProfilerClusters tool',
 		long_description= readme(),
 		long_description_content_type='text/markdown',
 		url='',

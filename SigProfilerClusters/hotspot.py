@@ -1368,7 +1368,7 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, windowSize,
 			simContext += "_exome"
 		pp = PdfPages(directory_out + project + '_intradistance_plots_' + simContext + path_suffix + '.pdf')
 		histo = True
-		print("Plotting SigProfilerHotSpot Results...", end='', flush=True)
+		print("Plotting SigProfilerClusters Results...", end='', flush=True)
 		for folder in folders:
 			if folder == '.DS_Store_intradistance.txt' or folder == '.DS_Store':
 				continue
