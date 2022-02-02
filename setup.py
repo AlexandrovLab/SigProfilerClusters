@@ -15,7 +15,7 @@ def readme():
 	# with open('README.rst') as f:
 	# 	return(f.read())
 
-VERSION = '0.0.26'
+VERSION = '0.0.27'
 
 def write_version_py(filename='SigProfilerHotSpots/version.py'):
 	# Copied from numpy setup.py
@@ -44,12 +44,12 @@ setup(name='SigProfilerHotSpots',
 		install_requires =[
 			"matplotlib>=3.3.0",
 			"sigProfilerPlotting>=1.1.8",
-			"SigProfilerMatrixGenerator>=1.1.19",
-			"SigProfilerSimulator>=1.1.0",
+			"SigProfilerMatrixGenerator>=1.2.4",
+			"SigProfilerSimulator>=1.1.3",
 			"statsmodels>=0.9.0",
 			"scipy>=1.1.0",
 			"pandas>=0.23.4",
-			"numpy>=1.14.3",
+			"numpy>= 1.17.3",
 			"SigProfilerExtractor>=1.0.17"],
 		include_package_data=True,
 		zip_safe=False)

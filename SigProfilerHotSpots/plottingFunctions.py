@@ -52,9 +52,9 @@ def plot96_same (matrix_path, matrix_path_clustered, matrix_path_nonClustered, s
 	Outputs:
 		Plots for all of the SBS96 axes
 	'''
-	if 'roman' in matplotlib.font_manager.weight_dict:
-		del matplotlib.font_manager.weight_dict['roman']
-		matplotlib.font_manager._rebuild()
+	# if 'roman' in matplotlib.font_manager.weight_dict:
+	# 	del matplotlib.font_manager.weight_dict['roman']
+	# 	matplotlib.font_manager._rebuild()
 
 	mutations = dict()
 	total_count = []
@@ -407,9 +407,9 @@ def plotINDEL_same (matrix_path, matrix_path_clustered, matrix_path_nonClustered
 	Outputs:
 		Plots for all of the ID83 axes
 	'''
-	if 'roman' in matplotlib.font_manager.weight_dict:
-		del matplotlib.font_manager.weight_dict['roman']
-		matplotlib.font_manager._rebuild()
+	# if 'roman' in matplotlib.font_manager.weight_dict:
+	# 	del matplotlib.font_manager.weight_dict['roman']
+	# 	matplotlib.font_manager._rebuild()
 
 	indel_types = ['1:Del:C:1', '1:Del:C:2', '1:Del:C:3', '1:Del:C:4', '1:Del:C:5', '1:Del:C:6'
 				   '1:Del:T:1', '1:Del:T:2', '1:Del:T:3', '1:Del:T:4', '1:Del:T:5', '1:Del:T:6'
@@ -1093,7 +1093,8 @@ def rainfall (chrom_based_IMD, project, project_path, chrom_path, chromLengths, 
 		mutations = pd.read_csv(mutationsPath[0], sep="\t", names=["project", "samples","ID","genome","mutType","chr","start","end", "ref", "alt", "mutClass", "IMDplot", "IMD"], header=0, skiprows=[0])
 	else:
 		mutations = pd.read_csv(mutationsPath[0], sep="\t", names=headerFields[:-1], header=0)
-	genome = mutations.head(1).loc[0,'genome']
+	# genome = mutations.head(1).loc[0,'genome']
+	genome = None
 	mutations['chr'] = mutations['chr'].astype(str)
 	mutations = mutations.set_index(['samples', 'chr'])
 	mutations = mutations.sort_index()
@@ -1114,7 +1115,13 @@ def rainfall (chrom_based_IMD, project, project_path, chrom_path, chromLengths, 
 			allMutations[classes[i]] = newMutations
 			samples[classes[i]] = list(set(newMutations.index.droplevel(1)))
 			samplesSet.update(list(set(newMutations.index.droplevel(1))))
+			try:
+				if not genome:
+					genome = newMutations.head(1).iloc[0,2]
+			except:
+				continue
 
+	samplesSet = set([str(x) for x in list(samplesSet)])
 	# Set up chromosome parameters:
 	# chrom_path = "/anaconda3/lib/python3.6/site-packages/SigProfilerMatrixGenerator/references/chromosomes/tsb/" + genome + "/"
 	chroms = [x.split(".")[0] for x in os.listdir(chrom_path) if x != ".DS_Store" and x[0]!= "G" and x[0] != "M" and x != "BED_" + genome + "_proportions.txt" and 'proportions' not in x]

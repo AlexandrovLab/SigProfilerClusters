@@ -112,16 +112,16 @@ def pullVaf (project, project_path, sanger=True, TCGA=False, standardVC=False, c
 					keyLine = ":".join([chrom, pos, ref, alt])
 					vafs[sample][keyLine] = vaf
 
-		with open(clusteredMutsFile) as f, open(clusteredMutsPath + project + "_clustered_vaf.txt", "w") as out:
-			next(f)
-			print("HEADER", file=out)
-			for lines in f:
-				lines = lines.strip().split()
-				sample = lines[1]
-				newKey = ":".join([lines[5], lines[6], lines[8], lines[9]])
-				vaf = vafs[sample][newKey]
-				lines.append(str(vaf))
-				print("\t".join([x for x in lines]), file=out)
+		# with open(clusteredMutsFile) as f, open(clusteredMutsPath + project + "_clustered_vaf.txt", "w") as out:
+		# 	next(f)
+		# 	print("HEADER", file=out)
+		# 	for lines in f:
+		# 		lines = lines.strip().split()
+		# 		sample = lines[1]
+		# 		newKey = ":".join([lines[5], lines[6], lines[8], lines[9]])
+		# 		vaf = vafs[sample][newKey]
+		# 		lines.append(str(vaf))
+		# 		print("\t".join([x for x in lines]), file=out)
 
 	elif TCGA:
 		vafs = {}
@@ -159,25 +159,28 @@ def pullVaf (project, project_path, sanger=True, TCGA=False, standardVC=False, c
 					ref = lines[3]
 					alt = lines[4]
 					try:
-						vaf = float(lines[7].split("AF=")[1].split(";")[0])
+						vaf = float(lines[9].split("AF=")[1].split(";")[0])
 					except:
 						vaf = -1.5
 					keyLine = ":".join([chrom, pos, ref, alt])
 					vafs[sample][keyLine] = vaf
 
 
-		with open(clusteredMutsFile) as f, open(clusteredMutsPath + project + "_clustered_vaf.txt", "w") as out:
-			next(f)
-			print("HEADER", file=out)
-			for lines in f:
-				lines = lines.strip().split()
-				sample = lines[1]
-				newKey = ":".join([lines[5], lines[6], lines[8], lines[9]])
+	with open(clusteredMutsFile) as f, open(clusteredMutsPath + project + "_clustered_vaf.txt", "w") as out:
+		next(f)
+		print("HEADER", file=out)
+		for lines in f:
+			lines = lines.strip().split()
+			sample = lines[1]
+			newKey = ":".join([lines[5], lines[6], lines[8], lines[9]])
 
+			try:
 				vaf = vafs[sample][newKey]
-
-				lines.append(str(vaf))
-				print("\t".join([x for x in lines]), file=out)
+			except:
+				newKey = ":".join(["chr" + lines[5], lines[6], lines[8], lines[9]])
+				vaf = vafs[sample][newKey]
+			lines.append(str(vaf))
+			print("\t".join([x for x in lines]), file=out)
 
 
 def findClustersOfClusters (project, chrom_based, project_parent_path, windowSize, chromLengths, regions, log_out, genome, processors, imds, correction=True):

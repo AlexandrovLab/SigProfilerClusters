@@ -1,29 +1,33 @@
-[![License](https://img.shields.io/badge/License-BSD\%202--Clause-orange.svg)](https://opensource.org/licenses/BSD-2-Clause) [![Build Status](https://travis-ci.com/AlexandrovLab/SigProfilerHotSpots.svg?token=Fyqun3zxxDr3YzDRaKKm&branch=master)](https://travis-ci.com/AlexandrovLab/SigProfilerHotSpots)
+[![Docs](https://img.shields.io/badge/docs-latest-blue.svg)](https://osf.io/qpmzw/wiki/home/) [![License](https://img.shields.io/badge/License-BSD\%202--Clause-orange.svg)](https://opensource.org/licenses/BSD-2-Clause) [![Build Status](https://travis-ci.com/AlexandrovLab/SigProfilerHotSpots.svg?branch=master)](https://travis-ci.com/AlexandrovLab/SigProfilerHotSpots)
 
 
 # SigProfilerHotSpots
-Tool for analyzing the inter-mutational distances between SNV-SNV and INDEL-INDEL mutations. Tool separates mutations into clustered and non-clustered groups on a sample-dependent basis. 
+Tool for analyzing the inter-mutational distances between SNV-SNV and INDEL-INDEL mutations. Tool separates mutations into clustered and non-clustered groups on a sample-dependent basis and subclassifies all SNVs into a set category of clustered event: i) DBS; ii) MBS; iii) omikli; and iv) kataegis. Indels are not subclassifed. 
 
 
 **INTRODUCTION**
 
-The purpose of this document is to provide a guide for using the SigProfilerHotSpots framework.
+The purpose of this document is to provide a guide for using the SigProfilerHotSpots framework. An extensive Wiki page detailing the usage of this tool can be found at https://osf.io/qpmzw/wiki/home/.
 
 
 **PREREQUISITES**
 
 The framework is written in PYTHON, and uses additional SigProfiler packages:
 
-SigProfilerMatrixGenerator
-SigProfilerSimulator
+  * PYTHON          version 3.4 or newer
+  * SigProfilerMatrixGenerator (https://github.com/AlexandrovLab/SigProfilerMatrixGenerator)
+  * SigProfilerSimulator (https://github.com/AlexandrovLab/SigProfilerSimulator)
 
 Please visit their respective GitHub pages for detailed installation and usage instructions.
 
 **QUICK START GUIDE**
 
-This section will guide you through the minimum steps required to perform a hot-spot analysis:
+This section will guide you through the minimum steps required to perform clustered analysis:
 
-1. Install the python package using pip:
+1a. Install the python package using pip (current package):
+                          pip install SigProfilerClusters
+
+1b. Install the python package using pip (deprecated version):
                           pip install SigProfilerHotSpots
                           
 Install your desired reference genome from the command line/terminal as follows (available reference genomes are: GRCh37, GRCh38, mm9, and mm10):
@@ -50,18 +54,26 @@ See below for a detailed list of available parameters
 
 **AVAILABLE PARAMETERS**
 
+	Required:
             project:			[string] Unique name for the given project
             genome:			[string] Reference genome to use. Must be installed using SigProfilerMatrixGenerator
             contexts:			[string] Mutation context for measuring IMD (e.g. "6", "96", "1536", etc,)
             simContext: 		[list of strings] Mutations context that was used for generating the background model (e.g ["6144"] or ["96"])
             input_path:			[string] Path to the given project
+    
+    	Optional:
             analysis:	 		[string] Desired analysis pipeline. By default output_type='all'. Other options include "subClassify" and "hotspot". 
             sortSims:			[boolean] Option to sort the simulated files if they have already been sorted. By default sortSims=True to ensure accurate results. The files must be sorted for accurate results. 
+            interdistance:			[string] The mutation types to calculate IMDs between - Use only when performing analysis of indels (default='ID').
+            calculateIMD:		[boolean] Parameter to calculate the IMDs. This will save time if you need to rerun the subclassification step only (default=True).
             chrom_based:		[boolean] Option to generate chromosome-dependent IMDs per sample. By default chrom_based=False. 
             max_cpu:			[integer] Change the number of allocated CPUs. By default all CPUs are used
             subClassify:		[boolean] Subclassify the clustered mutations. Requires that VAF scores are available in TCGA or Sanger format. By default subClassify=False 
+            plotIMDfigure:	[boolean] Parameter that generates IMD and mutational spectra plots for each sample (default=True).
+            plotRainfall		[boolean] Parameter that generates rainfall plots for each sample using the subclassification of clustered events (default=True).
             
             The following parameters are used if the subClassify argument is True:
+            includedVAFs:	[boolean] Parameter that informs the tool of the inclusion of VAFs in the dataset (default=True)
             sanger:			[boolean] The input files are from Sanger. By default sanger=True
             TCGA:			[boolean] The input files are from TCGA. By default TCGA=False
             windowSize:		[integer] Window size for calculating mutation density in the rainfall plots. By default windowSize=10000000
@@ -74,11 +86,11 @@ All errors and progress checkpoints are saved into SigProfilerHotSpots_[project]
 
 CITATION
 
-E.N. Bergstrom, M.N. Huang, U. Mahto, M. Barnes, M.R. Stratton, S.G. Rozen, and L.B. Alexandrov (2019) SigProfilerMatrixGenerator: a tool for visualizing and exploring patterns of small mutational events. https://www.biorxiv.org/content/10.1101/653097v1
+Bergstrom EN, Luebeck J, Petljak M, Bafna V, Mischell PS, Harris RS, and Alexandrov LB (2021) Comprehensive analysis of clustered mutations in cancer reveals recurrent APOBEC3 mutagenesis of ecDNA. bioRxiv 2021.05.27.445689; doi: https://doi.org/10.1101/2021.05.27.445689
 
 COPYRIGHT
 
-Copyright (c) 2020, Erik Bergstrom [Alexandrov Lab] All rights reserved.
+Copyright (c) 2021, Erik Bergstrom [Alexandrov Lab] All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 

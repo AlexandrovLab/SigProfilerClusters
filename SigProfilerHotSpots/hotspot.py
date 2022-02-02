@@ -519,7 +519,7 @@ def densityCorrection (densityMuts, densityMutsSim, windowSize):
 	try:
 			maxDistance = max(max(densityMuts), max([int(densityMutsSim[x][-1]) for x in densityMutsSim])) + windowSize
 	except:
-		if len(densityMuts) ==0:
+		if len(densityMuts) == 0:
 				maxDistance = max([int(densityMutsSim[x][-1]) for x in densityMutsSim]) + windowSize
 		else:
 			maxDistance = max(densityMuts) + windowSize
