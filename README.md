@@ -1,7 +1,7 @@
-[![Docs](https://img.shields.io/badge/docs-latest-blue.svg)](https://osf.io/qpmzw/wiki/home/) [![License](https://img.shields.io/badge/License-BSD\%202--Clause-orange.svg)](https://opensource.org/licenses/BSD-2-Clause) [![Build Status](https://travis-ci.com/AlexandrovLab/SigProfilerHotSpots.svg?branch=master)](https://travis-ci.com/AlexandrovLab/SigProfilerHotSpots)
+[![Docs](https://img.shields.io/badge/docs-latest-blue.svg)](https://osf.io/qpmzw/wiki/home/) [![License](https://img.shields.io/badge/License-BSD\%202--Clause-orange.svg)](https://opensource.org/licenses/BSD-2-Clause) [![Build Status](https://app.travis-ci.com/AlexandrovLab/SigProfilerHotSpots.svg?branch=master)](https://app.travis-ci.com/AlexandrovLab/SigProfilerHotSpots)
 
 
-# SigProfilerHotSpots
+# SigProfilerClusters
 Tool for analyzing the inter-mutational distances between SNV-SNV and INDEL-INDEL mutations. Tool separates mutations into clustered and non-clustered groups on a sample-dependent basis and subclassifies all SNVs into a set category of clustered event: i) DBS; ii) MBS; iii) omikli; and iv) kataegis. Indels are not subclassifed. 
 
 

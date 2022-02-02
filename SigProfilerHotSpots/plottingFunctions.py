@@ -1286,10 +1286,10 @@ def rainfall (chrom_based_IMD, project, project_path, chrom_path, chromLengths, 
 								# 	plotIMDs = [[x,y] for x,y in zip(starts, minIMDs)]
 								if contexts != 'ID':
 									if subclass == "Class III":
-										plotIMDs = [[x,int(y)] for z,(x,y) in enumerate(zip(starts, imds_recorded)) if y != 'c' and (z not in newGroup or len(starts) == 1 or len(starts) == len(newGroup))]
+										plotIMDs = [[x,int(y)] for z,(x,y) in enumerate(zip(starts, imds_recorded)) if (y != 'c' and y != 'd') and (z not in newGroup or len(starts) == 1 or len(starts) == len(newGroup))]
 									else:
 										# plotIMDs = [[x,int(y)] for x,y in zip(starts, IMDsPlotRecorded) if y != 'c' ]
-										plotIMDs = [[x,int(y)] for z,(x,y) in enumerate(zip(starts, IMDsPlotRecorded)) if y != 'c' and (z not in newGroup or len(starts) == 1 or len(starts) == len(newGroup))]
+										plotIMDs = [[x,int(y)] for z,(x,y) in enumerate(zip(starts, IMDsPlotRecorded)) if (y != 'c' and y != 'd') and (z not in newGroup or len(starts) == 1 or len(starts) == len(newGroup))]
 								else:
 									plotIMDs = [[x,y] for x,y in zip(starts, imds_recorded)]# if y <= imdsData[sample.split("_")[0]] or y < 10000]
 								if len(plotIMDs) == 0:
