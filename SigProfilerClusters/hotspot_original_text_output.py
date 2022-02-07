@@ -993,10 +993,8 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, windowSize,
 			print("HEADER", file=nonclust)
 
 		print("Determining sample-dependent intermutational distance (IMD) cutoff...", end='', flush=True)
-
-
 #####################################################################################################################
-# DONE - This section of code should be put into a function so that we can parallelize it
+# This section of code should be put into a function so that we can parallelize it
 #####################################################################################################################
 		numSamples = len(folders)
 		if numSamples < processors:
@@ -1024,6 +1022,214 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, windowSize,
 			if not r.successful():
 				# Raises an error when not successful
 				r.get()
+		# print(allResults)
+		# calculateSampleIMDs (project, folders, directory, directory_orig, vcf_path_clust, vcf_path_nonClust, original, genome, windowSize, clustering_vaf, contexts, exomeSuffix, chrom_based, correction, chromLengths)
+		# imdsCurrent, y2sCurrent, bincenters2sCurrent, q_valuesCurrent, interval_linesCurrent, orig_mutations_sampsCurrent, lower_CIsCurrent, upper_CIsCurrent, avg_bin_counts_sampCurrent, avg_simCountsCurrent, std_simCountsCurrent, upper_CIs_refinedCurrent, lower_CIs_refinedCurrent, imds_correctedCurrent, y2s_correctedCurrent, bincenters2s_correctedCurrent, q_values_correctedCurrent, interval_lines_correctedCurrent, orig_mutations_samps_correctedCurrent, lower_CIs_correctedCurrent, upper_CIs_correctedCurrent, avg_bin_counts_samp_correctedCurrent, regionsCurrent, regionsSampsCurrent, avg_simCounts_correctedCurrent, std_simCounts_correctedCurrent, upper_CIs_refined_correctedCurrent, lower_CIs_refined_correctedCurrent = calculateSampleIMDs (folders, directory, directory_orig, original, contexts, exomeSuffix, chrom_based, correction)
+		# imds.update(imdsCurrent)
+		# y2s.update(y2sCurrent)
+		# bincenters2s.updated(bincenters2sCurrent) 
+		# q_values.update(q_valuesCurrent)
+		# interval_lines.update()
+		# orig_mutations_samps = {}
+		# lower_CIs = {}
+		# upper_CIs = {}
+		# avg_bin_counts_samp = {}
+		# avg_simCounts = {}
+		# std_simCounts = {}
+		# upper_CIs_refined = {}
+		# lower_CIs_refined = {}
+		# if corrected:
+		# 	imds_corrected = {}
+		# 	y2s_corrected = {}
+		# 	bincenters2s_corrected = {} 
+		# 	q_values_corrected = {}
+		# 	interval_lines_corrected = {}
+		# 	orig_mutations_samps_corrected = {}
+		# 	lower_CIs_corrected = {}
+		# 	upper_CIs_corrected = {}
+		# 	avg_bin_counts_samp_corrected = {}
+		# 	regions = []
+		# 	regionsSamps = {}
+		# 	avg_simCounts_corrected = {}
+		# 	std_simCounts_corrected = {}
+		# 	upper_CIs_refined_corrected = {}
+		# 	lower_CIs_refined_corrected = {}
+		# for folder in folders:
+		# 	regionsSamps[folder] = []
+		# 	chromosomes = []
+		# 	if folder == '.DS_Store_intradistance.txt' or folder == '.DS_Store':
+		# 		continue
+		# 	sample = folder
+		# 	files = os.listdir(directory + sample + "/")
+
+		# 	if chrom_based:
+		# 		overall_distances_all = {}
+		# 		distances_orig_all = {}
+		# 		distances_orig_all_samps = {}
+		# 	else:				
+		# 		overall_distances_all = []
+		# 		distances_orig_all = []
+		# 		distances_orig_all_samps = []
+		# 	if correction:
+		# 		densityMuts = []
+		# 		densityMutsSim = {}
+
+		# 	if original: # Calculate data/plots for original sample
+		# 		# Gather the distances for the original sample
+		# 		try:
+		# 			if not os.path.exists(directory_orig + sample + "_" + contexts + exomeSuffix + "_intradistance.txt"):
+		# 				continue
+		# 			with open (directory_orig + sample + "_" + contexts + exomeSuffix + "_intradistance.txt") as f2:
+		# 				for lines in f2:
+		# 					line = lines.strip().split()
+		# 					if int(line[0]) >= 1:
+		# 						if chrom_based:
+		# 							if line[2] not in distances_orig_all_samps:
+		# 								distances_orig_all_samps[line[2]] = [line]
+		# 								distances_orig_all[line[2]] = [int(line[0])]
+		# 							else:
+		# 								distances_orig_all_samps[line[2]].append(line)
+		# 								distances_orig_all[line[2]].append(int(line[0]))
+		# 						else:
+		# 							distances_orig_all_samps.append(line)
+		# 							distances_orig_all.append(int(line[0]))
+		# 						if correction:
+		# 							densityMuts.append(int(line[3]) + chromLengths[genome][line[2]])
+		# 		except:
+		# 			print(sample + " does not have nearby IDs to one another. Skipping this sample.")
+		# 			continue
+
+		# 	# Collect simulation distances
+		# 	sim_count = len(files)
+		# 	for file in files:
+		# 		if correction:
+		# 			sim = file.split("_")[1]
+		# 			densityMutsSim[sim] = []
+		# 		chroms = []
+		# 		if file == '.DS_Store':
+		# 			continue
+		# 		if chrom_based:
+		# 			distances = {}
+		# 		else:
+		# 			distances = []
+		# 		with open(directory + sample + "/" + file) as f:
+		# 			for lines in f:
+		# 				line = lines.strip().split()
+		# 				if int(line[0]) >= 1:
+		# 					if chrom_based:
+		# 						if line[2] not in chroms:
+		# 							chroms.append(line[2])
+		# 							distances[line[2]] = [int(line[0])]
+		# 						else:
+		# 							distances[line[2]].append(int(line[0]))
+		# 					else:
+		# 						distances.append(int(line[0]))
+		# 					if correction:
+		# 						densityMutsSim[sim].append(int(line[3]) + chromLengths[genome][line[2]])
+		# 		if chrom_based:
+		# 			for chrom in chroms:
+		# 				if chrom not in chromosomes:
+		# 					chromosomes.append(chrom)
+		# 				if chrom not in overall_distances_all:
+		# 					overall_distances_all[chrom] = [distances[chrom]]
+		# 				else:
+		# 					overall_distances_all[chrom].append(distances[chrom])
+		# 		else:
+		# 			overall_distances_all.append(distances)
+
+		# 	# Perform the regional mutation density corrections
+		# 	if correction:
+		# 		regions = densityCorrection(densityMuts, densityMutsSim, windowSize)
+		# 		regionsSamps[folder] = regions
+		# 		try:
+		# 			densityCorrectDistances = {}
+		# 			densityCorrectDistances_samps = {}
+		# 			densityCorrectDistancesSims = {}
+		# 			for region in regions:
+		# 				densityCorrectDistances[region] = []
+		# 				densityCorrectDistancesSims[region] = [] 
+		# 				densityCorrectDistances_samps[region] = []
+		# 			with open (directory_orig + sample + "_" + contexts + exomeSuffix + "_intradistance.txt") as f2:
+		# 				for lines in f2:
+		# 					line = lines.strip().split()
+		# 					if int(line[0]) >= 1:
+		# 						position = int(line[3]) + chromLengths[genome][line[2]]
+		# 						try:
+		# 							bisectRegion = regions[bisect.bisect_left(regions, position)]
+		# 						except:
+		# 							continue
+		# 						if bisectRegion - position < windowSize:
+		# 							densityCorrectDistances_samps[bisectRegion].append(line)
+		# 							densityCorrectDistances[bisectRegion].append(int(line[0]))
+		# 		except:
+		# 			print(sample + " does not have nearby IDs to one another. Skipping this sample.")
+		# 			continue
+
+		# 		for file in files:
+		# 			if file == '.DS_Store':
+		# 				continue
+		# 			distances = {}
+		# 			for region in regions:
+		# 				distances[region] = []					
+		# 			with open(directory + sample + "/" + file) as f:
+		# 				for lines in f:
+		# 					line = lines.strip().split()
+		# 					if int(line[0]) >= 1:
+		# 						position = int(line[3]) + chromLengths[genome][line[2]]
+		# 						try:
+		# 							bisectRegion = regions[bisect.bisect_left(regions, position)]
+		# 						except:
+		# 							continue
+		# 						if bisectRegion - position < windowSize:
+		# 							distances[bisectRegion].append(int(line[0]))
+
+		# 			for region in regions:
+		# 				densityCorrectDistancesSims[region].append(distances[region])
+
+		# 		for region in regions:
+		# 			correctionData = True
+		# 			if sample not in y2s_corrected:
+		# 				y2s_corrected[sample] = {}
+		# 				bincenters2s_corrected[sample] = {}
+		# 				q_values_corrected[sample] = {}
+		# 				interval_lines_corrected[sample] = {}
+		# 				orig_mutations_samps_corrected[sample] = {}
+		# 				lower_CIs_corrected[sample] = {}
+		# 				upper_CIs_corrected[sample] = {}
+		# 				avg_bin_counts_samp_corrected[sample] = {}
+		# 				imds_corrected[sample] = {}
+		# 				avg_simCounts_corrected[sample] = {}
+		# 				std_simCounts_corrected[sample] = {}
+		# 				upper_CIs_refined_corrected[sample] = {}
+		# 				lower_CIs_refined_corrected[sample] = {}
+		# 			try:
+		# 				if len(densityCorrectDistancesSims[region]) == 0 or len(densityCorrectDistances_samps[region]) == 0 or len(densityCorrectDistances[region]) == 0:
+		# 					continue
+		# 				y2s_corrected[sample][region], bincenters2s_corrected[sample][region], q_values_corrected[sample][region], interval_lines_corrected[sample][region], orig_mutations_samps_corrected[sample][region], avg_simCounts_corrected[sample][region],  std_simCounts_corrected[sample][region], imds_corrected[sample][region], lower_CIs_corrected[sample][region], upper_CIs_corrected[sample][region], lower_CIs_refined_corrected[sample][region], upper_CIs_refined_corrected[sample][region], avg_bin_counts_samp_corrected[sample][region] = first_run(densityCorrectDistancesSims[region], densityCorrectDistances_samps[region], densityCorrectDistances[region], vcf_path_clust, vcf_path_nonClust, sample, original, sim_count, project, genome, clustering_vaf, correctionData, chromLengths)
+		# 			except:
+		# 				continue
+
+		# 	correctionData = False
+		# 	if chrom_based:
+		# 		y2s[sample] = {}
+		# 		bincenters2s[sample] = {}
+		# 		q_values[sample] = {}
+		# 		interval_lines[sample] = {}
+		# 		orig_mutations_samps[sample] = {}
+		# 		lower_CIs[sample] = {}
+		# 		upper_CIs[sample] = {}
+		# 		avg_bin_counts_samp[sample] = {}
+		# 		imds[sample] = {}
+		# 		avg_simCounts[sample] = {}
+		# 		std_simCounts[sample] = {}
+		# 		lower_CIs_refined[sample] = {}
+		# 		upper_CIs_refined[sample] = {}
+		# 		for chrom in chromosomes:
+		# 			y2s[sample][chrom], bincenters2s[sample][chrom], q_values[sample][chrom], interval_lines[sample][chrom], orig_mutations_samps[sample][chrom], avg_simCounts[sample][chrom], std_simCounts[sample][chrom], imds[sample][chrom], lower_CIs[sample][chrom], upper_CIs[sample][chrom], lower_CIs_refined[sample][chrom], upper_CIs_refined[sample][chrom], avg_bin_counts_samp[sample][chrom] = first_run(overall_distances_all[chrom], distances_orig_all_samps[chrom], distances_orig_all[chrom], vcf_path_clust, vcf_path_nonClust, sample, original, sim_count, project, genome, clustering_vaf, correctionData, correction, regions, imds_corrected, windowSize, chromLengths)
+		# 	else:
+		# 		if len(overall_distances_all) == 0 or len(distances_orig_all_samps) == 0 or len(distances_orig_all) == 0:
+		# 			continue
+		# 		y2s[sample], bincenters2s[sample], q_values[sample], interval_lines[sample], orig_mutations_samps[sample], avg_simCounts[sample], std_simCounts[sample], imds[sample], lower_CIs[sample], upper_CIs[sample], lower_CIs_refined[sample], upper_CIs_refined[sample], avg_bin_counts_samp[sample] = first_run(overall_distances_all, distances_orig_all_samps, distances_orig_all, vcf_path_clust, vcf_path_nonClust, sample, original, sim_count, project, genome, clustering_vaf, correctionData, correction, regions, imds_corrected, windowSize, chromLengths)
 
 #####################################################################################################################
 #####################################################################################################################

@@ -21,7 +21,7 @@ from SigProfilerExtractor import sigpro as sigs
 import multiprocessing as mp
 from . import plottingFunctions
 from SigProfilerMatrixGenerator.scripts import SigProfilerMatrixGenerator as matRef
-from . import convertToVCF
+
 
 
 def distance_multiple_files_sims (output_path, simulations, simulation_path, simulation_path_sorted, file_context2, genome, centromeres, sortSims):
@@ -396,9 +396,9 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 	log_out.write("-------Runtime Checkpoints------- \n")
 	log_out.close()
 
-	print("\n\n======================================", flush=True)
+	print("\n\n=====================================", flush=True)
 	print("Beginning SigProfilerClusters Analysis", flush=True)
-	print("======================================\n\n", flush=True)
+	print("=====================================\n\n", flush=True)
 	# Log files are done begin created and the majority of the folder structures are set
 
 
@@ -593,7 +593,6 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 		print("Beginning signature extraction...")
 		sigs.sigProfilerExtractor("table", ref_dir+"output/extraction_clustered/", ref_dir+"output/vcf_files" + path_suffix + "/"+project+"_clustered/SNV/output/SBS/"+project+"_clustered.SBS96.all", genome, startProcess=startProcess, endProcess=endProcess, totalIterations=totalIterations)#, totalIterations=totalIterations)
 	
-
 	# Subclassify the clustered partition of mutations with the exception of indels. This function will also
 	# produce the rainfall plots.
 	if subClassify:
@@ -618,11 +617,6 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 			plottingFunctions.rainfall(chrom_based, project, input_path, chrom_path, chromLengths, centromeres, contexts, includedVAFs, correction, windowSize, bedRanges)
 			print("done")
 			print("Subclassification of clustered mutations has finished!")
-
-	# Generates output paths for final results saved as VCF files
-	convertToVCF.generateAllPaths(input_path, contexts)
-	convertToVCF.convertFiles(input_path, contexts, project)
-
 
 	sys.stderr.close()
 	end = time.time() - start
