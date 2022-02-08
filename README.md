@@ -87,13 +87,13 @@ See below for a detailed list of available parameters
 
 All errors and progress checkpoints are saved into SigProfilerClusters_[project]_[genome].err and SigProfilerClusters_[project]_[genome].out, respectively. For all errors, please email the error and progress log files to the primary contact under CONTACT INFORMATION.
 
-CITATION
+CITATIONS
 
-Bergstrom EN, Luebeck J, Petljak M, Bafna V, Mischell PS, Harris RS, and Alexandrov LB (2021) Comprehensive analysis of clustered mutations in cancer reveals recurrent APOBEC3 mutagenesis of ecDNA. bioRxiv 2021.05.27.445689; doi: https://doi.org/10.1101/2021.05.27.445689
+Bergstrom EN, Luebeck J, Petljak M, Khandekar A, Barnes M, Zhang T, Steele CD, Pillay N, Landi MT, Bafna V, Mischell PS, Harris RS, and Alexandrov LB (2022) Mapping clustered mutations in cancer reveals APOBEC3 mutagenesis of ecDNA. Nature; doi: https://doi.org/10.1038/s41586-022-04398-6
 
 COPYRIGHT
 
-Copyright (c) 2021, Erik Bergstrom [Alexandrov Lab] All rights reserved.
+Copyright (c) 2022, Erik Bergstrom [Alexandrov Lab] All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
