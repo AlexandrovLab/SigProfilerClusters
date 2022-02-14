@@ -619,9 +619,9 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 			print("done")
 			print("Subclassification of clustered mutations has finished!")
 
-	# Generates output paths for final results saved as VCF files
-	convertToVCF.generateAllPaths(input_path, contexts)
-	convertToVCF.convertFiles(input_path, contexts, project)
+		# Generates output paths for final results saved as VCF files
+		convertToVCF.generateAllPaths(input_path, contexts)
+		convertToVCF.convertFiles(input_path, contexts, project)
 
 
 	sys.stderr.close()

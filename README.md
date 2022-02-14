@@ -89,7 +89,7 @@ All errors and progress checkpoints are saved into SigProfilerClusters_[project]
 
 CITATIONS
 
-Bergstrom EN, Luebeck J, Petljak M, Khandekar A, Barnes M, Zhang T, Steele CD, Pillay N, Landi MT, Bafna V, Mischell PS, Harris RS, and Alexandrov LB (2022) Mapping clustered mutations in cancer reveals APOBEC3 mutagenesis of ecDNA. Nature; doi: https://doi.org/10.1038/s41586-022-04398-6
+Erik N Bergstrom, Mousumy Kundu, Noura Tbeileh, Ludmil B Alexandrov. bioRxiv 2022.02.11.480117; doi: https://doi.org/10.1101/2022.02.11.480117
 
 COPYRIGHT
 
