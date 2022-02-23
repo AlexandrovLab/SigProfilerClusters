@@ -247,11 +247,11 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 		  interdistance	->	the mutation types to calculate IMDs between (NOT STABLE; RECOMMENDED NOT TO USE; default='96')
 		 clustering_vaf	->	optional paramater to save the VAF from the original mutation files. Required if performing subclassification (default=False; switched to True if subclassify=True)
 			   sortSims	->	optional parameter that requires the function to sort the simulations or not (boolean; default=True)
-			 extraction	->	optional parameter to perform a signature extraction directly after the hotspot analysis (boolean; default=True)
+			 extraction	[DEPRACATED]->	optional parameter to perform a signature extraction directly after the hotspot analysis (boolean; default=True)
 			 correction	->	optional parameter to perform a genome-wide mutational density correction (boolean; default=False)
-		   startProcess	->	the number of starting processes for performing signature extraction (int; default=1)
-			 endProcess	->	the number of final processes for performing signature extraction (int; default=25)
-		totalIterations	->	the number of iterations for performing signature extraction (int; default=1000)
+		   startProcess	[DEPRACATED] ->	the number of starting processes for performing signature extraction (int; default=1)
+			 endProcess	[DEPRACATED] ->	the number of final processes for performing signature extraction (int; default=25)
+		totalIterations	[DEPRACATED] ->	the number of iterations for performing signature extraction (int; default=1000)
 		   calculateIMD	->	optional parameter to calculate the IMDs. This will save time if you need to rerun the subclassification step only (boolean; default=True)
 			chrom_based	->	optional parameter to perform the analysis on a chromosome basis (boolean; default=False)
 				max_cpu	->	optional parameter to specify the number of maximum cpu's to use for parallelizing the code (integer; default=None: uses all available cpu's)
@@ -589,9 +589,9 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 	# Allows for the clustered muutations to automactically run through the extraction.
 	# This option is not recommended, but rather the extractions should be run separately after 
 	# the clustered analysis is completed.
-	if extraction:
-		print("Beginning signature extraction...")
-		sigs.sigProfilerExtractor("table", ref_dir+"output/extraction_clustered/", ref_dir+"output/vcf_files" + path_suffix + "/"+project+"_clustered/SNV/output/SBS/"+project+"_clustered.SBS96.all", genome, startProcess=startProcess, endProcess=endProcess, totalIterations=totalIterations)#, totalIterations=totalIterations)
+	# if extraction:
+	# 	print("Beginning signature extraction...")
+	# 	sigs.sigProfilerExtractor("table", ref_dir+"output/extraction_clustered/", ref_dir+"output/vcf_files" + path_suffix + "/"+project+"_clustered/SNV/output/SBS/"+project+"_clustered.SBS96.all", genome, startProcess=startProcess, endProcess=endProcess, totalIterations=totalIterations)#, totalIterations=totalIterations)
 	
 
 	# Subclassify the clustered partition of mutations with the exception of indels. This function will also
