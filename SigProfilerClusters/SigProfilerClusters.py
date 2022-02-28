@@ -272,6 +272,9 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 		subClassify=True. Note that the IMD plots do not have the resolution to show the corrected IMDs if correction=True. The corrected mutations are shown in the SBS96, but the
 		distances are not used in the histogram.
 	'''
+	if chrom_based:
+		print("The parameter chrom_based has been deprecated within the SigProfilerClusters pipeline. Please rerun with chrom_based=False. Note, you may still run the simulations using chrom_based=True, which will be used as the background model for the clusterd analysis.")
+		sys.exit()
 	# Conversions for NCBI chromosome names to standard notation
 	ncbi_chrom = {'NC_000067.6':'1', 'NC_000068.7':'2', 'NC_000069.6':'3', 'NC_000070.6':'4', 
 				  'NC_000071.6':'5', 'NC_000072.6':'6', 'NC_000073.6':'7', 'NC_000074.6':'8',

@@ -69,7 +69,6 @@ See below for a detailed list of available parameters
             sortSims:			[boolean] Option to sort the simulated files if they have already been sorted. By default sortSims=True to ensure accurate results. The files must be sorted for accurate results. 
             interdistance:			[string] The mutation types to calculate IMDs between - Use only when performing analysis of indels (default='ID').
             calculateIMD:		[boolean] Parameter to calculate the IMDs. This will save time if you need to rerun the subclassification step only (default=True).
-            chrom_based:		[boolean] Option to generate chromosome-dependent IMDs per sample. By default chrom_based=False. 
             max_cpu:			[integer] Change the number of allocated CPUs. By default all CPUs are used
             subClassify:		[boolean] Subclassify the clustered mutations. Requires that VAF scores are available in TCGA or Sanger format. By default subClassify=False 
             plotIMDfigure:	[boolean] Parameter that generates IMD and mutational spectra plots for each sample (default=True).
