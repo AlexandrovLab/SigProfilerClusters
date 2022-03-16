@@ -70,7 +70,7 @@ def pullVaf (project, project_path, sanger=True, TCGA=False, standardVC=False, c
 		project_path	->	the directory for the given project (string)
 			  sanger	->	optional parameter that informs the tool of what format the VAF scores are provided. This is required when subClassify=True (boolean; default=True)
 				TCGA	->	optional parameter that informs the tool of what format the VAF scores are provided. This is required when subClassify=True and sanger=False (boolean; default=False)
-		  standardVC	->	optional parameter that informs the tool of what format the VAF scores are provided. This is required when subClassify=True and sanger=False and TCGA=False and when the data contains VAF formatted in the 7th column as AF=XX (boolean; default=False)
+		  standardVC	->	optional parameter that informs the tool of what format the VAF scores are provided. This is required when subClassify=True and sanger=False and TCGA=False and when the data contains VAF formatted in the 10th column as AF=XX (boolean; default=False)
 		  correction	->	optional parameter to perform a genome-wide mutational density correction (boolean; default=False)
 
 	Returns:
