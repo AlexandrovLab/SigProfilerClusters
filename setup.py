@@ -15,7 +15,7 @@ def readme():
 	# with open('README.rst') as f:
 	# 	return(f.read())
 
-VERSION = '1.0.5'
+VERSION = '1.0.6'
 
 def write_version_py(filename='SigProfilerClusters/version.py'):
 	# Copied from numpy setup.py
@@ -48,7 +48,7 @@ setup(name='SigProfilerClusters',
 			"SigProfilerSimulator>=1.1.3",
 			"statsmodels>=0.9.0",
 			"scipy>=1.1.0",
-			"pandas>=0.23.4",
+			"pandas>=0.23.4,<1.3",
 			"numpy>= 1.17.3",
 			"SigProfilerExtractor>=1.0.17"],
 		include_package_data=True,
