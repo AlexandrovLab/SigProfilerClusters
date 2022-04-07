@@ -1,6 +1,6 @@
 
 # THIS FILE IS GENERATED FROM SIGPROFILECLUSTERS SETUP.PY
-short_version = '1.0.3'
-version = '1.0.3'
+short_version = '1.0.4'
+version = '1.0.4'
 	
 	

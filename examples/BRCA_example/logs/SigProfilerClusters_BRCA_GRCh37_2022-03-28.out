@@ -1,0 +1,48 @@
+THIS FILE CONTAINS THE METADATA ABOUT SYSTEM AND RUNTIME
+
+
+-------System Info-------
+Operating System Name: Darwin
+Nodename: Eriks-MacBook-Pro-4.local
+Release: 21.2.0
+Version: Darwin Kernel Version 21.2.0: Sun Nov 28 20:28:54 PST 2021; root:xnu-8019.61.5~1/RELEASE_X86_64
+
+-------Python and Package Versions------- 
+Python Version: 3.7.0
+SigProfilerMatrixGenerator Version: 1.2.4
+SigProfilerPlotting version: 1.2.1
+matplotlib version: 3.4.3
+scipy version: 1.7.3
+numpy version: 1.19.5
+
+-------Vital Parameters Used for the execution -------
+Project: BRCA
+Genome: GRCh37
+Context: ['288']
+interdistance: False
+input_path: /Users/ebergstr/Desktop/lab/manuscripts/SigProfilerHotSpots_tool/figures/BRCA_example/
+output_type: all
+
+-------Date and Time Data------- 
+Date and Clock time when the execution started: 2022-03-28 14:36:28.653664
+
+
+-------Runtime Checkpoints------- 
+Starting matrix generation for SNVs and DINUCs...Starting matrix generation for SNVs and DINUCs...Starting matrix generation for SNVs and DINUCs...Starting matrix generation for SNVs and DINUCs...Completed! Elapsed time: 3.38 seconds.
+Matrices generated for 1 samples with 0 errors. Total of 240 SNVs, 29 DINUCs, and 0 INDELs were successfully analyzed.
+Starting matrix generation for SNVs and DINUCs...Completed! Elapsed time: 3.37 seconds.
+Matrices generated for 1 samples with 0 errors. Total of 46 SNVs, 0 DINUCs, and 0 INDELs were successfully analyzed.
+Starting matrix generation for SNVs and DINUCs...Completed! Elapsed time: 3.41 seconds.
+Matrices generated for 1 samples with 0 errors. Total of 129 SNVs, 2 DINUCs, and 0 INDELs were successfully analyzed.
+Starting matrix generation for SNVs and DINUCs...Completed! Elapsed time: 3.54 seconds.
+Matrices generated for 1 samples with 0 errors. Total of 56 SNVs, 28 DINUCs, and 0 INDELs were successfully analyzed.
+Matrices generated for 0 samples with 0 errors. Total of 0 SNVs, 0 DINUCs, and 0 INDELs were successfully analyzed.
+Completed! Elapsed time: 2.5 seconds.
+Matrices generated for 1 samples with 0 errors. Total of 3 SNVs, 0 DINUCs, and 0 INDELs were successfully analyzed.
+Starting matrix generation for SNVs and DINUCs...Completed! Elapsed time: 2.56 seconds.
+Matrices generated for 1 samples with 0 errors. Total of 121 SNVs, 2 DINUCs, and 0 INDELs were successfully analyzed.
+Completed! Elapsed time: 2.55 seconds.
+Matrices generated for 1 samples with 0 errors. Total of 181 SNVs, 1 DINUCs, and 0 INDELs were successfully analyzed.
+Matrices generated for 0 samples with 0 errors. Total of 0 SNVs, 0 DINUCs, and 0 INDELs were successfully analyzed.
+Completed! Elapsed time: 1.94 seconds.
+Matrices generated for 1 samples with 0 errors. Total of 8 SNVs, 0 DINUCs, and 0 INDELs were successfully analyzed.

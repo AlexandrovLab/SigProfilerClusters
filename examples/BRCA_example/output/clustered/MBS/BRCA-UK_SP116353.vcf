@@ -1,0 +1,4 @@
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+X	142545856	BRCA-UK_SP116353	C	T	.	.	ClusteredAnalysis;VAF=-1.5;groupNumber56
+X	142545857	BRCA-UK_SP116353	T	G	.	.	ClusteredAnalysis;VAF=-1.5;groupNumber56
+X	142545858	BRCA-UK_SP116353	C	T	.	.	ClusteredAnalysis;VAF=-1.5;groupNumber56

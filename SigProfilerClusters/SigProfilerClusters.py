@@ -17,12 +17,15 @@ import statistics
 import scipy
 import time
 import sys
-from SigProfilerExtractor import sigpro as sigs
+#from SigProfilerExtractor import sigpro as sigs
 import multiprocessing as mp
 from . import plottingFunctions
 from SigProfilerMatrixGenerator.scripts import SigProfilerMatrixGenerator as matRef
 from . import convertToVCF
-
+import random
+import pandas as pd
+import bisect
+import seaborn as sns
 
 def distance_multiple_files_sims (output_path, simulations, simulation_path, simulation_path_sorted, file_context2, genome, centromeres, sortSims):
 	'''
@@ -232,7 +235,79 @@ def distance_one_file (sample_path, original_samples, output_path_original, file
 
 
 
-def analysis (project, genome, contexts, simContext, input_path, output_type='all', analysis='all', interdistance='96', exome=False, clustering_vaf=False, sortSims=True, extraction=False, correction=True, startProcess=1, endProcess=25, totalIterations=1000, calculateIMD=True, chrom_based=False, max_cpu=None, subClassify=False, sanger=True, TCGA=False, standardVC=False, includedVAFs=True, windowSize=1000000, bedRanges=None, plotIMDfigure=True, plotRainfall=True):
+def eventProbability (project, input_path, simulation_path, output_path_original, windowSize, k=10):
+	windowSize *= 10
+	subclasses = ["DBS", "MBS", "omikli", "kataegis", "other"]
+
+	samples = [x for x in os.listdir(simulation_path) if x[0] != "."]
+	for sample in samples:
+		samplePath = os.path.join(simulation_path, sample)
+		simFiles = random.sample([x for x in os.listdir(samplePath) if x[0] != "."], k)
+		simIMDs = {}
+
+		for sim in simFiles:
+			muts = pd.read_csv(os.path.join(samplePath, sim), sep="\t", header=None, names=["IMD", "sample", "chrom", "pos", "ref", "alt", 'plotIMD'])
+			chroms = list(set(muts['chrom']))
+			for chrom in chroms:
+				chromMuts = muts[muts['chrom']==chrom]
+				if chrom not in simIMDs:
+					simIMDs[chrom] = {}
+
+				maxDistance = max(chromMuts['pos']) + windowSize
+				slideSize = windowSize
+				imdsProbabilities = []
+				currentWindow = 0
+				densities = []
+				while currentWindow < maxDistance:
+					currentMuts = chromMuts[(chromMuts['pos']<currentWindow + slideSize) & (chromMuts['pos']>=currentWindow)]
+					if str(currentWindow) + ":"+str(currentWindow+slideSize) not in simIMDs[chrom]:
+						simIMDs[chrom][str(currentWindow) + ":"+str(currentWindow+slideSize)] = []
+					simIMDs[chrom][str(currentWindow) + ":"+str(currentWindow+slideSize)] += list(currentMuts['pos'])
+					currentWindow += slideSize
+
+		distributions = {}
+		for chrom in simIMDs:
+			distributions[chrom] = {}
+			for subwindow in simIMDs[chrom]:
+				if len(simIMDs[chrom][subwindow]) == 0 or len(set(simIMDs[chrom][subwindow])) <= 1 :
+					continue
+				x,y = sns.kdeplot(np.log10(simIMDs[chrom][subwindow]), bw_adjust=20, gridsize=200).get_lines()[0].get_data()
+				distributions[chrom][subwindow] = [x,y]
+				plt.pyplot.close()
+		for subclass in subclasses:
+			subclassPath = os.path.join(input_path, "output", "clustered", subclass, sample + ".vcf")
+
+			if os.path.exists(subclassPath):
+				out = open(os.path.join(input_path, "output", "clustered", subclass, sample + "_prob.vcf"), "w")
+				print("\t".join(["#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "EVENT_PROBABILITY"]), file=out)
+				clusteredMuts = pd.read_csv(subclassPath, header=0, sep="\t")
+				clusteredMuts['EVENTS'] = [x.split('groupNumber')[1] for x in clusteredMuts['INFO']]
+
+				for chrom in set(clusteredMuts['#CHROM']):
+					currentClusteredMuts = clusteredMuts[clusteredMuts['#CHROM']==chrom]
+					for event in set(currentClusteredMuts['EVENTS']):
+						eventMuts = currentClusteredMuts[currentClusteredMuts['EVENTS']==event]
+						locations = list(eventMuts['POS'])
+						imds = np.log10([y-x for x,y in zip(locations, locations[1:])])
+						window = int(locations[0]/windowSize)*windowSize
+						window = str(window) + ":" + str(window + windowSize)
+						currentDist = distributions[str(chrom)][window]
+						probs = [currentDist[1][bisect.bisect_left(currentDist[0], x)] for x in imds]
+						probs = np.prod(np.array(probs))  
+						if probs < 1e-05:
+							probs = 1e-05
+
+						for i, x in eventMuts.iterrows():
+							x = list(x)[:-1] + [probs]
+							print("\t".join([str(y) for y in x]), file=out)
+				os.remove(subclassPath)
+				out.close()
+			
+
+
+
+
+def analysis (project, genome, contexts, simContext, input_path, output_type='all', analysis='all', interdistance='96', exome=False, clustering_vaf=False, sortSims=True, extraction=False, correction=True, startProcess=1, endProcess=25, totalIterations=1000, calculateIMD=True, chrom_based=False, max_cpu=None, subClassify=False, sanger=True, TCGA=False, standardVC=False, includedVAFs=True, includedCCFs=False, windowSize=1000000, bedRanges=None, plotIMDfigure=True, plotRainfall=True, probability=False):
 	'''
 	Organizes all of the data structures and calls all of the sub-functions. This is the main function called when running SigProfilerClusters.
 
@@ -260,6 +335,7 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 				   TCGA	->	optional parameter that informs the tool of what format the VAF scores are provided. This is required when subClassify=True and sanger=False (boolean; default=False)
 			 standardVC	->	optional parameter that informs the tool of what format the VAF scores are provided. This is required when subClassify=True and sanger=False and TCGA=False and when the data contains VAF formatted in the 10th column as AF=XX (boolean; default=False)
 		   includedVAFs ->  optional parameter that informs the tool of the inclusion of VAFs in the dataset (boolean; default=True)
+		   includedCCFs ->  optional parameter that informs the tool of the inclusion of cancer cell fractions in the dataset (boolean; default=True)
 			 windowSize	->	the size of the window used for correcting the IMDs based upon mutational density within a given genomic range (integer; default=10000000)
 		  plotIMDfigure	->	optional parameter that generates IMD and mutational spectra plots for each sample (boolean; default=True).
 		   plotRainfall	->	optional parameter that generates rainfall plots for each sample using the subclassification of clustered events (boolean; default=True).
@@ -272,6 +348,9 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 		subClassify=True. Note that the IMD plots do not have the resolution to show the corrected IMDs if correction=True. The corrected mutations are shown in the SBS96, but the
 		distances are not used in the histogram.
 	'''
+	if includedCCFs:
+		includedVAFs=False
+		
 	if chrom_based:
 		print("The parameter chrom_based has been deprecated within the SigProfilerClusters pipeline. Please rerun with chrom_based=False. Note, you may still run the simulations using chrom_based=True, which will be used as the background model for the clusterd analysis.")
 		sys.exit()
@@ -606,8 +685,14 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 				classifyFunctions.pullVaf (project, input_path, sanger, TCGA, standardVC, correction)
 				sys.stderr.close()
 				sys.stderr = open(error_file, 'a')
-				classifyFunctions.findClustersOfClusters (project, chrom_based, input_path, windowSize, chromLengths, regions, log_file, genome, processors, imds, correction)
+				classifyFunctions.findClustersOfClusters (project, chrom_based, input_path, windowSize, chromLengths, regions, log_file, genome, processors, imds, correction, includedCCFs)
 				sys.stderr.close()
+			elif includedCCFs:
+				classifyFunctions.pullCCF (project, input_path, correction)
+				sys.stderr.close()
+				sys.stderr = open(error_file, 'a')
+				classifyFunctions.findClustersOfClusters (project, chrom_based, input_path, windowSize, chromLengths, regions, log_file, genome, processors, imds, correction, includedCCFs)
+				sys.stderr.close()				
 			else:
 				classifyFunctions.findClustersOfClusters_noVAF (project, chrom_based, input_path, windowSize, chromLengths, regions, log_file, genome, processors, imds, correction)
 				sys.stderr.close()
@@ -625,6 +710,13 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 		# Generates output paths for final results saved as VCF files
 		convertToVCF.generateAllPaths(input_path, contexts)
 		convertToVCF.convertFiles(input_path, contexts, project)
+
+		# Add probability to all clustered mutations using same window sized-bins
+		if probability:
+			print("\n")
+			print("Calculating the probability of observing each clustered event...", end='', flush=True)
+			eventProbability (project, input_path, output_path, output_path_original, windowSize, k=10)
+			print("done")
 
 
 	sys.stderr.close()

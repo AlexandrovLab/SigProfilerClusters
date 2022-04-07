@@ -1,0 +1,60 @@
+THIS FILE CONTAINS THE METADATA ABOUT SYSTEM AND RUNTIME
+
+
+-------System Info-------
+Operating System Name: Darwin
+Nodename: Eriks-MacBook-Pro-4.local
+Release: 21.2.0
+Version: Darwin Kernel Version 21.2.0: Sun Nov 28 20:28:54 PST 2021; root:xnu-8019.61.5~1/RELEASE_X86_64
+
+-------Python and Package Versions------- 
+Python Version: 3.7.0
+SigProfilerMatrixGenerator Version: 1.2.4
+SigProfilerPlotting version: 1.2.1
+matplotlib version: 3.4.3
+statsmodels version: 0.13.1
+scipy version: 1.7.3
+pandas version: 1.1.5
+numpy version: 1.19.5
+
+-------Vital Parameters Used for the execution -------
+Project: BRCA_nonClustered
+Genome: GRCh37
+Input File Path: /Users/ebergstr/Desktop/lab/manuscripts/SigProfilerHotSpots_tool/figures/BRCA_example/output/vcf_files_corrected/BRCA_nonClustered/SNV/
+exome: False
+bed_file: None
+chrom_based: False
+plot: False
+tsb_stat: False
+seqInfo: True
+
+-------Date and Time Data------- 
+Date and Clock time when the execution started: 2022-03-28 14:36:42.846528
+
+
+-------Runtime Checkpoints------- 
+Chromosome Y done
+Chromosome 9 done
+Chromosome 16 done
+Chromosome 21 done
+Chromosome 1 done
+Chromosome 12 done
+Chromosome 5 done
+Chromosome 8 done
+Chromosome 4 done
+Chromosome 13 done
+Chromosome 17 done
+Chromosome 20 done
+Chromosome X done
+Chromosome 15 done
+Chromosome 22 done
+Chromosome 2 done
+Chromosome 11 done
+Chromosome 6 done
+Chromosome 19 done
+Chromosome MT done
+Chromosome 7 done
+Chromosome 10 done
+Chromosome 3 done
+Chromosome 14 done
+Chromosome 18 done

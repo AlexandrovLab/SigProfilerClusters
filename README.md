@@ -53,7 +53,7 @@ use bash=False.
 ```
 See below for a detailed list of available parameters
 
-4. The partitioned vcf files are placed under [project_path]/ouput/vcf_files/[project]_clustered/ and  [project_path]/ouput/vcf_files/[project]_nonClustered/. You can visualize the results by looking at the IMD plots available under [project_path]/ouput/simulations/[project]_simulations_[genome]_[context]_intradistance_plots/.
+4. The partitioned vcf files are placed under [project_path]/ouput/clustered/ and  [project_path]/ouput/nonClustered/. You can visualize the results by looking at the IMD plots available under [project_path]/ouput/plots/.
 
 **AVAILABLE PARAMETERS**
 
@@ -70,21 +70,52 @@ See below for a detailed list of available parameters
             interdistance:			[string] The mutation types to calculate IMDs between - Use only when performing analysis of indels (default='ID').
             calculateIMD:		[boolean] Parameter to calculate the IMDs. This will save time if you need to rerun the subclassification step only (default=True).
             max_cpu:			[integer] Change the number of allocated CPUs. By default all CPUs are used
-            subClassify:		[boolean] Subclassify the clustered mutations. Requires that VAF scores are available in TCGA or Sanger format. By default subClassify=False 
+            subClassify:		[boolean] Subclassify the clustered mutations. Requires that VAF scores are available in TCGA or Sanger format. By default subClassify=False. See VAF Format below for more details. 
             plotIMDfigure:	[boolean] Parameter that generates IMD and mutational spectra plots for each sample (default=True).
             plotRainfall		[boolean] Parameter that generates rainfall plots for each sample using the subclassification of clustered events (default=True).
             
             The following parameters are used if the subClassify argument is True:
             includedVAFs:	[boolean] Parameter that informs the tool of the inclusion of VAFs in the dataset (default=True)
+            includedCCFs:   [boolean] Parameter that informs the tool of the inclusion of CCFs in the dataset (default=True). If CCFs are used, set includedVAFs=False.
             sanger:			[boolean] The input files are from Sanger. By default sanger=True
             TCGA:			[boolean] The input files are from TCGA. By default TCGA=False
             windowSize:		[integer] Window size for calculating mutation density in the rainfall plots. By default windowSize=10000000
             correction		[boolean] Optional parameter to perform a genome-wide mutational density correction (boolean; default=False)
+            probability     [boolean] Optional parameter to calculate the probability of observing each clustered event within the localized region of the genome. These values are saved into the [project_path]/output/clustered/ directories. See OSF wiki page for more details.
 
+
+**VAF Format**
+
+SigProfilerClusters uses the VAF recorded in the input files to subclassify clustered mutations when subclassify=True and includedVAFs=True. However, depending on the VCF file, the VAF may be recorded in a different format. Below are the accepted formats corresponding to the correct settings to use for this tool.
+
+If you are not using VCFs as input files, VAFs cannot be used in the subclassification step. Therefore, to subclassify clusters using other input file types set subclassify=True and includedVAFs=False.
+
+If your VAF is recorded in the 8th column of your VCF as VCF=xx, set TCGA=True and sanger=False.
+
+If your VAF is recorded in the 8th column of your VCF as AF=xx, set standardVC=True, TCGA=False, and sanger=False.
+
+If your VAF is recorded in the 11th column of your VCF as the last number of the colon delimited values, set sanger=True and TCGA=False.
+
+If your VCFs have no recorded VAFs set includedVAFs=False. This will run SigProfilerClusters, subclassify clusters based on just the calculated IMD (provided that you set subclassify=True).
+
+
+**CCF Format**
+Alternatively, SigProfilerClusters accepts cancer cell fraction (CCF) estimates in place of VAFs, when includedCCFs=True and includedVAFs=False to correct for copy number amplifications. To use CCFs, one must add the CCF values in the last column of each row within each VCF file (tab separated columns).
+
+
+**Output Format**
+All mutations are categorized into either clustered or non-clustered mutations. Each are saved under their respective directories within VCF files ([project_path]/output/clustered/ or [project_path]/output/nonClustered/; respectively). The clustered folder contains the partition of clustered mutations, which have been subclassified into one of four categories (five if using VAFs/CCFs). Within each subclass subfolder, a single VCF file is saved for each sample. All visualizations including rainfall plots are found within the output directory ([project_oath]/output/plots/). 
+Please refer to the Output page on the OSF wiki page for more details on all available output including available plots (https://osf.io/qpmzw/wiki/4.%20Output/).
 
 **LOG FILES**
 
 All errors and progress checkpoints are saved into SigProfilerClusters_[project]_[genome].err and SigProfilerClusters_[project]_[genome].out, respectively. For all errors, please email the error and progress log files to the primary contact under CONTACT INFORMATION.
+
+
+
+**Example Files**
+Two examples are provided under examples/. These directories include all expected output except for the simulations folder to reduce memory size (please see the OSF page for more details: https://osf.io/qpmzw/wiki/4.%20Output/).
+
 
 CITATIONS
 

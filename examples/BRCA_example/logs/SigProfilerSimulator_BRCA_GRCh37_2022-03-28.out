@@ -1,0 +1,73 @@
+THIS FILE CONTAINS THE METADATA ABOUT SYSTEM AND RUNTIME
+
+
+-------System Info-------
+Operating System Name: Darwin
+Nodename: Eriks-MacBook-Pro-4.local
+Release: 21.2.0
+Version: Darwin Kernel Version 21.2.0: Sun Nov 28 20:28:54 PST 2021; root:xnu-8019.61.5~1/RELEASE_X86_64
+
+-------Python and Package Versions------- 
+Python Version: 3.7.0
+SigProfilerSimulator Version: 1.1.2
+SigProfilerMatrixGenerator Version: 1.2.4
+numpy version: 1.19.5
+
+-------Vital Parameters Used for the execution -------
+Project: BRCA
+Genome: GRCh37
+Input File Path: /Users/ebergstr/Desktop/lab/manuscripts/SigProfilerHotSpots_tool/figures/BRCA_example/
+contexts: ['288']
+exome: None
+simulations: 100
+updating: False
+bed_file: None
+overlap: False
+gender: female
+seqInfo: False
+chrom_based: False
+seed_file: None
+
+-------Date and Time Data------- 
+Date and Clock time when the execution started: 2022-03-28 14:35:00.297239
+
+
+
+-------Seeds for random number generation per process------- 
+Process 0: 0
+Process 1: 1
+Process 2: 1
+Process 3: 0
+Process 4: 1
+Process 5: 2
+Process 6: 0
+Process 7: 0
+
+
+
+-------Runtime Checkpoints------- 
+Chromosome 7 done
+Chromosome X done
+Chromosome 6 done
+Chromosome 5 done
+Chromosome 3 done
+Chromosome 4 done
+Chromosome 15 done
+Chromosome 1 done
+Chromosome 2 done
+Chromosome 14 done
+Chromosome 13 done
+Chromosome 22 done
+Chromosome 8 done
+Chromosome 21 done
+Chromosome 11 done
+Chromosome 12 done
+Chromosome 9 done
+Chromosome 16 done
+Chromosome 10 done
+Chromosome 19 done
+Chromosome 20 done
+Chromosome 17 done
+Chromosome 18 done
+Simulation completed
+Job took  33.4208869934082  seconds

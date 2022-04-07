@@ -25,6 +25,10 @@ import bisect
 from scipy.signal import find_peaks
 import random
 import multiprocessing as mp
+import seaborn as sns
+# from collections import Iterable
+from itertools import chain
+
 
 warnings.filterwarnings("ignore", message="invalid value encountered in long_scalars")
 warnings.filterwarnings("ignore", message="Data has no positive values, and therefore cannot be log-scaled.")
@@ -268,6 +272,20 @@ def first_run (distances, distances_orig_all, distances_orig, vcf_path_clust, vc
 	Outputs:
 		A clustered and non-clustered mutation file
 	'''
+	# combinedSimDensity = [ele for ele in densityMutsSim.values()]
+	# combinedSimDensity = list(chain.from_iterable(distances))
+	# distances_orig_all_only = [int(x[0]) for x in distances_orig_all]
+	# # print(distances_orig_all)
+	# x,y = sns.kdeplot(np.log10(combinedSimDensity), bw_adjust=20, gridsize=200).get_lines()[0].get_data()
+	# plt.close()
+	# distances_orig_all_only = np.log10(distances_orig_all_only)
+	# imdsProbabilities = []
+	# for dist in distances_orig_all_only:
+	# 	# print(dist, y[bisect.bisect_left(x, dist)])
+	# 	imdsProbabilities.append(y[bisect.bisect_left(x, dist)])
+
+
+
 	maximum_sim = 0
 	try:
 		maximum_orig = max(distances_orig)
@@ -399,7 +417,6 @@ def first_run (distances, distances_orig_all, distances_orig, vcf_path_clust, vc
 	if distance_cut > 10000:
 		distance_cut = 10000
 
-	# distance_cut = 1000
 	if not correctionData:
 		if correction:
 			if len(regions) > 0:
@@ -500,8 +517,15 @@ def densityCorrectionOriginal (densityMuts, densityMutsSim, binsDensity):
 
 def moving_density(muts, wS, wE):
 
-	return len(list(y for y in muts if wS <= y < wE)) 
+	return list(y for y in muts if wS <= y < wE)
 
+def flatten(lis):
+     for item in lis:
+         if isinstance(item, Iterable) and not isinstance(item, str):
+             for x in flatten(item):
+                 yield x
+         else:        
+             yield item
 
 def densityCorrection (densityMuts, densityMutsSim, windowSize):
 	'''
@@ -515,22 +539,30 @@ def densityCorrection (densityMuts, densityMutsSim, windowSize):
 	Returns:
 	   correctionFolds	->	the cumulative genomic position of regions that have a higher mutation density than what is expected by chance (list)
 	'''
+	sims = random.sample(list(densityMutsSim.keys()), 10)
+	densityMutsSimSample = {x:densityMutsSim[x] for x in sims}
+
 	threshold = 9.0
 	try:
-			maxDistance = max(max(densityMuts), max([int(densityMutsSim[x][-1]) for x in densityMutsSim])) + windowSize
+			maxDistance = max(max(densityMuts), max([int(densityMutsSimSample[x][-1]) for x in densityMutsSimSample])) + windowSize
 	except:
 		if len(densityMuts) == 0:
-				maxDistance = max([int(densityMutsSim[x][-1]) for x in densityMutsSim]) + windowSize
+				maxDistance = max([int(densityMutsSimSample[x][-1]) for x in densityMutsSimSample]) + windowSize
 		else:
 			maxDistance = max(densityMuts) + windowSize
 	# maxDistance = max(max(densityMuts), max([int(densityMutsSim[x][-1]) for x in densityMutsSim])) + windowSize
 	simDensities = []
+	simWindowParitions = []
 	slideSize = windowSize
-	for x in densityMutsSim:
+	imdsProbabilities = []
+	for x in densityMutsSimSample:
 		currentWindow = 0
 		densities = []
 		while currentWindow < maxDistance:
-			densities.append(moving_density(densityMutsSim[x], currentWindow, currentWindow + slideSize))
+			currentMuts = moving_density(densityMutsSimSample[x], currentWindow, currentWindow + slideSize)
+			densities.append(len(currentMuts))
+			simWindowParitions.append(currentMuts)
+
 			currentWindow += slideSize
 		simDensities.append(densities)
 
@@ -542,15 +574,14 @@ def densityCorrection (densityMuts, densityMutsSim, windowSize):
 	currentWindow = 0
 
 	while currentWindow < maxDistance:
-		densities.append(moving_density(densityMuts, currentWindow, currentWindow + slideSize))
+		currentMuts = moving_density(densityMutsSimSample[x], currentWindow, currentWindow + slideSize)
+		densities.append(len(currentMuts))
 		currentWindow += slideSize
 
 	foldChanges = densities/finalSimDensities
 	peaks, heights = find_peaks([0] + foldChanges+[0],threshold)
 	regions = [slideSize*(x-1) for x in peaks]
 	return(regions)
-
-
 
 
 
@@ -635,7 +666,7 @@ def calculateSampleIMDs (project, folders, directory, directory_orig, vcf_path_c
 		sim_count = len(files)
 		for file in files:
 			if correction:
-				sim = file.split("_")[1]
+				sim = file.split("_")[-3]
 				densityMutsSim[sim] = []
 			chroms = []
 			if file == '.DS_Store':
@@ -988,9 +1019,9 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, windowSize,
 			os.remove(vcf_path_all_nonClust + project + "_all_nonClustered.txt")
 
 		with open(vcf_path_clust + project + "_clustered.txt", 'a') as clust:
-			print("HEADER", file=clust)
+			print("\t".join([x for x in ["project", "samples","ID","genome","mutType","chr","start","end", "ref", "alt", "mutClass", "IMDplot", "IMD", "probability"]]), file=clust)
 		with open(vcf_path_nonClust + project + "_nonClustered.txt", 'a') as nonclust:
-			print("HEADER", file=nonclust)
+			print("\t".join([x for x in ["project", "samples","ID","genome","mutType","chr","start","end", "ref", "alt", "mutClass", "IMDplot", "IMD", "probability"]]), file=nonclust)
 
 		print("Determining sample-dependent intermutational distance (IMD) cutoff...", end='', flush=True)
 
