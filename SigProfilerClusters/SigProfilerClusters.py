@@ -703,7 +703,7 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 		# Generate the rainfall plots.
 		if plotRainfall:
 			print("Generating a rainfall plot for all samples...", end='')
-			plottingFunctions.rainfall(chrom_based, project, input_path, chrom_path, chromLengths, centromeres, contexts, includedVAFs, correction, windowSize, bedRanges)
+			plottingFunctions.rainfall(chrom_based, project, input_path, chrom_path, chromLengths, centromeres, contexts, includedVAFs, includedCCFs, correction, windowSize, bedRanges)
 			print("done")
 			print("Subclassification of clustered mutations has finished!")
 
