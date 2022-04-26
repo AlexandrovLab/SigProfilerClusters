@@ -28,6 +28,7 @@ import multiprocessing as mp
 import seaborn as sns
 # from collections import Iterable
 from itertools import chain
+import sys
 
 
 warnings.filterwarnings("ignore", message="invalid value encountered in long_scalars")
@@ -1065,7 +1066,23 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, windowSize,
 
 		# Generate matrices for all clustered mutations and for all non-clustered mutations
 		print("\nAnalyzing clustered mutations...", flush=True)
-		matGen.SigProfilerMatrixGeneratorFunc(project + "_clustered", genome, vcf_path_clust, plot=False)
+		matrices = matGen.SigProfilerMatrixGeneratorFunc(project + "_clustered", genome, vcf_path_clust, plot=False)
+		if contexts == '96':
+			if '96' in matrices:
+				if matrices['96'].sum().sum() == 0:
+					print("No clustered mutations found")
+					sys.exit()
+			else:
+				print("No clustered mutations found")
+				sys.exit()					
+		elif contexts == 'ID':
+			if 'ID' in matrices:
+				if matrices['ID'].sum().sum() == 0:
+					print("No clustered mutations found")
+					sys.exit()
+			else:
+				print("No clustered mutations found")
+				sys.exit()				
 		print("\nAnalyzing non-clustered mutations...", flush=True)
 		matGen.SigProfilerMatrixGeneratorFunc(project + "_nonClustered", genome, vcf_path_nonClust, plot=False)
 		print(flush=True)
