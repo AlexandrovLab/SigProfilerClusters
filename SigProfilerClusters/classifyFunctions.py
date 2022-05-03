@@ -106,8 +106,13 @@ def pullCCF (project, project_path, correction=True):
 					ccf = -1.5
 					# print("There does not seem to be CCF scores in this input file.\n\t", vcfFile)
 					# break
-				keyLine = ":".join([chrom, pos, ref, alt])
-				ccfs[sample][keyLine] = ccf
+				if len(ref) == len(alt) and len(ref) > 1:
+					for i in range(len(ref)):
+						keyLine = ":".join([chrom, str(int(pos)+i), ref[i], alt[i]])
+						vafs[sample][keyLine] = ccf
+				else:
+					keyLine = ":".join([chrom, pos, ref, alt])
+					ccfs[sample][keyLine] = ccf
 
 	with open(clusteredMutsFile) as f, open(clusteredMutsPath + project + "_clustered_vaf.txt", "w") as out:
 		next(f)
