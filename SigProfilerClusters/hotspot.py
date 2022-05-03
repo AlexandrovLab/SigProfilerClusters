@@ -433,6 +433,7 @@ def first_run (distances, distances_orig_all, distances_orig, vcf_path_clust, vc
 		clustered_muts = [x[1:] for x in distances_orig_all if int(x[0]) <= distance_cut]
 		nonClustered_muts = [x[1:] for x in distances_orig_all if int(x[0]) > distance_cut]
 
+
 	if not correctionData:
 		with open(vcf_path_clust + project + "_clustered.txt", 'a') as clust:
 			for muts in clustered_muts:
@@ -1063,7 +1064,7 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, windowSize,
 		############################################################################################################
 
 
-
+		# print("YESSSSS")
 		# Generate matrices for all clustered mutations and for all non-clustered mutations
 		print("\nAnalyzing clustered mutations...", flush=True)
 		matrices = matGen.SigProfilerMatrixGeneratorFunc(project + "_clustered", genome, vcf_path_clust, plot=False)
@@ -1076,6 +1077,7 @@ def hotSpotAnalysis (project, genome, contexts, simContext, ref_dir, windowSize,
 				print("No clustered mutations found")
 				sys.exit()					
 		elif contexts == 'ID':
+			print()
 			if 'ID' in matrices:
 				if matrices['ID'].sum().sum() == 0:
 					print("No clustered mutations found")

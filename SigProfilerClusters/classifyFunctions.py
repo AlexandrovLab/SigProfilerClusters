@@ -177,8 +177,13 @@ def pullVaf (project, project_path, sanger=True, TCGA=False, standardVC=False, c
 					except:
 						print("There does not seem to be VAF scores in this Sanger-produced file.\n\t", vcfFile)
 						break
-					keyLine = ":".join([chrom, pos, ref, alt])
-					vafs[sample][keyLine] = vaf
+					if len(ref) == len(alt) and len(ref) > 1:
+						for i in range(len(ref)):
+							keyLine = ":".join([chrom, str(int(pos)+i), ref[i], alt[i]])
+							vafs[sample][keyLine] = vaf
+					else:
+						keyLine = ":".join([chrom, pos, ref, alt])
+						vafs[sample][keyLine] = vaf
 
 
 	elif TCGA:
@@ -199,8 +204,13 @@ def pullVaf (project, project_path, sanger=True, TCGA=False, standardVC=False, c
 						vaf = float(lines[7].split("VAF=")[1].split(";")[0])
 					except:
 						vaf = -1.5
-					keyLine = ":".join([chrom, pos, ref, alt])
-					vafs[sample][keyLine] = vaf
+					if len(ref) == len(alt) and len(ref) > 1:
+						for i in range(len(ref)):
+							keyLine = ":".join([chrom, str(int(pos)+i), ref[i], alt[i]])
+							vafs[sample][keyLine] = vaf
+					else:
+						keyLine = ":".join([chrom, pos, ref, alt])
+						vafs[sample][keyLine] = vaf
 
 	elif standardVC:
 		vafs = {}
@@ -220,8 +230,13 @@ def pullVaf (project, project_path, sanger=True, TCGA=False, standardVC=False, c
 						vaf = float(lines[9].split("AF=")[1].split(";")[0])
 					except:
 						vaf = -1.5
-					keyLine = ":".join([chrom, pos, ref, alt])
-					vafs[sample][keyLine] = vaf
+					if len(ref) == len(alt) and len(ref) > 1:
+						for i in range(len(ref)):
+							keyLine = ":".join([chrom, str(int(pos)+i), ref[i], alt[i]])
+							vafs[sample][keyLine] = vaf
+					else:
+						keyLine = ":".join([chrom, pos, ref, alt])
+						vafs[sample][keyLine] = vaf
 
 
 	with open(clusteredMutsFile) as f, open(clusteredMutsPath + project + "_clustered_vaf.txt", "w") as out:
