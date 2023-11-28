@@ -25,7 +25,7 @@ import bisect
 from scipy.signal import find_peaks
 import random
 import multiprocessing as mp
-import seaborn as sns
+# import seaborn as sns
 # from collections import Iterable
 from itertools import chain
 import sys
