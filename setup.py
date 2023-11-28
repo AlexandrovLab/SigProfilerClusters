@@ -40,6 +40,7 @@ setup(name='SigProfilerClusters',
 		author='Erik Bergstrom',
 		author_email='ebergstr@eng.ucsd.edu',
 		license='UCSD',
+		python_requires=">=3.8",
 		packages=find_packages(),#['SigProfilerMatrixGenerator'],
 		install_requires =[
 			"matplotlib>=3.3.0,<3.5",
