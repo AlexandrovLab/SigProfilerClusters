@@ -668,7 +668,10 @@ def calculateSampleIMDs (project, folders, directory, directory_orig, vcf_path_c
 		sim_count = len(files)
 		for file in files:
 			if correction:
-				sim = file.split("_")[-3]
+				if "_exome_" in file:
+					sim = file.split("_")[-4]
+				else:
+					sim = file.split("_")[-3]				
 				densityMutsSim[sim] = []
 			chroms = []
 			if file == '.DS_Store':
