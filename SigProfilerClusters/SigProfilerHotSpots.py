@@ -17,15 +17,12 @@ import statistics
 import scipy
 import time
 import sys
-#from SigProfilerExtractor import sigpro as sigs
+from SigProfilerExtractor import sigpro as sigs
 import multiprocessing as mp
 from . import plottingFunctions
-from SigProfilerMatrixGenerator.scripts import MutationMatrixGenerator as matRef
-from . import convertToVCF
-import random
-import pandas as pd
-import bisect
-import seaborn as sns
+from SigProfilerMatrixGenerator.scripts import SigProfilerMatrixGenerator as matRef
+
+
 
 def distance_multiple_files_sims (output_path, simulations, simulation_path, simulation_path_sorted, file_context2, genome, centromeres, sortSims):
 	'''
@@ -207,7 +204,7 @@ def distance_one_file (sample_path, original_samples, output_path_original, file
 
 			# Calculate the minimum IMDs ensuring that the samples, chromosome, and chromosome arms match
 			# distances = [[int(y[2])-(int(x[2])-2+len(x[3])+len(x[4]))] + x + ['c'] if x[0] == y[0] and int(y[2])<centro_start else [int(y[2])-(int(x[2])-2+len(x[3])+len(x[4]))] + x +['c'] if x[0] == y[0] and centro_end<int(x[2]) else 'aa' if x[0] != y[0] else [int(x[2]) - (int(original_lines[original_lines.index(x)-1][2])-2+len(original_lines[original_lines.index(x)-1][3])+len(original_lines[original_lines.index(x)-1][4]))] + x +['d'] for x,y in zip(original_lines, original_lines[1:])]
-			distances = [[int(y[2])-(int(x[2])-2+len(x[3])+len(x[4]))] + x + ['c'] if x[0] == y[0] and int(y[2])<centro_start else [int(y[2])-(int(x[2])-2+len(x[3])+len(x[4]))] + x +['c'] if x[0] == y[0] and centro_end<int(x[2]) else [abs(int(x[2])) - (int(original_lines[original_lines.index(x)-1][2])-2+len(original_lines[original_lines.index(x)-1][3])+len(original_lines[original_lines.index(x)-1][4]))] + x +['d'] for x,y in zip(original_lines, original_lines[1:])]
+			distances = [[int(y[2])-(int(x[2])-2+len(x[3])+len(x[4]))] + x + ['c'] if x[0] == y[0] and int(y[2])<centro_start else [int(y[2])-(int(x[2])-2+len(x[3])+len(x[4]))] + x +['c'] if x[0] == y[0] and centro_end<int(x[2]) else [int(x[2]) - (int(original_lines[original_lines.index(x)-1][2])-2+len(original_lines[original_lines.index(x)-1][3])+len(original_lines[original_lines.index(x)-1][4]))] + x +['d'] for x,y in zip(original_lines, original_lines[1:])]
 			distances_new = distances[:] + [[distances[-1][0]] + original_lines[-1] + [distances[-1][-1]]]
 			# final_distances = ['bb' if x[1] != y[1] else [min(x[0],y[0])]+y[1:-1]+[x[0]] if x[0] != 'a' and y[0] != 'a' and x[-1] != 'd' else [y[0]] + y[1:-1]+[y[0]] if x[-1] == 'd' and x[0] != 'a' and y[0] != 'a' else x if y[0] == 'a' and x[0] != 'a' else y if x[0] == 'a' and y[0] != 'a' else 'bb' for x,y in zip(distances_new[:], distances_new[1:])]		
 			final_distances = [[x[0]] + x[1:-1]+[x[0]] if x[1] != y[1] and y[1] == 'a' else [min(x[0],y[0])]+y[1:-1]+[x[0]] if x[0] != 'a' and y[0] != 'a' and x[-1] != 'd' else [y[0]] + y[1:-1]+[y[0]] if x[-1] == 'd' and x[0] != 'a' and y[0] != 'a' else x if y[0] == 'a' and x[0] != 'a' else y if x[0] == 'a' and y[0] != 'a' else 'bb' for x,y in zip(distances_new[:], distances_new[1:])]		
@@ -233,95 +230,11 @@ def distance_one_file (sample_path, original_samples, output_path_original, file
 					print("\t".join([str(y) for y in x]), file=out_file)
 			out_file.close()
 
-		elif len(original_lines) == 1:
-			# Handle the case when there is only one mutation
-			sample = original_lines[0][0]
-			out_file = output_path_original + sample + "_" + file_context2 + "_intradistance.txt"
-
-			with open(out_file, 'a', 10000000) as out_file:
-				# Add a new column with the value 1 million
-				original_lines[0].insert(0, 1000000)
-				for mutation in original_lines:
-					print("\t".join([str(y) for y in mutation]), file=out_file)
 
 
-
-
-def eventProbability (project, input_path, simulation_path, output_path_original, windowSize, k=10):
-	windowSize *= 10
-	subclasses = ["DBS", "MBS", "omikli", "kataegis", "other"]
-
-	samples = [x for x in os.listdir(simulation_path) if x[0] != "."]
-	for sample in samples:
-		samplePath = os.path.join(simulation_path, sample)
-		simFiles = random.sample([x for x in os.listdir(samplePath) if x[0] != "."], k)
-		simIMDs = {}
-
-		for sim in simFiles:
-			muts = pd.read_csv(os.path.join(samplePath, sim), sep="\t", header=None, names=["IMD", "sample", "chrom", "pos", "ref", "alt", 'plotIMD'])
-			chroms = list(set(muts['chrom']))
-			for chrom in chroms:
-				chromMuts = muts[muts['chrom']==chrom]
-				if chrom not in simIMDs:
-					simIMDs[chrom] = {}
-
-				maxDistance = max(chromMuts['pos']) + windowSize
-				slideSize = windowSize
-				imdsProbabilities = []
-				currentWindow = 0
-				densities = []
-				while currentWindow < maxDistance:
-					currentMuts = chromMuts[(chromMuts['pos']<currentWindow + slideSize) & (chromMuts['pos']>=currentWindow)]
-					if str(currentWindow) + ":"+str(currentWindow+slideSize) not in simIMDs[chrom]:
-						simIMDs[chrom][str(currentWindow) + ":"+str(currentWindow+slideSize)] = []
-					simIMDs[chrom][str(currentWindow) + ":"+str(currentWindow+slideSize)] += list(currentMuts['pos'])
-					currentWindow += slideSize
-
-		distributions = {}
-		for chrom in simIMDs:
-			distributions[chrom] = {}
-			for subwindow in simIMDs[chrom]:
-				if len(simIMDs[chrom][subwindow]) == 0 or len(set(simIMDs[chrom][subwindow])) <= 1 :
-					continue
-				x,y = sns.kdeplot(np.log10(simIMDs[chrom][subwindow]), bw_adjust=20, gridsize=200).get_lines()[0].get_data()
-				distributions[chrom][subwindow] = [x,y]
-				plt.pyplot.close()
-		for subclass in subclasses:
-			subclassPath = os.path.join(input_path, "output", "clustered", subclass, sample + ".vcf")
-
-			if os.path.exists(subclassPath):
-				out = open(os.path.join(input_path, "output", "clustered", subclass, sample + "_prob.vcf"), "w")
-				print("\t".join(["#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "EVENT_PROBABILITY"]), file=out)
-				clusteredMuts = pd.read_csv(subclassPath, header=0, sep="\t")
-				clusteredMuts['EVENTS'] = [x.split('groupNumber')[1] for x in clusteredMuts['INFO']]
-
-				for chrom in set(clusteredMuts['#CHROM']):
-					currentClusteredMuts = clusteredMuts[clusteredMuts['#CHROM']==chrom]
-					for event in set(currentClusteredMuts['EVENTS']):
-						eventMuts = currentClusteredMuts[currentClusteredMuts['EVENTS']==event]
-						locations = list(eventMuts['POS'])
-						imds = np.log10([y-x for x,y in zip(locations, locations[1:])])
-						window = int(locations[0]/windowSize)*windowSize
-						window = str(window) + ":" + str(window + windowSize)
-						currentDist = distributions[str(chrom)][window]
-						probs = [currentDist[1][bisect.bisect_left(currentDist[0], x)] for x in imds]
-						probs = np.prod(np.array(probs))  
-						if probs < 1e-05:
-							probs = 1e-05
-
-						for i, x in eventMuts.iterrows():
-							x = list(x)[:-1] + [probs]
-							print("\t".join([str(y) for y in x]), file=out)
-				os.remove(subclassPath)
-				out.close()
-			
-
-
-
-
-def analysis (project, genome, contexts, simContext, input_path, output_type='all', analysis='all', interdistance='96', exome=False, clustering_vaf=False, sortSims=True, extraction=False, correction=True, startProcess=1, endProcess=25, totalIterations=1000, calculateIMD=True, chrom_based=False, max_cpu=None, subClassify=False, sanger=True, TCGA=False, standardVC=False, includedVAFs=True, includedCCFs=False, windowSize=1000000, bedRanges=None, plotIMDfigure=True, plotRainfall=True, probability=False):
+def analysis (project, genome, contexts, simContext, input_path, output_type='all', analysis='all', interdistance='96', exome=False, clustering_vaf=False, sortSims=True, extraction=False, correction=True, startProcess=1, endProcess=25, totalIterations=1000, calculateIMD=True, chrom_based=False, max_cpu=None, subClassify=False, sanger=True, TCGA=False, includedVAFs=True, windowSize=1000000, bedRanges=None, plotIMDfigure=True, plotRainfall=True):
 	'''
-	Organizes all of the data structures and calls all of the sub-functions. This is the main function called when running SigProfilerClusters.
+	Organizes all of the data structures and calls all of the sub-functions. This is the main function called when running SigProfilerHotSpots.
 
 	Parameters:
 				project	->	user provided project name (string)
@@ -334,20 +247,18 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 		  interdistance	->	the mutation types to calculate IMDs between (NOT STABLE; RECOMMENDED NOT TO USE; default='96')
 		 clustering_vaf	->	optional paramater to save the VAF from the original mutation files. Required if performing subclassification (default=False; switched to True if subclassify=True)
 			   sortSims	->	optional parameter that requires the function to sort the simulations or not (boolean; default=True)
-			 extraction	[DEPRACATED]->	optional parameter to perform a signature extraction directly after the hotspot analysis (boolean; default=True)
+			 extraction	->	optional parameter to perform a signature extraction directly after the hotspot analysis (boolean; default=True)
 			 correction	->	optional parameter to perform a genome-wide mutational density correction (boolean; default=False)
-		   startProcess	[DEPRACATED] ->	the number of starting processes for performing signature extraction (int; default=1)
-			 endProcess	[DEPRACATED] ->	the number of final processes for performing signature extraction (int; default=25)
-		totalIterations	[DEPRACATED] ->	the number of iterations for performing signature extraction (int; default=1000)
+		   startProcess	->	the number of starting processes for performing signature extraction (int; default=1)
+			 endProcess	->	the number of final processes for performing signature extraction (int; default=25)
+		totalIterations	->	the number of iterations for performing signature extraction (int; default=1000)
 		   calculateIMD	->	optional parameter to calculate the IMDs. This will save time if you need to rerun the subclassification step only (boolean; default=True)
 			chrom_based	->	optional parameter to perform the analysis on a chromosome basis (boolean; default=False)
 				max_cpu	->	optional parameter to specify the number of maximum cpu's to use for parallelizing the code (integer; default=None: uses all available cpu's)
 			subClassify	->	optional parameter to subclassify the clustered mutations into refinded classes including DBSs, extended MBSs, kataegis, etc. (boolean; default=False)
 				 sanger	-> 	optional parameter that informs the tool of what format the VAF scores are provided. This is required when subClassify=True (boolean; default=True)
 				   TCGA	->	optional parameter that informs the tool of what format the VAF scores are provided. This is required when subClassify=True and sanger=False (boolean; default=False)
-			 standardVC	->	optional parameter that informs the tool of what format the VAF scores are provided. This is required when subClassify=True and sanger=False and TCGA=False and when the data contains VAF formatted in the 10th column as AF=XX (boolean; default=False)
 		   includedVAFs ->  optional parameter that informs the tool of the inclusion of VAFs in the dataset (boolean; default=True)
-		   includedCCFs ->  optional parameter that informs the tool of the inclusion of cancer cell fractions in the dataset (boolean; default=True)
 			 windowSize	->	the size of the window used for correcting the IMDs based upon mutational density within a given genomic range (integer; default=10000000)
 		  plotIMDfigure	->	optional parameter that generates IMD and mutational spectra plots for each sample (boolean; default=True).
 		   plotRainfall	->	optional parameter that generates rainfall plots for each sample using the subclassification of clustered events (boolean; default=True).
@@ -360,12 +271,6 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 		subClassify=True. Note that the IMD plots do not have the resolution to show the corrected IMDs if correction=True. The corrected mutations are shown in the SBS96, but the
 		distances are not used in the histogram.
 	'''
-	if includedCCFs:
-		includedVAFs=False
-		
-	if chrom_based:
-		print("The parameter chrom_based has been deprecated within the SigProfilerClusters pipeline. Please rerun with chrom_based=False. Note, you may still run the simulations using chrom_based=True, which will be used as the background model for the clusterd analysis.")
-		sys.exit()
 	# Conversions for NCBI chromosome names to standard notation
 	ncbi_chrom = {'NC_000067.6':'1', 'NC_000068.7':'2', 'NC_000069.6':'3', 'NC_000070.6':'4', 
 				  'NC_000071.6':'5', 'NC_000072.6':'6', 'NC_000073.6':'7', 'NC_000074.6':'8',
@@ -463,8 +368,8 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 
 	time_stamp = datetime.date.today()
 
-	log_file = output_log_path + 'SigProfilerClusters_' + project + "_" + genome + "_" + str(time_stamp) + ".out"
-	error_file = output_log_path + 'SigProfilerClusters_' + project + "_" + genome + "_" + str(time_stamp) + ".err"
+	log_file = output_log_path + 'SigProfilerHotSpots_' + project + "_" + genome + "_" + str(time_stamp) + ".out"
+	error_file = output_log_path + 'SigProfilerHotSpots_' + project + "_" + genome + "_" + str(time_stamp) + ".err"
 	if os.path.exists(error_file):
 		os.remove(error_file)
 	if os.path.exists(log_file):
@@ -490,9 +395,9 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 	log_out.write("-------Runtime Checkpoints------- \n")
 	log_out.close()
 
-	print("\n\n======================================", flush=True)
-	print("Beginning SigProfilerClusters Analysis", flush=True)
-	print("======================================\n\n", flush=True)
+	print("\n\n=====================================", flush=True)
+	print("Beginning SigProfilerHotSpot Analysis", flush=True)
+	print("=====================================\n\n", flush=True)
 	# Log files are done begin created and the majority of the folder structures are set
 
 
@@ -559,16 +464,16 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 
 
 	# Checks for simulated data. If there are not simulations, then inform the user to generate simulations first before
-	# performing the clusters analysis:
+	# performing the hotspot analysis:
 	if not os.path.exists(simulation_path):
-		print("There are no simulated data present for this project. Please generate simulations before running SigProfilerClusters.\n"\
+		print("There are no simulated data present for this project. Please generate simulations before running SigProfilerHotSpots.\n"\
 				"\tThe package can be installed via pip:\n\t\t\t$ pip install SigProfilerSimulator\n"\
 				"\n\tand used within a python3 sessions as follows:\n\t\t\t$ python3\n\t\t\t>> from SigProfilerSimulator import SigProfilerSimulator as sigSim\n"\
 				"\t\t\t>> sigSim.SigProfilerSimulator(project, project_path, genome, contexts=['6144'], simulations=100)\n\n"\
 				"\tFor a complete list of parameters, visit the github repo (https://github.com/AlexandrovLab/SigProfilerSimulator) or the documentation page (https://osf.io/usxjz/wiki/home/)")
 		sys.exit()
 	if len(os.listdir(simulation_path)) < 100:
-		print("Please simulate a minimum of 100 simulations per sample to successfully run SigProfilerClusters.")
+		print("Please simulate a minimum of 100 simulations per sample to successfully run SigProfilerHotSpots.")
 		sys.exit()
 
 	# Collect simulation files and distribute them into the available processors for parallelization
@@ -683,28 +588,21 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 	# Allows for the clustered muutations to automactically run through the extraction.
 	# This option is not recommended, but rather the extractions should be run separately after 
 	# the clustered analysis is completed.
-	# if extraction:
-	# 	print("Beginning signature extraction...")
-	# 	sigs.sigProfilerExtractor("table", ref_dir+"output/extraction_clustered/", ref_dir+"output/vcf_files" + path_suffix + "/"+project+"_clustered/SNV/output/SBS/"+project+"_clustered.SBS96.all", genome, startProcess=startProcess, endProcess=endProcess, totalIterations=totalIterations)#, totalIterations=totalIterations)
+	if extraction:
+		print("Beginning signature extraction...")
+		sigs.sigProfilerExtractor("table", ref_dir+"output/extraction_clustered/", ref_dir+"output/vcf_files" + path_suffix + "/"+project+"_clustered/SNV/output/SBS/"+project+"_clustered.SBS96.all", genome, startProcess=startProcess, endProcess=endProcess, totalIterations=totalIterations)#, totalIterations=totalIterations)
 	
-
 	# Subclassify the clustered partition of mutations with the exception of indels. This function will also
 	# produce the rainfall plots.
 	if subClassify:
 		if contexts != "ID":
 			print("Beginning subclassification of clustered mutations...", end='')
 			if includedVAFs:
-				classifyFunctions.pullVaf (project, input_path, sanger, TCGA, standardVC, correction)
+				classifyFunctions.pullVaf (project, input_path, sanger, TCGA, correction)
 				sys.stderr.close()
 				sys.stderr = open(error_file, 'a')
-				classifyFunctions.findClustersOfClusters (project, chrom_based, input_path, windowSize, chromLengths, regions, log_file, genome, processors, imds, correction, includedCCFs)
+				classifyFunctions.findClustersOfClusters (project, chrom_based, input_path, windowSize, chromLengths, regions, log_file, genome, processors, imds, correction)
 				sys.stderr.close()
-			elif includedCCFs:
-				classifyFunctions.pullCCF (project, input_path, correction)
-				sys.stderr.close()
-				sys.stderr = open(error_file, 'a')
-				classifyFunctions.findClustersOfClusters (project, chrom_based, input_path, windowSize, chromLengths, regions, log_file, genome, processors, imds, correction, includedCCFs)
-				sys.stderr.close()				
 			else:
 				classifyFunctions.findClustersOfClusters_noVAF (project, chrom_based, input_path, windowSize, chromLengths, regions, log_file, genome, processors, imds, correction)
 				sys.stderr.close()
@@ -715,23 +613,11 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 		# Generate the rainfall plots.
 		if plotRainfall:
 			print("Generating a rainfall plot for all samples...", end='')
-			plottingFunctions.rainfall(chrom_based, project, input_path, chrom_path, chromLengths, centromeres, contexts, includedVAFs, includedCCFs, correction, windowSize, bedRanges)
+			plottingFunctions.rainfall(chrom_based, project, input_path, chrom_path, chromLengths, centromeres, contexts, includedVAFs, correction, windowSize, bedRanges)
 			print("done")
 			print("Subclassification of clustered mutations has finished!")
 
-		# Generates output paths for final results saved as VCF files
-		convertToVCF.generateAllPaths(input_path, contexts)
-		convertToVCF.convertFiles(input_path, contexts, project, correction)
-
-		# Add probability to all clustered mutations using same window sized-bins
-		if probability:
-			print("\n")
-			print("Calculating the probability of observing each clustered event...", end='', flush=True)
-			eventProbability (project, input_path, output_path, output_path_original, windowSize, k=10)
-			print("done")
-
-
 	sys.stderr.close()
 	end = time.time() - start
-	print("SigProfilerClusters successfully finished! Elapsed time: " + str(round(end, 2)) + " seconds.")
+	print("SigProfilerHotSpots successfully finished! Elapsed time: " + str(round(end, 2)) + " seconds.")
 

@@ -59,10 +59,13 @@ def pullLineInfo (line, collectVAF=True):
 		return(sample, chrom, pos, ref, alt)
 
 
-def convertFiles (input_path, contexts, project):
+def convertFiles (input_path, contexts, project, correction):
 	subclasses = {"class1a":"DBS", "class1b":"MBS", "class1c":"omikli", "class2":"kataegis", "class3":"other"}
 	if contexts == 'ID':
-		idPath = os.path.join(input_path, "output", "vcf_files_corrected", project + "_clustered", "INDEL", project + "_clustered.txt")		
+		if correction == True:
+			idPath = os.path.join(input_path, "output", "vcf_files_corrected", project + "_clustered", "INDEL", project + "_clustered.txt")		
+		else:
+			idPath = os.path.join(input_path, "output", "vcf_files", project + "_clustered", "INDEL", project + "_clustered.txt")		
 		outputFile = os.path.join(input_path, "output", "clustered", "ID")
 		with open(idPath) as f:
 			next(f)
@@ -83,7 +86,10 @@ def convertFiles (input_path, contexts, project):
 				print("\t".join([chrom, pos, sample, ref, alt, ".", ".", "ClusteredAnalysis"]), file=out)
 		out.close()
 
-		nonClusteredFile = os.path.join(input_path, "output", "vcf_files_corrected", project + "_nonClustered", "INDEL", project + "_nonClustered.txt")
+		if correction == True:
+			nonClusteredFile = os.path.join(input_path, "output", "vcf_files_corrected", project + "_nonClustered", "INDEL", project + "_nonClustered.txt")
+		else:
+			nonClusteredFile = os.path.join(input_path, "output", "vcf_files", project + "_nonClustered", "INDEL", project + "_nonClustered.txt")
 		with open(nonClusteredFile) as f:
 			next(f)
 			allLines = f.readlines()
@@ -104,7 +110,10 @@ def convertFiles (input_path, contexts, project):
 		out.close()
 
 	else:
-		subclassPath = os.path.join(input_path, "output", "vcf_files_corrected", project + "_clustered", "subclasses")		
+		if correction == True:
+			subclassPath = os.path.join(input_path, "output", "vcf_files_corrected", project + "_clustered", "subclasses")		
+		else:
+			subclassPath = os.path.join(input_path, "output", "vcf_files", project + "_clustered", "subclasses")		
 		for subclass in subclasses:
 			subclassFile = os.path.join(subclassPath, subclass, project + "_clustered_" + subclass + ".txt")
 			outputFile = os.path.join(input_path, "output", "clustered", subclasses[subclass])
@@ -127,7 +136,10 @@ def convertFiles (input_path, contexts, project):
 					print("\t".join([chrom, pos, sample, ref, alt, ".", ".", "ClusteredAnalysis;VAF=" + vaf + ";groupNumber" + group]), file=out)
 			out.close()
 
-		nonClusteredFile = os.path.join(input_path, "output", "vcf_files_corrected", project + "_nonClustered", "SNV", project + "_nonClustered.txt")
+		if correction == True:
+			nonClusteredFile = os.path.join(input_path, "output", "vcf_files_corrected", project + "_nonClustered", "SNV", project + "_nonClustered.txt")
+		else:
+			nonClusteredFile = os.path.join(input_path, "output", "vcf_files", project + "_nonClustered", "SNV", project + "_nonClustered.txt")
 		with open(nonClusteredFile) as f:
 			next(f)
 			allLines = f.readlines()

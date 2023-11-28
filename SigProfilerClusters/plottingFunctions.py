@@ -1163,6 +1163,10 @@ def rainfall (chrom_based_IMD, project, project_path, chrom_path, chromLengths, 
 	def natural_sortkey(string):          
 		return tuple(int(num) if num else alpha for num, alpha in tokenize(string))
 
+	try:
+		sortedSampleSet = sorted(samplesSet, key=natural_sortkey)
+	except:
+		sortedSampleSet = samplesSet
 
 	totalMutsIMD = {}
 	totalMuts1000 = {}
@@ -1179,7 +1183,7 @@ def rainfall (chrom_based_IMD, project, project_path, chrom_path, chromLengths, 
 			bins.append(i)
 		bins.append(genomeLength)
 		count = 1
-		for sample in sorted(samplesSet, key=natural_sortkey):
+		for sample in sortedSampleSet:
 			chrom_startsAll = {}
 			# if correction:
 			# 	# regions = list(imdsDataSample_corrected[sample.split("_")[0]].keys())

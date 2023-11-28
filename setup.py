@@ -15,7 +15,7 @@ def readme():
 	# with open('README.rst') as f:
 	# 	return(f.read())
 
-VERSION = '1.0.11'
+VERSION = '1.1.0'
 
 def write_version_py(filename='SigProfilerClusters/version.py'):
 	# Copied from numpy setup.py
@@ -43,9 +43,9 @@ setup(name='SigProfilerClusters',
 		packages=find_packages(),#['SigProfilerMatrixGenerator'],
 		install_requires =[
 			"matplotlib>=3.3.0,<3.5",
-			"sigProfilerPlotting>=1.1.8",
-			"SigProfilerMatrixGenerator>=1.2.4",
-			"SigProfilerSimulator>=1.1.3",
+			"sigProfilerPlotting>=1.3.18",
+			"SigProfilerMatrixGenerator>=1.2.19",
+			"SigProfilerSimulator>=1.1.5",
 			"statsmodels>=0.9.0",
 			"scipy>=1.1.0",
 			"pandas>=0.23.4",

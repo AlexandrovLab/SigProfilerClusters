@@ -109,7 +109,7 @@ def pullCCF (project, project_path, correction=True):
 				if len(ref) == len(alt) and len(ref) > 1:
 					for i in range(len(ref)):
 						keyLine = ":".join([chrom, str(int(pos)+i), ref[i], alt[i]])
-						vafs[sample][keyLine] = ccf
+						ccfs[sample][keyLine] = ccf
 				else:
 					keyLine = ":".join([chrom, pos, ref, alt])
 					ccfs[sample][keyLine] = ccf
@@ -1150,6 +1150,95 @@ def findClustersOfClusters_noVAF (project, chrom_based, project_parent_path, win
 										print(lines)
 	
 					lines = []
+
+
+			write_out = False
+			category = None
+			writeClassI = False
+			writeClassII = False
+			writeClassIII = False
+			writeClassII = False
+			writeClassIb = False
+			writeClassIc = False
+			writeClassIa = False
+
+
+			if correction:
+				distancesLine = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if int(y[7])-int(x[7]) > 1 and (int(y[7])-int(x[7]) <= imdsData[y[1]] or (len(regions[y[1]]) > 0 and regions[y[1]][hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome)] - (int(y[7]) + chromLengths[genome][y[5]]) < windowSize and hotspot.cutoffCatch([int(y[-2]),y[1],y[5], y[7]], imds_corrected, regions[y[1]], hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome), imdsData[y[1]], chromLengths[genome], windowSize)))])#   int(y[-2]) < imds_corrected[y[1]][regions[y[1]][hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome, imds_corrected[y[1]])]])   )])
+				distancesFailed = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if (int(y[7])-int(x[7]) > imdsData[y[1]] and (len(regions[y[1]]) > 0 and regions[y[1]][hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome)] - (int(y[7]) + chromLengths[genome][y[5]]) < windowSize and hotspot.cutoffCatch([int(y[-2]),y[1],y[5], y[7]], imds_corrected[y[1]], regions[y[1]], hotspot.catch([".",".",y[5], y[7]], regions[y[1]], chromLengths, genome), imdsData[y[1]], chromLengths[genome], windowSize)))])
+				zeroDistances = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if int(y[7])-int(x[7]) > 1])
+
+			else:
+				distancesLine = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if int(y[7])-int(x[7]) > 1 and (int(y[7])-int(x[7]) <= imdsData[y[1]])])
+				distancesFailed = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if (int(y[7])-int(x[7]) > imdsData[y[1]])])
+				zeroDistances = len([int(y[7])-int(x[7]) for x,y in zip(lines, lines[1:]) if int(y[7])-int(x[7]) > 1])
+
+			if distancesFailed == 0:
+				# Class I or II
+				if distancesLine > 1:
+					# Class IC or II
+					if len(lines) >= 4:
+						writeClassII = True
+					else:
+						writeClassI = True
+						writeClassIc = True									
+				else:
+					writeClassI = True
+					if zeroDistances == 0:
+						if len(lines) == 2:
+							writeClassIa = True
+						else:
+							writeClassIb = True
+					else:
+						writeClassIc = True																		
+			else:
+				writeClassIII = True
+
+			
+			if writeClassII:
+				processivitySubclassification (lines, out2Y, out2K, out2S, out2N)
+				for i in range(0, len(lines), 1):
+					lines[i].append("ClassII")
+					print("\t".join([x for x in lines[i]]), file=out4)
+					lines[i] = [str(count)] + lines[i]
+					print("\t".join([x for x in lines[i]]), file=out2)
+				count += 1
+				print("\n\n", file=out2)
+			else:
+				if writeClassI:
+					# Writes Class I (Single Events)
+					try:
+						for i in range(0, len(lines), 1):
+							lines[i].append("ClassI")
+							print("\t".join([x for x in lines[i]]), file=out3)
+					except:
+						print(lines)
+
+					if writeClassIc:
+						# Writes Class Ic (Omiklis) 
+						try:
+							for i in range(0, len(lines), 1):
+								lines[i][-1] = "ClassIC"
+								print("\t".join([x for x in lines[i]]), file=out8)
+						except:
+							print(lines)	
+					elif writeClassIa:
+						# Writes Class Ia (DBSs) 
+						try:
+							for i in range(0, len(lines), 1):
+								lines[i][-1] = "ClassIA"
+								print("\t".join([x for x in lines[i]]), file=out6)
+						except:
+							print(lines)	
+					elif writeClassIb:
+						# Writes Class 1b (MBSs)
+						try:
+							for i in range(0, len(lines), 1):
+								lines[i][-1] = "ClassIB"
+								print("\t".join([x for x in lines[i]]), file=out7)
+						except:
+							print(lines)
+
 
 
 		with open(project_path + "clusteredStats" + path_suffix + ".pickle", "wb") as f:
