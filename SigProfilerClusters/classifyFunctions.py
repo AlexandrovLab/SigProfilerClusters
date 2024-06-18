@@ -133,7 +133,7 @@ def pullCCF (project, project_path, correction=True):
 
 
 
-def pullVaf (project, project_path, sanger=True, TCGA=False, standardVC=False, correction=True):
+def pullVaf (project, project_path, sanger=True, TCGA=False, standardVC=False, correction=True, field=None, vcf_col=None):
 	'''
 	Collects the VAFs from the original mutation files. Assumes that these are provided in the same 
 	format as Sanger or TCGA.
@@ -145,6 +145,8 @@ def pullVaf (project, project_path, sanger=True, TCGA=False, standardVC=False, c
 				TCGA	->	optional parameter that informs the tool of what format the VAF scores are provided. This is required when subClassify=True and sanger=False (boolean; default=False)
 		  standardVC	->	optional parameter that informs the tool of what format the VAF scores are provided. This is required when subClassify=True and sanger=False and TCGA=False and when the data contains VAF formatted in the 10th column as AF=XX (boolean; default=False)
 		  correction	->	optional parameter to perform a genome-wide mutational density correction (boolean; default=False)
+			   field	->	optional parameter specifying the VCF field of column vcf_col with the VAF (string; default = None)
+			 vcf_col	->	optional parameter specifying which column of the VCF to look for the VAF (int; default = None)
 
 	Returns:
 		None
@@ -160,8 +162,40 @@ def pullVaf (project, project_path, sanger=True, TCGA=False, standardVC=False, c
 	clusteredMutsFile = project_path + "output/vcf_files" + path_suffix + "/" + project + "_clustered" + "/SNV/" + project + "_clustered.txt"
 	vcf_files = [x for x in os.listdir(vcf_path) if x != ".DS_Store"]
 
-
-	if sanger:
+	if field and vcf_col:
+		vafs = {}
+		for vcfFile in vcf_files:
+			sample = vcfFile.split(".")[0]
+			vafs[sample] = {}
+			with open(vcf_path + vcfFile) as f:
+				for lines in f:
+					if lines[0] == "#":
+						continue
+					lines = lines.strip().split()
+					chrom = lines[0]
+					if chrom.startswith("chr") or chrom.startswith("Chr"):
+						chrom = chrom[3:]
+					pos = lines[1]
+					ref = lines[3]
+					alt = lines[4]
+					try:
+						## Column 9 is assumed to be FORMAT
+						fmt = lines[8].split(":")
+						## Extract VAF index and use it to extract VAF from the provided column
+						vaf_ind = fmt.index(field)
+						## Use vcf_col-1 because humans think lists as 1-indexed but python thinks 0-indexed
+						vaf = float(lines[vcf_col-1].split(":")[vaf_ind])
+					except:
+						print("Provided VAF field does not match any field in VCF.\n\t", vcfFile)
+						break
+					if len(ref) == len(alt) and len(ref) > 1:
+						for i in range(len(ref)):
+							keyLine = ":".join([chrom, str(int(pos)+i), ref[i], alt[i]])
+							vafs[sample][keyLine] = vaf
+					else:
+						keyLine = ":".join([chrom, pos, ref, alt])
+						vafs[sample][keyLine] = vaf
+	elif sanger:
 		vafs = {}
 		for vcfFile in vcf_files:
 			sample = vcfFile.split(".")[0]
