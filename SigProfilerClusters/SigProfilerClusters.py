@@ -319,7 +319,7 @@ def eventProbability (project, input_path, simulation_path, output_path_original
 
 
 
-def analysis (project, genome, contexts, simContext, input_path, output_type='all', analysis='all', interdistance='96', exome=False, clustering_vaf=False, sortSims=True, extraction=False, correction=True, startProcess=1, endProcess=25, totalIterations=1000, calculateIMD=True, chrom_based=False, max_cpu=None, subClassify=False, sanger=True, TCGA=False, standardVC=False, includedVAFs=True, includedCCFs=False, windowSize=1000000, bedRanges=None, plotIMDfigure=True, plotRainfall=True, probability=False):
+def analysis (project, genome, contexts, simContext, input_path, output_type='all', analysis='all', interdistance='96', exome=False, clustering_vaf=False, sortSims=True, extraction=False, correction=True, startProcess=1, endProcess=25, totalIterations=1000, calculateIMD=True, chrom_based=False, max_cpu=None, subClassify=False, sanger=True, TCGA=False, standardVC=False, includedVAFs=True, includedCCFs=False, windowSize=1000000, bedRanges=None, plotIMDfigure=True, plotRainfall=True, probability=False, field=None, vcf_col=None):
 	'''
 	Organizes all of the data structures and calls all of the sub-functions. This is the main function called when running SigProfilerClusters.
 
@@ -694,7 +694,7 @@ def analysis (project, genome, contexts, simContext, input_path, output_type='al
 		if contexts != "ID":
 			print("Beginning subclassification of clustered mutations...", end='')
 			if includedVAFs:
-				classifyFunctions.pullVaf (project, input_path, sanger, TCGA, standardVC, correction)
+				classifyFunctions.pullVaf (project, input_path, sanger, TCGA, standardVC, correction, field, vcf_col)
 				sys.stderr.close()
 				sys.stderr = open(error_file, 'a')
 				classifyFunctions.findClustersOfClusters (project, chrom_based, input_path, windowSize, chromLengths, regions, log_file, genome, processors, imds, correction, includedCCFs)
