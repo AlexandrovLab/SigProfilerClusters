@@ -477,8 +477,7 @@ def analysis(
     chrom_based=False,
     max_cpu=None,
     subClassify=False,
-    sanger=True,
-    TCGA=False,
+    variant_caller=None,
     includedVAFs=True,
     windowSize=1000000,
     bedRanges=None,
@@ -508,8 +507,9 @@ def analysis(
                     chrom_based	->	optional parameter to perform the analysis on a chromosome basis (boolean; default=False)
                             max_cpu	->	optional parameter to specify the number of maximum cpu's to use for parallelizing the code (integer; default=None: uses all available cpu's)
                     subClassify	->	optional parameter to subclassify the clustered mutations into refinded classes including DBSs, extended MBSs, kataegis, etc. (boolean; default=False)
-                             sanger	-> 	optional parameter that informs the tool of what format the VAF scores are provided. This is required when subClassify=True (boolean; default=True)
-                               TCGA	->	optional parameter that informs the tool of what format the VAF scores are provided. This is required when subClassify=True and sanger=False (boolean; default=False)
+                    variant_caller	->	optional parameter that informs the tool of what format the VAF scores are provided. This is required when subClassify=True (boolean; default=True). Currently, there are four supported formats: sanger, TCGA, standardVC, mutect2 (boolean; default=None).
+                            #  sanger	-> 	optional parameter that informs the tool of what format the VAF scores are provided. This is required when subClassify=True (boolean; default=True)
+                            #    TCGA	->	optional parameter that informs the tool of what format the VAF scores are provided. This is required when subClassify=True and sanger=False (boolean; default=False)
                includedVAFs ->  optional parameter that informs the tool of the inclusion of VAFs in the dataset (boolean; default=True)
                      windowSize	->	the size of the window used for correcting the IMDs based upon mutational density within a given genomic range (integer; default=10000000)
               plotIMDfigure	->	optional parameter that generates IMD and mutational spectra plots for each sample (boolean; default=True).
@@ -1164,7 +1164,9 @@ def analysis(
         if contexts != "ID":
             print("Beginning subclassification of clustered mutations...", end="")
             if includedVAFs:
-                classifyFunctions.pullVaf(project, input_path, sanger, TCGA, correction)
+                classifyFunctions.pullVaf(
+                    project, input_path, variant_caller, correction
+                )
                 sys.stderr.close()
                 sys.stderr = open(error_file, "a")
                 classifyFunctions.findClustersOfClusters(

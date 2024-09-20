@@ -3428,6 +3428,7 @@ def rainfall(
 
     totalMutsIMD = {}
     totalMuts1000 = {}
+
     if not chrom_based:
         genomeLength = sum([x for x in chromLengths[genome].values()])
         xtick_pos = []

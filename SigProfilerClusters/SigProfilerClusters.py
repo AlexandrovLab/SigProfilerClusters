@@ -638,9 +638,7 @@ def analysis(
     chrom_based=False,
     max_cpu=None,
     subClassify=False,
-    sanger=True,
-    TCGA=False,
-    standardVC=False,
+    variant_caller=None,
     includedVAFs=True,
     includedCCFs=False,
     windowSize=1000000,
@@ -672,9 +670,11 @@ def analysis(
                     chrom_based	->	optional parameter to perform the analysis on a chromosome basis (boolean; default=False)
                             max_cpu	->	optional parameter to specify the number of maximum cpu's to use for parallelizing the code (integer; default=None: uses all available cpu's)
                     subClassify	->	optional parameter to subclassify the clustered mutations into refinded classes including DBSs, extended MBSs, kataegis, etc. (boolean; default=False)
-                             sanger	-> 	optional parameter that informs the tool of what format the VAF scores are provided. This is required when subClassify=True (boolean; default=True)
-                               TCGA	->	optional parameter that informs the tool of what format the VAF scores are provided. This is required when subClassify=True and sanger=False (boolean; default=False)
-                     standardVC	->	optional parameter that informs the tool of what format the VAF scores are provided. This is required when subClassify=True and sanger=False and TCGA=False and when the data contains VAF formatted in the 10th column as AF=XX (boolean; default=False)
+                variant_caller	->	optional parameter that informs the tool of what format the VAF scores are provided (boolean; default=None). This is required when subClassify=True. Currently, there are four supported formats:
+                                -> sanger: If your VAF is recorded in the 11th column of your VCF as the last number of the colon delimited values, set variant_caller="sanger".
+                                -> TCGA: If your VAF is recorded in the 8th column of your VCF as VCF=xx, set variant_caller="TCGA".
+                                -> standardVC: If your VAF is recorded in the 10th column of your VCF as AF=xx, set variant_caller="standardVC".
+                                -> mutect2: If your VAF is recorded in the 11th column of your VCF as AF=xx, set variant_caller="mutect2".
                includedVAFs ->  optional parameter that informs the tool of the inclusion of VAFs in the dataset (boolean; default=True)
                includedCCFs ->  optional parameter that informs the tool of the inclusion of cancer cell fractions in the dataset (boolean; default=True)
                      windowSize	->	the size of the window used for correcting the IMDs based upon mutational density within a given genomic range (integer; default=10000000)
@@ -1324,7 +1324,7 @@ def analysis(
             print("Beginning subclassification of clustered mutations...", end="")
             if includedVAFs:
                 classifyFunctions.pullVaf(
-                    project, input_path, sanger, TCGA, standardVC, correction
+                    project, input_path, variant_caller, correction
                 )
                 sys.stderr.close()
                 sys.stderr = open(error_file, "a")

@@ -1844,14 +1844,21 @@ def hotSpotAnalysis(
         matrices = matGen.SigProfilerMatrixGeneratorFunc(
             project + "_clustered", genome, vcf_path_clust, plot=False
         )
-        if contexts == "96":
-            if "96" in matrices:
-                if matrices["96"].sum().sum() == 0:
-                    print("No clustered mutations found")
-                    sys.exit()
-            else:
-                print("No clustered mutations found")
-                sys.exit()
+        ##To handle the none matrices
+        if matrices.get("96") is None:
+            print("No clustered mutations found")
+            sys.exit()
+        elif matrices["96"].sum().sum() == 0:
+            print("No clustered mutations found")
+            sys.exit()
+        # if contexts == "96":
+        #     if "96" in matrices:
+        #         if matrices["96"].sum().sum() == 0:
+        #             print("No clustered mutations found")
+        #             sys.exit()
+        #     else:
+        #         print("No clustered mutations found")
+        #         sys.exit()
         elif contexts == "ID":
             print()
             if "ID" in matrices:
