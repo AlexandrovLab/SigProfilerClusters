@@ -62,7 +62,7 @@ See below for a detailed list of available parameters
             genome:			[string] Reference genome to use. Must be installed using SigProfilerMatrixGenerator
             contexts:			[string] Mutation context for measuring IMD ("96")
             simContext: 		[list of strings] Mutations context that was used for generating the background model (e.g ["6144"] or ["96"])
-            input_path:			[string] Path to the given project.lPease add a backslash(/) at the end of the input path. For example: path/to/the/input_file/
+            input_path:			[string] Path to the given project.lPease add a backslash(/) at the end of the input path. For example: "path/to/the/input_file/"
     
     	Optional:
             analysis:	 		[string] Desired analysis pipeline. By default output_type='all'. Other options include "subClassify" and "hotspot". 
