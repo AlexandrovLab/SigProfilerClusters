@@ -60,7 +60,7 @@ See below for a detailed list of available parameters
 	Required:
             project:			[string] Unique name for the given project
             genome:			[string] Reference genome to use. Must be installed using SigProfilerMatrixGenerator
-            contexts:			[string] Mutation context for measuring IMD ("96")
+            contexts:			[string] Mutation context for measuring IMD (e.g "96" or "ID")
             simContext: 		[list of strings] Mutations context that was used for generating the background model (e.g ["6144"] or ["96"])
             input_path:			[string] Path to the given project. Please add a backslash(/) at the end of the input path. For example: "path/to/the/input_file/"
     
@@ -77,7 +77,7 @@ See below for a detailed list of available parameters
             The following parameters are used if the subClassify argument is True:
             includedVAFs:	[boolean] Parameter that informs the tool of the inclusion of VAFs in the dataset (default=True)
             includedCCFs:   [boolean] Parameter that informs the tool of the inclusion of CCFs in the dataset (default=True). If CCFs are used, set includedVAFs=False.
-            variant_caller: [boolean] Parameter that informs the tool of what format the VAF scores are provided (default=None).Currently, there are four supported formats: sanger, TCGA, standardVC and mutect2.
+            variant_caller: [string] Parameter that informs the tool of what format the VAF scores are provided (default=None).Currently, there are four supported formats: sanger, TCGA, standardVC and mutect2.
             windowSize:		[integer] Window size for calculating mutation density in the rainfall plots. By default windowSize=10000000
             correction		[boolean] Optional parameter to perform a genome-wide mutational density correction (boolean; default=False)
             probability     [boolean] Optional parameter to calculate the probability of observing each clustered event within the localized region of the genome. These values are saved into the [project_path]/output/clustered/ directories. See OSF wiki page for more details.

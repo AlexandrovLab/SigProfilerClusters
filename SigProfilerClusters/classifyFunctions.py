@@ -340,7 +340,12 @@ def pullVaf(project, project_path, variant_caller=None, correction=True):
     )
     vcf_files = [x for x in os.listdir(vcf_path) if x != ".DS_Store"]
 
-    if variant_caller == "sanger":
+    if variant_caller is None:
+        raise ValueError(
+            "Please specify your variant caller. Currently we are supporting four different variant callers: sanger, TCGA, standardVC and mutect2."
+        )
+
+    elif variant_caller == "sanger":
         vafs = {}
         for vcfFile in vcf_files:
             sample = vcfFile.split(".")[0]
