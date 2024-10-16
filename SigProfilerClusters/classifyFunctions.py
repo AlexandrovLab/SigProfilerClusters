@@ -340,12 +340,34 @@ def pullVaf(project, project_path, variant_caller=None, correction=True):
     )
     vcf_files = [x for x in os.listdir(vcf_path) if x != ".DS_Store"]
 
+    # Dictionary for variant caller mapping
+    variant_type_dict = {
+        "sanger": "sanger",
+        "Sanger": "sanger",
+        "SANGER": "sanger",
+        "TCGA": "TCGA",
+        "tcga": "TCGA",
+        "standardVC": "standardVC",
+        "standardvc": "standardVC",
+        "STANDARDVC": "standardVC",
+        "Mutect2": "mutect2",
+        "MUTECT2": "mutect2",
+    }
+    # Check if variant_caller is provided
     if variant_caller is None:
         raise ValueError(
             "Please specify your variant caller. Currently we are supporting four different variant callers: sanger, TCGA, standardVC and mutect2."
         )
 
-    elif variant_caller == "sanger":
+    # Map variant_caller to standardized value using variant_type_dict
+    if variant_caller.lower() in variant_type_dict:
+        variant_caller = variant_type_dict[variant_caller.lower()]
+    else:
+        raise ValueError(
+            f"Unsupported variant caller: {variant_caller}. Currently we are supporting four different variant callers: sanger, TCGA, standardVC and mutect2"
+        )
+
+    if variant_caller == "sanger":
         vafs = {}
         for vcfFile in vcf_files:
             sample = vcfFile.split(".")[0]

@@ -58,28 +58,28 @@ See below for a detailed list of available parameters
 **AVAILABLE PARAMETERS**
 
 	Required:
-            project:			[string] Unique name for the given project
-            genome:			[string] Reference genome to use. Must be installed using SigProfilerMatrixGenerator
-            contexts:			[string] Mutation context for measuring IMD (e.g "96" or "ID")
-            simContext: 		[list of strings] Mutations context that was used for generating the background model (e.g ["6144"] or ["96"])
-            input_path:			[string] Path to the given project. Please add a backslash(/) at the end of the input path. For example: "path/to/the/input_file/"
+            project:			[string] Unique name for the given project.
+            genome:			[string] Reference genome to use. Must be installed using SigProfilerMatrixGenerator.
+            contexts:			[string] Contexts needs to be one of the following {“96”, “ID”}.
+            simContext: 		[list of strings] Mutations context that was used for generating the background model (e.g ["6144"] or ["96"]).
+            input_path:			[string] Path to the given project. Please add a backslash(/) at the end of the input path. For example: "path/to/the/input_file/".
     
     	Optional:
             analysis:	 		[string] Desired analysis pipeline. By default output_type='all'. Other options include "subClassify" and "hotspot". 
             sortSims:			[boolean] Option to sort the simulated files if they have already been sorted. By default sortSims=True to ensure accurate results. The files must be sorted for accurate results. 
             interdistance:			[string] The mutation types to calculate IMDs between - Use only when performing analysis of indels (default='ID').
             calculateIMD:		[boolean] Parameter to calculate the IMDs. This will save time if you need to rerun the subclassification step only (default=True).
-            max_cpu:			[integer] Change the number of allocated CPUs. By default all CPUs are used
+            max_cpu:			[integer] Change the number of allocated CPUs. By default all CPUs are used.
             subClassify:		[boolean] Subclassify the clustered mutations. Requires that VAF scores are available in TCGA or Sanger format. By default subClassify=False. See VAF Format below for more details. 
             plotIMDfigure:	[boolean] Parameter that generates IMD and mutational spectra plots for each sample (default=True).
             plotRainfall		[boolean] Parameter that generates rainfall plots for each sample using the subclassification of clustered events (default=True).
             
             The following parameters are used if the subClassify argument is True:
-            includedVAFs:	[boolean] Parameter that informs the tool of the inclusion of VAFs in the dataset (default=True)
+            includedVAFs:	[boolean] Parameter that informs the tool of the inclusion of VAFs in the dataset (default=True).
             includedCCFs:   [boolean] Parameter that informs the tool of the inclusion of CCFs in the dataset (default=True). If CCFs are used, set includedVAFs=False.
             variant_caller: [string] Parameter that informs the tool of what format the VAF scores are provided (default=None).Currently, there are four supported formats: sanger, TCGA, standardVC and mutect2.
-            windowSize:		[integer] Window size for calculating mutation density in the rainfall plots. By default windowSize=10000000
-            correction		[boolean] Optional parameter to perform a genome-wide mutational density correction (boolean; default=False)
+            windowSize:		[integer] Window size for calculating mutation density in the rainfall plots. By default windowSize=10000000.
+            correction		[boolean] Optional parameter to perform a genome-wide mutational density correction (boolean; default=False).
             probability     [boolean] Optional parameter to calculate the probability of observing each clustered event within the localized region of the genome. These values are saved into the [project_path]/output/clustered/ directories. See OSF wiki page for more details.
 
 
