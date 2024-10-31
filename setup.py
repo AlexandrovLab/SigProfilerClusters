@@ -43,7 +43,7 @@ setup(name='SigProfilerClusters',
 		packages=find_packages(),#['SigProfilerMatrixGenerator'],
 		python_requires=">=3.8",
 		install_requires =[
-			"matplotlib>=3.3.0,<3.5",
+			"matplotlib>=3.5",
 			"sigProfilerPlotting>=1.3.18",
 			"SigProfilerMatrixGenerator>=1.2.19",
 			"SigProfilerSimulator>=1.1.5",
