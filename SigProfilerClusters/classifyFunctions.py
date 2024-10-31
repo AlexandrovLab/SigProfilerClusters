@@ -343,15 +343,9 @@ def pullVaf(project, project_path, variant_caller=None, correction=True):
     # Dictionary for variant caller mapping
     variant_type_dict = {
         "sanger": "sanger",
-        "Sanger": "sanger",
-        "SANGER": "sanger",
-        "TCGA": "TCGA",
         "tcga": "TCGA",
-        "standardVC": "standardVC",
         "standardvc": "standardVC",
-        "STANDARDVC": "standardVC",
-        "Mutect2": "mutect2",
-        "MUTECT2": "mutect2",
+        "mutect2": "mutect2",
     }
     # Check if variant_caller is provided
     if variant_caller is None:
