@@ -299,7 +299,7 @@ def pullCCF(project, project_path, correction=True):
             print("\t".join([x for x in lines]), file=out)
 
 
-def pullVaf(project, project_path, variant_caller=None, correction=True):
+def pullVaf(project, project_path, variant_caller="standard", correction=True):
     """
     Collects the VAFs from the original mutation files. Assumes that these are provided in the same
     format as Sanger or TCGA.
@@ -308,9 +308,8 @@ def pullVaf(project, project_path, variant_caller=None, correction=True):
                      project	->	user provided project name (string)
             project_path	->	the directory for the given project (string)
             variant_caller	->	optional parameter that informs the tool of what format the VAF scores are provided (boolean; default=None). This is required when subClassify=True. Currently, there are four supported formats:
-                                -> sanger: If your VAF is recorded in the 11th column of your VCF as the last number of the colon delimited values, set variant_caller="sanger".
-                                -> TCGA: If your VAF is recorded in the 8th column of your VCF as VCF=xx, set variant_caller="TCGA".
-                                -> standardVC: If your VAF is recorded in the 10th column of your VCF as AF=xx, set variant_caller="standardVC".
+                                -> caveman: If your VAF is recorded in the 11th column of your VCF as the last number of the colon delimited values, set variant_caller="caveman".
+                                -> standard: If your VAF is recorded in the 8th or 10th column of your VCF as VCF=xx or AF=xx, set variant_caller="standard".
                                 -> mutect2: If your VAF is recorded in the 11th column of your VCF as AF=xx, set variant_caller="mutect2".
               correction	->	optional parameter to perform a genome-wide mutational density correction (boolean; default=False)
 
@@ -342,26 +341,46 @@ def pullVaf(project, project_path, variant_caller=None, correction=True):
 
     # Dictionary for variant caller mapping
     variant_type_dict = {
-        "sanger": "sanger",
-        "tcga": "TCGA",
+        "caveman": "caveman",
         "standardvc": "standardVC",
         "mutect2": "mutect2",
     }
-    # Check if variant_caller is provided
-    if variant_caller is None:
-        raise ValueError(
-            "Please specify your variant caller. Currently we are supporting four different variant callers: sanger, TCGA, standardVC and mutect2."
-        )
+    ###extracting VAF info
+    if variant_caller == "standard":
+        vafs = {}
+        for vcfFile in vcf_files:
+            sample = vcfFile.split(".")[0]
+            vafs[sample] = {}
+            with open(vcf_path + vcfFile) as f:
+                for lines in f:
+                    if lines[0] == "#":
+                        continue
+                    lines = lines.strip().split()
+                    chrom = lines[0]
+                    pos = lines[1]
+                    ref = lines[3]
+                    alt = lines[4]
+                    try:
+                        if "VAF=" in lines[7]:
+                            vaf = float(lines[7].split("VAF=")[1].split(";")[0])
+                        elif "AF=" in lines[9]:
+                            vaf = float(lines[9].split("AF=")[1].split(";")[0])
+                        else:
+                            vaf = -1.5
+                    except:
+                        vaf = -1.5
 
-    # Map variant_caller to standardized value using variant_type_dict
-    if variant_caller.lower() in variant_type_dict:
-        variant_caller = variant_type_dict[variant_caller.lower()]
-    else:
-        raise ValueError(
-            f"Unsupported variant caller: {variant_caller}. Currently we are supporting four different variant callers: sanger, TCGA, standardVC and mutect2"
-        )
+                    if len(ref) == len(alt) and len(ref) > 1:
+                        for i in range(len(ref)):
+                            keyLine = ":".join(
+                                [chrom, str(int(pos) + i), ref[i], alt[i]]
+                            )
+                            vafs[sample][keyLine] = vaf
+                    else:
+                        keyLine = ":".join([chrom, pos, ref, alt])
+                        vafs[sample][keyLine] = vaf
 
-    if variant_caller == "sanger":
+    elif variant_caller == "caveman":
         vafs = {}
         for vcfFile in vcf_files:
             sample = vcfFile.split(".")[0]
@@ -395,61 +414,6 @@ def pullVaf(project, project_path, variant_caller=None, correction=True):
                         keyLine = ":".join([chrom, pos, ref, alt])
                         vafs[sample][keyLine] = vaf
 
-    elif variant_caller == "TCGA":
-        vafs = {}
-        for vcfFile in vcf_files:
-            sample = vcfFile.split(".")[0]
-            vafs[sample] = {}
-            with open(vcf_path + vcfFile) as f:
-                for lines in f:
-                    if lines[0] == "#":
-                        continue
-                    lines = lines.strip().split()
-                    chrom = lines[0]
-                    pos = lines[1]
-                    ref = lines[3]
-                    alt = lines[4]
-                    try:
-                        vaf = float(lines[7].split("VAF=")[1].split(";")[0])
-                    except:
-                        vaf = -1.5
-                    if len(ref) == len(alt) and len(ref) > 1:
-                        for i in range(len(ref)):
-                            keyLine = ":".join(
-                                [chrom, str(int(pos) + i), ref[i], alt[i]]
-                            )
-                            vafs[sample][keyLine] = vaf
-                    else:
-                        keyLine = ":".join([chrom, pos, ref, alt])
-                        vafs[sample][keyLine] = vaf
-
-    elif variant_caller == "standardVC":
-        vafs = {}
-        for vcfFile in vcf_files:
-            sample = vcfFile.split(".")[0]
-            vafs[sample] = {}
-            with open(vcf_path + vcfFile) as f:
-                for lines in f:
-                    if lines[0] == "#":
-                        continue
-                    lines = lines.strip().split()
-                    chrom = lines[0]
-                    pos = lines[1]
-                    ref = lines[3]
-                    alt = lines[4]
-                    try:
-                        vaf = float(lines[9].split("AF=")[1].split(";")[0])
-                    except:
-                        vaf = -1.5
-                    if len(ref) == len(alt) and len(ref) > 1:
-                        for i in range(len(ref)):
-                            keyLine = ":".join(
-                                [chrom, str(int(pos) + i), ref[i], alt[i]]
-                            )
-                            vafs[sample][keyLine] = vaf
-                    else:
-                        keyLine = ":".join([chrom, pos, ref, alt])
-                        vafs[sample][keyLine] = vaf
     elif variant_caller == "mutect2":
         field = "AF"
         vcf_col = 11

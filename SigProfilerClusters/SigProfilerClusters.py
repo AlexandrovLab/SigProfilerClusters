@@ -638,7 +638,7 @@ def analysis(
     chrom_based=False,
     max_cpu=None,
     subClassify=False,
-    variant_caller=None,
+    variant_caller="standard",
     includedVAFs=True,
     includedCCFs=False,
     windowSize=1000000,
