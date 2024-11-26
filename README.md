@@ -91,7 +91,7 @@ If you are not using VCFs as input files, VAFs cannot be used in the subclassifi
 
 If your VAF is recorded in the 11th column of your VCF as the last number of the colon delimited values, set variant_caller="caveman".
 
-If your VAF is recorded in the 8th or 10th column of your VCF as VCF=xx or AF=xx, set variant_caller="standard".
+If your VAF is recorded in the 8th or 10th column of your VCF as VAF=xx or AF=xx, set variant_caller="standard".
 
 If your VAF is recorded in the 11th column of your VCF as AF=xx, set variant_caller="mutect2".
 

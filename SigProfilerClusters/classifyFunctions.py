@@ -309,7 +309,7 @@ def pullVaf(project, project_path, variant_caller="standard", correction=True):
             project_path	->	the directory for the given project (string)
             variant_caller	->	optional parameter that informs the tool of what format the VAF scores are provided (boolean; default=None). This is required when subClassify=True. Currently, there are four supported formats:
                                 -> caveman: If your VAF is recorded in the 11th column of your VCF as the last number of the colon delimited values, set variant_caller="caveman".
-                                -> standard: If your VAF is recorded in the 8th or 10th column of your VCF as VCF=xx or AF=xx, set variant_caller="standard".
+                                -> standard: If your VAF is recorded in the 8th or 10th column of your VCF as VAF=xx or AF=xx, set variant_caller="standard".
                                 -> mutect2: If your VAF is recorded in the 11th column of your VCF as AF=xx, set variant_caller="mutect2".
               correction	->	optional parameter to perform a genome-wide mutational density correction (boolean; default=False)
 
@@ -342,7 +342,7 @@ def pullVaf(project, project_path, variant_caller="standard", correction=True):
     # Dictionary for variant caller mapping
     variant_type_dict = {
         "caveman": "caveman",
-        "standardvc": "standardVC",
+        "standard": "standard",
         "mutect2": "mutect2",
     }
     ###extracting VAF info
