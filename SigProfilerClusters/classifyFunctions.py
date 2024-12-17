@@ -414,46 +414,107 @@ def pullVaf(project, project_path, variant_caller="standard", correction=True):
                         keyLine = ":".join([chrom, pos, ref, alt])
                         vafs[sample][keyLine] = vaf
 
+    # elif variant_caller == "mutect2":
+    #     field = "AF"
+    #     vcf_col = 11
+    #     vafs = {}
+    #     for vcfFile in vcf_files:
+    #         sample = vcfFile.split(".")[0]
+    #         vafs[sample] = {}
+    #         with open(os.path.join(vcf_path, vcfFile)) as f:
+    #             for lines in f:
+    #                 if lines[0] == "#":
+    #                     continue
+    #                 lines = lines.strip().split()
+    #                 chrom = lines[0]
+    #                 if chrom.startswith("chr") or chrom.startswith("Chr"):
+    #                     chrom = chrom[3:]
+    #                 pos = lines[1]
+    #                 ref = lines[3]
+    #                 alt = lines[4]
+    #                 try:
+    #                     ## Column 9 is assumed to be FORMAT
+    #                     fmt = lines[8].split(":")
+    #                     ## Extract VAF index and use it to extract VAF from the provided column
+    #                     vaf_ind = fmt.index(field)
+    #                     ## Use vcf_col-1 because humans think lists as 1-indexed but python thinks 0-indexed
+    #                     vaf = float(lines[vcf_col - 1].split(":")[vaf_ind])
+    #                 except:
+    #                     print(
+    #                         "Provided VAF field does not match any field in VCF.\n\t",
+    #                         vcfFile,
+    #                     )
+    #                     break
+    #                 if len(ref) == len(alt) and len(ref) > 1:
+    #                     for i in range(len(ref)):
+    #                         keyLine = ":".join(
+    #                             [chrom, str(int(pos) + i), ref[i], alt[i]]
+    #                         )
+    #                         vafs[sample][keyLine] = vaf
+    #                 else:
+    #                     keyLine = ":".join([chrom, pos, ref, alt])
+    #                     vafs[sample][keyLine] = vaf
     elif variant_caller == "mutect2":
-        field = "AF"
-        vcf_col = 11
+        field = "AF"  # The VAF field in the FORMAT column
         vafs = {}
+
         for vcfFile in vcf_files:
             sample = vcfFile.split(".")[0]
             vafs[sample] = {}
+            header = []
+
             with open(os.path.join(vcf_path, vcfFile)) as f:
-                for lines in f:
-                    if lines[0] == "#":
+                for line in f:
+                    # Identify the header line with column names
+                    if line.startswith("#") and not line.startswith("##"):
+                        header = line.strip().split("\t")
+                        break  # Stop after finding the header
+
+                # Check if TUMOR column exists
+                if "TUMOR" not in header:
+                    print(f"TUMOR column not found in {vcfFile}. Skipping...")
+                    continue
+
+                # Get the index of the TUMOR column
+                tumor_index = header.index("TUMOR")
+
+                # Process the data rows
+                for line in f:
+                    if line.startswith("#"):
                         continue
-                    lines = lines.strip().split()
-                    chrom = lines[0]
-                    if chrom.startswith("chr") or chrom.startswith("Chr"):
-                        chrom = chrom[3:]
-                    pos = lines[1]
-                    ref = lines[3]
-                    alt = lines[4]
+
                     try:
-                        ## Column 9 is assumed to be FORMAT
-                        fmt = lines[8].split(":")
-                        ## Extract VAF index and use it to extract VAF from the provided column
-                        vaf_ind = fmt.index(field)
-                        ## Use vcf_col-1 because humans think lists as 1-indexed but python thinks 0-indexed
-                        vaf = float(lines[vcf_col - 1].split(":")[vaf_ind])
-                    except:
-                        print(
-                            "Provided VAF field does not match any field in VCF.\n\t",
-                            vcfFile,
-                        )
-                        break
-                    if len(ref) == len(alt) and len(ref) > 1:
-                        for i in range(len(ref)):
-                            keyLine = ":".join(
-                                [chrom, str(int(pos) + i), ref[i], alt[i]]
-                            )
+                        fields = line.strip().split("\t")
+                        chrom = fields[0]
+
+                        # Normalize chromosome naming
+                        if chrom.lower().startswith("chr"):
+                            chrom = chrom[3:]
+
+                        pos = fields[1]
+                        ref = fields[3]
+                        alt = fields[4]
+
+                        # Extract FORMAT field and TUMOR data
+                        fmt = fields[8].split(":")
+                        tumor_data = fields[tumor_index].split(":")
+
+                        # Get the VAF value
+                        vaf_index = fmt.index(field)
+                        vaf = float(tumor_data[vaf_index])
+
+                        # Create key for the variant
+                        if len(ref) == len(alt) and len(ref) > 1:
+                            for i in range(len(ref)):
+                                keyLine = f"{chrom}:{int(pos) + i}:{ref[i]}:{alt[i]}"
+                                vafs[sample][keyLine] = vaf
+                        else:
+                            keyLine = f"{chrom}:{pos}:{ref}:{alt}"
                             vafs[sample][keyLine] = vaf
-                    else:
-                        keyLine = ":".join([chrom, pos, ref, alt])
-                        vafs[sample][keyLine] = vaf
+
+                    except (ValueError, IndexError) as e:
+                        print(f"Error processing line in {vcfFile}: {line}\n{e}")
+                        continue
 
     with open(clusteredMutsFile) as f, open(
         clusteredMutsPath + project + "_clustered_vaf.txt", "w"
