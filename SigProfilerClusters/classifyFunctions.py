@@ -414,46 +414,6 @@ def pullVaf(project, project_path, variant_caller="standard", correction=True):
                         keyLine = ":".join([chrom, pos, ref, alt])
                         vafs[sample][keyLine] = vaf
 
-    # elif variant_caller == "mutect2":
-    #     field = "AF"
-    #     vcf_col = 11
-    #     vafs = {}
-    #     for vcfFile in vcf_files:
-    #         sample = vcfFile.split(".")[0]
-    #         vafs[sample] = {}
-    #         with open(os.path.join(vcf_path, vcfFile)) as f:
-    #             for lines in f:
-    #                 if lines[0] == "#":
-    #                     continue
-    #                 lines = lines.strip().split()
-    #                 chrom = lines[0]
-    #                 if chrom.startswith("chr") or chrom.startswith("Chr"):
-    #                     chrom = chrom[3:]
-    #                 pos = lines[1]
-    #                 ref = lines[3]
-    #                 alt = lines[4]
-    #                 try:
-    #                     ## Column 9 is assumed to be FORMAT
-    #                     fmt = lines[8].split(":")
-    #                     ## Extract VAF index and use it to extract VAF from the provided column
-    #                     vaf_ind = fmt.index(field)
-    #                     ## Use vcf_col-1 because humans think lists as 1-indexed but python thinks 0-indexed
-    #                     vaf = float(lines[vcf_col - 1].split(":")[vaf_ind])
-    #                 except:
-    #                     print(
-    #                         "Provided VAF field does not match any field in VCF.\n\t",
-    #                         vcfFile,
-    #                     )
-    #                     break
-    #                 if len(ref) == len(alt) and len(ref) > 1:
-    #                     for i in range(len(ref)):
-    #                         keyLine = ":".join(
-    #                             [chrom, str(int(pos) + i), ref[i], alt[i]]
-    #                         )
-    #                         vafs[sample][keyLine] = vaf
-    #                 else:
-    #                     keyLine = ":".join([chrom, pos, ref, alt])
-    #                     vafs[sample][keyLine] = vaf
     elif variant_caller == "mutect2":
         field = "AF"  # The VAF field in the FORMAT column
         vafs = {}
