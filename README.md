@@ -77,7 +77,7 @@ See below for a detailed list of available parameters
             The following parameters are used if the subClassify argument is True:
             includedVAFs:	[boolean] Parameter that informs the tool of the inclusion of VAFs in the dataset (default=True).
             includedCCFs:   [boolean] Parameter that informs the tool of the inclusion of CCFs in the dataset (default=True). If CCFs are used, set includedVAFs=False.
-            variant_caller: [string] Parameter that informs the tool of what format the VAF scores are provided (default=None).Currently, there are four supported formats: sanger, TCGA, standardVC and mutect2.
+            variant_caller: [string] Parameter that informs the tool of what format the VAF scores are provided (default='standard').
             windowSize:		[integer] Window size for calculating mutation density in the rainfall plots. By default windowSize=10000000.
             correction		[boolean] Optional parameter to perform a genome-wide mutational density correction (boolean; default=False).
             probability     [boolean] Optional parameter to calculate the probability of observing each clustered event within the localized region of the genome. These values are saved into the [project_path]/output/clustered/ directories. See OSF wiki page for more details.
@@ -89,11 +89,9 @@ SigProfilerClusters uses the VAF recorded in the input files to subclassify clus
 
 If you are not using VCFs as input files, VAFs cannot be used in the subclassification step. Therefore, to subclassify clusters using other input file types set subclassify=True and includedVAFs=False.
 
-If your VAF is recorded in the 11th column of your VCF as the last number of the colon delimited values, set variant_caller="sanger".
+If your VAF is recorded in the 11th column of your VCF as the last number of the colon delimited values, set variant_caller="caveman".
 
-If your VAF is recorded in the 8th column of your VCF as VCF=xx, set variant_caller="TCGA".
-
-If your VAF is recorded in the 8th column of your VCF as AF=xx, set variant_caller="standardVC".
+If your VAF is recorded in the 8th or 10th column of your VCF as VAF=xx or AF=xx, set variant_caller="standard".
 
 If your VAF is recorded in the 11th column of your VCF as AF=xx, set variant_caller="mutect2".
 
