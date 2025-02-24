@@ -6,7 +6,6 @@ python:
   - '3.12'
 
 install:
-  - pip install --force-reinstall "setuptools<60.0"
   - pip install .
 
 script: python3 test.py
