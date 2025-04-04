@@ -17,7 +17,7 @@ def readme():
     # 	return(f.read())
 
 
-VERSION = "1.2.0"
+VERSION = "1.2.1"
 
 
 def write_version_py(filename="SigProfilerClusters/version.py"):
@@ -26,7 +26,7 @@ def write_version_py(filename="SigProfilerClusters/version.py"):
 # THIS FILE IS GENERATED FROM SIGPROFILECLUSTERS SETUP.PY
 short_version = '%(version)s'
 version = '%(version)s'
-Update = 'v1.2.0: Require Pandas and Numpy >= 2.0.0 and Python >= 3.9'
+Update = 'v1.2.1: Add centromere coordinates for mm39'
 	
 	"""
     fh = open(filename, "w")
@@ -56,8 +56,8 @@ setup(
     install_requires=[
         "matplotlib>=3.5",
         "sigProfilerPlotting>=1.4.0",
-        "SigProfilerMatrixGenerator>=1.3.0",
-        "SigProfilerSimulator>=1.2.0",
+        "SigProfilerMatrixGenerator>=1.3.2",
+        "SigProfilerSimulator>=1.2.1",
         "statsmodels>=0.9.0",
         "scipy>=1.1.0",
         "pandas>=2.0.0",
