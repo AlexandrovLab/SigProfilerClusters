@@ -299,6 +299,23 @@ def pullCCF(project, project_path, correction=True):
             print("\t".join([x for x in lines]), file=out)
 
 
+def custom_chr_sort_key(chr_name):
+    """
+    Sort chromosomes with 'X' first, then 'Y', followed by 1-22 numerically.
+    Assumes input like 'chr1', 'chrX', 'chrY', etc.
+    """
+    chr_name = chr_name.replace("chr", "")
+    if chr_name == "X":
+        return (0, 0)
+    elif chr_name == "Y":
+        return (1, 0)
+    else:
+        try:
+            return (2, int(chr_name))
+        except ValueError:
+            return (3, chr_name)  # For unexpected labels like 'M', 'GL*', etc.
+
+
 def pullVaf(project, project_path, variant_caller="standard", correction=True):
     """
     Collects the VAFs from the original mutation files. Assumes that these are provided in the same
@@ -476,47 +493,52 @@ def pullVaf(project, project_path, variant_caller="standard", correction=True):
                         print(f"Error processing line in {vcfFile}: {line}\n{e}")
                         continue
 
-    with open(clusteredMutsFile) as f, open(
-        clusteredMutsPath + project + "_clustered_vaf.txt", "w"
-    ) as out:
-        next(f)
-        # print("HEADER", file=out)
-        print(
-            "\t".join(
-                [
-                    x
-                    for x in [
-                        "project",
-                        "samples",
-                        "ID",
-                        "genome",
-                        "mutType",
-                        "chr",
-                        "start",
-                        "end",
-                        "ref",
-                        "alt",
-                        "mutClass",
-                        "IMDplot",
-                        "IMD",
-                        "VAF/CCF",
-                    ]
-                ]
-            ),
-            file=out,
-        )
-        for lines in f:
-            lines = lines.strip().split()
-            sample = lines[1]
-            newKey = ":".join([lines[5], lines[6], lines[8], lines[9]])
+    ###for sorting the output
+    processed_lines = []
+
+    with open(clusteredMutsFile) as f:
+        next(f)  # Skip header
+
+        for line in f:
+            parts = line.strip().split()
+            sample = parts[1]
+            chr_field = parts[5]
+            newKey = ":".join([chr_field, parts[6], parts[8], parts[9]])
 
             try:
                 vaf = vafs[sample][newKey]
-            except:
-                newKey = ":".join(["chr" + lines[5], lines[6], lines[8], lines[9]])
-                vaf = vafs[sample][newKey]
-            lines.append(str(vaf))
-            print("\t".join([x for x in lines]), file=out)
+            except KeyError:
+                newKey = ":".join(["chr" + chr_field, parts[6], parts[8], parts[9]])
+                vaf = vafs[sample].get(newKey, "NA")
+
+            parts.append(str(vaf))
+            processed_lines.append(parts)
+
+    # Sort the list of mutations by chromosome using the custom key
+    processed_lines.sort(key=lambda x: custom_chr_sort_key(x[5]))
+
+    # Write to output
+    with open(clusteredMutsPath + project + "_clustered_vaf.txt", "w") as out:
+        header = [
+            "project",
+            "samples",
+            "ID",
+            "genome",
+            "mutType",
+            "chr",
+            "start",
+            "end",
+            "ref",
+            "alt",
+            "mutClass",
+            "IMDplot",
+            "IMD",
+            "VAF/CCF",
+        ]
+        print("\t".join(header), file=out)
+
+        for parts in processed_lines:
+            print("\t".join(parts), file=out)
 
 
 def findClustersOfClusters(
