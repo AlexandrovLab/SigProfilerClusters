@@ -479,14 +479,14 @@ def first_run(
             bin_std_dev_cum.append(cumulativeBackground[l][i])
 
         bin_std_dev.sort()
-        std_dev.append(stdev(bin_std_dev))
+        std_dev.append(stdev([int(x) for x in bin_std_dev]))
         mean_counts.append(mean(bin_std_dev))
         avg_bin_counts.append(int(round(median(bin_std_dev), 0)))
         upper_CI.append(bin_std_dev[CI - 1])
         lower_CI.append(bin_std_dev[-CI])
 
         bin_std_dev_cum.sort()
-        std_dev_cum.append(stdev(bin_std_dev_cum))
+        std_dev_cum.append(stdev([int(x) for x in bin_std_dev_cum]))
         mean_counts_cum.append(median(bin_std_dev_cum))
 
     y2, binEdges2 = np.histogram(distances_orig, bins=bin1)
