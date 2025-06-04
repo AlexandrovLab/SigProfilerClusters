@@ -275,17 +275,20 @@ def plot_hist(
     else:
         panel2.legend([sim], ["simulated"])
 
+    interval_line_index = interval_line - l
+    if interval_line_index == 0:
+        interval_line_index += 1
     plot_clustered(
-        y2[: interval_line - l],
-        avg_bin_counts[: interval_line - l],
+        y2[:interval_line_index],
+        avg_bin_counts[:interval_line_index],
         bincenters2,
         panel4,
         lower_CI,
         upper_CI,
     )
     plot_non_clustered(
-        y2[interval_line - l :],
-        avg_bin_counts[interval_line - l :],
+        y2[interval_line_index:],
+        avg_bin_counts[interval_line_index:],
         bincenters2,
         panel6,
         lower_CI,
@@ -2198,7 +2201,6 @@ def hotSpotAnalysis(
         ) as handle:
             upper_CIs_refinedFinal = pickle.load(handle)
     ############################################################################################################
-
     # Recollect samples names
     if contexts == "96":
         with open(
@@ -2228,7 +2230,6 @@ def hotSpotAnalysis(
             first_line = f.readline()
             samples = first_line.strip().split()
             samples = samples[1:]
-
     ################################
     # Generate the IMD/spectra plots
     ################################
@@ -2243,95 +2244,120 @@ def hotSpotAnalysis(
             + path_suffix
             + ".pdf"
         )
-        histo = True
         print("Plotting SigProfilerClusters Results...", end="", flush=True)
+
         for folder in folders:
-            if folder == ".DS_Store_intradistance.txt" or folder == ".DS_Store":
+            if folder in [".DS_Store", ".DS_Store_intradistance.txt"]:
                 continue
             if folder not in samples:
-                histo = False
-            sample = folder
-            files = os.listdir(directory + sample + "/")
-            if not chrom_based:
-                fig = plt.figure(figsize=(width, height))
-                panel1 = plt.axes(
-                    [0.075, 0.225 + scaled_height * 2, scaled_width, scaled_height]
-                )
-                panel2 = plt.axes(
-                    [
-                        0.125 + scaled_width,
-                        0.225 + scaled_height * 2,
-                        0.3,
-                        scaled_height,
-                    ]
-                )
-                panel3 = plt.axes(
-                    [0.075, 0.15 + scaled_height, scaled_width, scaled_height]
-                )
-                panel4 = plt.axes(
-                    [0.125 + scaled_width, 0.15 + scaled_height, 0.3, scaled_height]
-                )
-                panel5 = plt.axes([0.075, 0.075, scaled_width, scaled_height])
-                panel6 = plt.axes([0.125 + scaled_width, 0.075, 0.3, scaled_height])
+                continue
 
-                if histo:
-                    if not chrom_based:
-                        clustered = plot_hist(
-                            y2sFinal[sample],
-                            bincenters2sFinal[sample],
-                            q_valuesFinal[sample],
-                            interval_linesFinal[sample],
-                            orig_mutations_sampsFinal[sample],
-                            avg_simCountsFinal[sample],
-                            std_simCountsFinal[sample],
-                            imdsFinal[sample],
-                            lower_CIsFinal[sample],
-                            upper_CIsFinal[sample],
-                            lower_CIs_refinedFinal[sample],
-                            upper_CIs_refinedFinal[sample],
-                            avg_bin_counts_sampFinal[sample],
-                            sample,
-                            original,
-                            panel2,
-                            panel3,
-                            panel4,
-                            panel5,
-                            panel6,
-                        )
-                        if clustered:
-                            if file_context == "96":
-                                plottingFunctions.plot96_same(
-                                    matrix_path,
-                                    matrix_path_clustered,
-                                    matrix_path_nonClustered,
-                                    sample,
-                                    percentage,
-                                    signature,
-                                    panel1,
-                                    panel3,
-                                    panel5,
-                                    fig,
-                                )
-                            else:
-                                plottingFunctions.plotINDEL_same(
-                                    matrix_path,
-                                    matrix_path_clustered,
-                                    matrix_path_nonClustered,
-                                    sample,
-                                    percentage,
-                                    signature,
-                                    panel1,
-                                    panel3,
-                                    panel5,
-                                    fig,
-                                )
-                            pp.savefig()
-                        plt.close()
-                histo = True
+            sample = folder
+            sample_dir = os.path.join(directory, sample)
+            if not os.path.isdir(sample_dir):
+                continue
+
+            try:
+                # Basic dictionary key existence checks
+                required_dicts = [
+                    y2sFinal,
+                    bincenters2sFinal,
+                    q_valuesFinal,
+                    interval_linesFinal,
+                    orig_mutations_sampsFinal,
+                    avg_simCountsFinal,
+                    std_simCountsFinal,
+                    imdsFinal,
+                    lower_CIsFinal,
+                    upper_CIsFinal,
+                    lower_CIs_refinedFinal,
+                    upper_CIs_refinedFinal,
+                    avg_bin_counts_sampFinal,
+                ]
+                if not all(sample in d for d in required_dicts):
+                    continue
+
+                if not chrom_based:
+                    fig = plt.figure(figsize=(width, height))
+                    panel1 = plt.axes(
+                        [0.075, 0.225 + scaled_height * 2, scaled_width, scaled_height]
+                    )
+                    panel2 = plt.axes(
+                        [
+                            0.125 + scaled_width,
+                            0.225 + scaled_height * 2,
+                            0.3,
+                            scaled_height,
+                        ]
+                    )
+                    panel3 = plt.axes(
+                        [0.075, 0.15 + scaled_height, scaled_width, scaled_height]
+                    )
+                    panel4 = plt.axes(
+                        [0.125 + scaled_width, 0.15 + scaled_height, 0.3, scaled_height]
+                    )
+                    panel5 = plt.axes([0.075, 0.075, scaled_width, scaled_height])
+                    panel6 = plt.axes([0.125 + scaled_width, 0.075, 0.3, scaled_height])
+
+                    clustered = plot_hist(
+                        y2sFinal[sample],
+                        bincenters2sFinal[sample],
+                        q_valuesFinal[sample],
+                        interval_linesFinal[sample],
+                        orig_mutations_sampsFinal[sample],
+                        avg_simCountsFinal[sample],
+                        std_simCountsFinal[sample],
+                        imdsFinal[sample],
+                        lower_CIsFinal[sample],
+                        upper_CIsFinal[sample],
+                        lower_CIs_refinedFinal[sample],
+                        upper_CIs_refinedFinal[sample],
+                        avg_bin_counts_sampFinal[sample],
+                        sample,
+                        original,
+                        panel2,
+                        panel3,
+                        panel4,
+                        panel5,
+                        panel6,
+                    )
+
+                    if clustered:
+                        if file_context == "96":
+                            plottingFunctions.plot96_same(
+                                matrix_path,
+                                matrix_path_clustered,
+                                matrix_path_nonClustered,
+                                sample,
+                                percentage,
+                                signature,
+                                panel1,
+                                panel3,
+                                panel5,
+                                fig,
+                            )
+                        else:
+                            plottingFunctions.plotINDEL_same(
+                                matrix_path,
+                                matrix_path_clustered,
+                                matrix_path_nonClustered,
+                                sample,
+                                percentage,
+                                signature,
+                                panel1,
+                                panel3,
+                                panel5,
+                                fig,
+                            )
+                        pp.savefig()
+                    plt.close()
+            except Exception as e:
+                print(f"\nSkipping {sample} due to error: {e}")
+                plt.close()
 
         plt.close()
         pp.close()
     print("Completed!\n", flush=True)
-    ################################
 
+    ################################
     return (regionsSampsFinal, imds_correctedFinal)

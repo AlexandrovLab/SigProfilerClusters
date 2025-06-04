@@ -1,0 +1,8 @@
+project	samples	ID	genome	mutType	chr	start	end	ref	alt	mutClass	IMDplot	IMD	VAF/CCF
+standard	standard	.	GRCh37	SNP	1	255000	255000	G	T	SOMATIC	c	1	0.5455
+standard	standard	.	GRCh37	SNP	1	255001	255001	A	C	SOMATIC	1	1	0.5385
+standard	standard	.	GRCh37	SNP	1	255002	255002	C	T	SOMATIC	1	1	0.5385
+standard	standard	.	GRCh37	SNP	1	255003	255003	A	C	SOMATIC	1	1	0.5385
+standard	standard	.	GRCh37	SNP	1	260000	260000	A	C	SOMATIC	4997	1	0.625
+standard	standard	.	GRCh37	SNP	1	260001	260001	G	C	SOMATIC	1	1	0.625
+standard	standard	.	GRCh37	SNP	1	260002	260002	A	T	SOMATIC	1	1	0.5

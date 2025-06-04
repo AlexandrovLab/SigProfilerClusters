@@ -1,0 +1,12 @@
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+1	255000	.	G	T	.	.	Callers=broad,dkfz,muse,sanger;NumCallers=4;VAF=0.5455;t_alt_count=6;t_ref_count=5;Variant_Classification=intergenic
+1	255001	.	A	C	.	.	Callers=broad,dkfz,muse,sanger;NumCallers=4;VAF=0.5385;t_alt_count=7;t_ref_count=6;Variant_Classification=intergenic
+1	255002	.	C	T	.	.	Callers=broad,dkfz,muse,sanger;NumCallers=4;VAF=0.5385;t_alt_count=7;t_ref_count=6;Variant_Classification=intergenic
+1	255003	.	A	C	.	.	Callers=broad,dkfz,muse,sanger;NumCallers=4;VAF=0.5385;t_alt_count=7;t_ref_count=6;Variant_Classification=intergenic
+1	260000	.	A	C	.	.	Callers=broad,dkfz,muse,sanger;NumCallers=4;VAF=0.625;t_alt_count=5;t_ref_count=3;Variant_Classification=exonic
+1	260001	.	G	C	.	.	Callers=broad,dkfz,muse,sanger;NumCallers=4;VAF=0.625;t_alt_count=5;t_ref_count=3;Variant_Classification=exonic
+1	260002	.	A	T	.	.	Callers=broad,dkfz,muse,sanger;NumCallers=4;VAF=0.5;t_alt_count=5;t_ref_count=5;Variant_Classification=exonic
+1	260004	.	A	T	.	.	Callers=broad,dkfz,muse,sanger;NumCallers=4;VAF=0.6364;t_alt_count=7;t_ref_count=4;Variant_Classification=exonic
+1	260006	.	T	A	.	.	Callers=broad,dkfz,muse,sanger;NumCallers=4;VAF=0.5714;t_alt_count=8;t_ref_count=6;Variant_Classification=exonic
+1	260008	.	T	C	.	.	Callers=broad,dkfz,muse,sanger;NumCallers=4;VAF=0.5625;t_alt_count=9;t_ref_count=7;Variant_Classification=exonic
+1	260010	.	G	A	.	.	Callers=broad,dkfz,muse,sanger;NumCallers=4;VAF=0.5556;t_alt_count=10;t_ref_count=8;Variant_Classification=exonic
