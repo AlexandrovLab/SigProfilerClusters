@@ -111,7 +111,7 @@ def run_analysis_for_variant_callers_separate_steps(
         print(f"Comparing output for {caller}...")
         output_file = os.path.join(
             base_path,
-            "input_vcf",
+            "input_vcf_sim",
             caller,
             "output",
             "vcf_files_corrected",
