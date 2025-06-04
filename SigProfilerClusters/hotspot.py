@@ -2201,8 +2201,38 @@ def hotSpotAnalysis(
         ) as handle:
             upper_CIs_refinedFinal = pickle.load(handle)
     ############################################################################################################
-    # if any sample has any issue during the generation of the IMD plot, skip that sample and move to the next sample
     # Recollect samples names
+    if contexts == "96":
+        with open(
+            ref_dir
+            + "output/vcf_files"
+            + path_suffix
+            + "/"
+            + project
+            + "_clustered/SNV/output/SBS/"
+            + project
+            + "_clustered.SBS6.all"
+        ) as f:
+            first_line = f.readline()
+            samples = first_line.strip().split()
+            samples = samples[1:]
+    elif contexts == "INDEL" or contexts == "ID":
+        with open(
+            ref_dir
+            + "output/vcf_files"
+            + path_suffix
+            + "/"
+            + project
+            + "_clustered/INDEL/output/ID/"
+            + project
+            + "_clustered.ID83.all"
+        ) as f:
+            first_line = f.readline()
+            samples = first_line.strip().split()
+            samples = samples[1:]
+    ################################
+    # Generate the IMD/spectra plots
+    ################################
     if plotIMDfigure:
         if exome:
             simContext += "_exome"
